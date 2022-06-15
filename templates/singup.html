@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}Регистрация{% endblock %}
+
+{% block content -%}
+    <h1>Регистрация</h1>
+    <form method="post" action="/signup">
+        <label for="login">Логин: </label>
+        <input type="text" name="login" id="login" required value="{{ login }}"/><br/>
+
+        <label for="password">Пароль: </label>
+        <input type="password" name="password" id="password" required value="{{ password }}"/><br/>
+
+        <label for="password2">Повторите пароль: </label>
+        <input type="password" name="password2" id="password2" required value = "{{ password2 }}"/><br/>
+
+        <label for="keyword">Ключевое слово (Нужно для восстановления пароля): </label>
+        <input type="text" name="keyword" id="keyword" required value="{{ keyword }}"/><br/>
+
+        <input type="submit" value="Зарегистрироваться"/>
+    </form>
+{% endblock %}

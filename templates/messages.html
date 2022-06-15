@@ -1,0 +1,14 @@
+<div class="messages-container">
+    {% for i in messages %}
+        <div class="message message-{{ 'sended' if i.from_ == user else 'recved' }}">
+            {{ i.text }}
+        </div>
+    {% endfor %}
+
+    {% if not messages %}
+    <div class="message message-system">Пока нет сообщений</div>
+    <div class="message message-system">Это системное сообщение</div>
+    <div class="message message-sended">Так будут выглядеть отправленные сообщения</div>
+    <div class="message message-recved">А так - полученные</div>
+    {% endif %}
+</div>

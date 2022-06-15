@@ -1,0 +1,104 @@
+.flash {
+    font-size: 0.8em;
+}
+
+.flash-success {
+    color: green;
+}
+
+.flash-error {
+    color: red;
+}
+
+.flash-warning {
+    color: yellow;
+}
+
+.message {
+    min-width: 250px;
+    max-width: 500px;
+    width: fit-content;
+
+    min-height: 10px;
+    height: fit-content;
+
+    border-radius: 8px;
+    padding: 10px;
+
+    margin: 10px;
+}
+
+.message-sended {
+    text-align: right;
+    background-color: aqua;
+    margin-left: auto;
+}
+
+.message-recved {
+    text-align: left;
+    background-color: #84e24a;
+    margin-right: auto;
+}
+
+.message-system {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: #de52ff;
+}
+
+.btn-send-message {
+}
+
+.messages-container {
+    width: 60%;
+    border: 1px solid black;
+    margin-left: auto;
+    margin-right: auto;
+    overflow-y: scroll;
+    max-height: 500px;
+}
+
+.form-message {
+    margin-right: auto;
+    margin-left: auto;
+    width: 60%;
+    margin-top: 5px;
+}
+
+.center {
+    text-align: center;
+}
+
+.dialog {
+    border: 2px solid black;
+    background-color: #efff5f;
+    min-height: 30px;
+}
+
+.dialog a {
+    display: block;
+    padding: 10px;
+    text-decoration: none;
+
+    color: inherit;
+}
+
+.dialog-a:hover {
+    background-color: #efff26 !important;
+}
+
+.dialogs-container {
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+    border: 1px solid black;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+#form-new-dialog {
+    display: none;
+    margin: 10px auto;
+    width: 100%;
+}

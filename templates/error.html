@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block title %}Главная{% endblock %}
+
+{% block content -%}
+    <h1>Произошла ошибка!</h1>
+    {% if error_message -%}
+        <p>{{ error_message }}</p>
+    {% else -%}
+        <p>Текст ошибки не предоставлен</p>
+    {%- endif -%}
+
+{% endblock %}
