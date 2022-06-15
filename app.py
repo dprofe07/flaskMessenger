@@ -36,7 +36,6 @@ def index():
 
 @app.route('/logout')
 def logout():
-    print('YES')
     resp = redirect('/')
     User.remove_from_cookies(resp)
     return resp
@@ -234,8 +233,16 @@ def get_messages_div(login):
     )
 
     messages.sort(key=lambda i: i.time)
-    a = render_template('messages.html', user=curr_user, dialoged=dialoged_user, messages=messages)
+    a = render_template('messages-div.html', user=curr_user, dialoged=dialoged_user, messages=messages)
     return a
+
+
+@app.route('/get-dialogs-div')
+def get_dialogs_div():
+    user = User.get_from_cookies(request, db_data)
+    dialoged = user.get_dialoged(db_data)
+
+    return render_template('dialogs-div.html', dialoged=dialoged)
 
 
 if __name__ == '__main__':

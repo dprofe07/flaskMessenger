@@ -10,33 +10,23 @@
         <p><a href="{{ url_for('remove_account') }}">Удалить аккаунт</a></p>
         <p><a href="{{ url_for('change_password') }}">Сменить пароль</a></p>
         <h3 class="center">Диалоги</h3>
-        <div class="dialogs-container">
-            {% for i in dialoged %}
-                <div class="dialog">
-                    <a class="dialog-a" href="/dialog-to/{{ i.login }}">Пользователь {{ user.aliases.get(i.login, i.login) }}</a>
-                </div>
-            {% endfor %}
-            <div class="dialog">
-                <a href="javascript:show_form()" style="font-size: 2em; color: #8b9536" class="center dialog-a" id="plus">+</a>
-                <div id="form-new-dialog">
-                    <form action="/new-dialog" method="post">
-                    <label for="login">Логин собеседника: </label>
-                    <input type="text" name="login_to"/>
-                    <input type="submit" value="Создать"/>
-                </form>
-                </div>
 
-            </div>
-        </div>
+        {% include 'dialogs-div.html' %}
 
         <script lang="javascript">
-        function show_form() {
-            let a_plus = document.getElementById('plus');
-            a_plus.style.display = "none";
-            let form = document.getElementById('form-new-dialog');
-            form.style.display = "block";
-        }
-    </script>
+            function show_form() {
+                let a_plus = document.getElementById('plus');
+                a_plus.style.display = "none";
+                let form = document.getElementById('form-new-dialog');
+                form.style.display = "block";
+            }
+
+            async function reload_div() {
+                let div = document.getElementsByClassName('dialogs-container')[0];
+                div.outerHTML = await(await fetch('/get-dialogs-div')).text();
+            }
+            setInterval(reload_div, 10000);
+        </script>
     {% else -%}
         <h1>Мессенджер</h1>
         <h2>Вы не авторизировались</h2>

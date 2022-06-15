@@ -1,0 +1,17 @@
+<div class="dialogs-container">
+    {% for i in dialoged %}
+        <div class="dialog">
+            <a class="dialog-a" href="/dialog-to/{{ i.login }}">Пользователь {{ user.aliases.get(i.login, i.login) }}</a>
+        </div>
+    {% endfor %}
+    <div class="dialog">
+        <a href="javascript:show_form()" style="font-size: 2em; color: #8b9536" class="center dialog-a" id="plus">+</a>
+        <div id="form-new-dialog">
+            <form action="/new-dialog" method="post">
+            <label for="login">Логин собеседника: </label>
+            <input type="text" name="login_to"/>
+            <input type="submit" value="Создать"/>
+        </form>
+        </div>
+    </div>
+</div>
