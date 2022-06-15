@@ -227,17 +227,22 @@ def new_dialog():
 def get_messages_div(login):
     curr_user = User.get_from_cookies(request, db_data)
     dialoged_user = User.find_by_login(login, db_data)
+    if dialoged_user is None:
+        return (f'''
+            <div class="messages-container">
+                <div class="message-system">
+                    Ошибка! Не удалось найти пользователя с логином {login}.
+                </div>
+            </div>
+        ''')
     messages = (
             Message.get_messages_between(curr_user.login, dialoged_user.login, db_data) +
             Message.get_messages_between(dialoged_user.login, curr_user.login, db_data)
     )
 
     messages.sort(key=lambda i: i.time)
-    try:
-        a = render_template('messages-div.html', user=curr_user, dialoged=dialoged_user, messages=messages)
-    except AttributeError:
-        flash(f'Не удалось найти пользователя с логином {login}.', 'error')
-        a = redirect('/')
+    a = render_template('messages-div.html', user=curr_user, dialoged=dialoged_user, messages=messages)
+
     return a
 
 

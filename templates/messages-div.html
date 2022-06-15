@@ -1,6 +1,6 @@
 <div class="messages-container">
     {% for i in messages %}
-        <div class="message message-{{ 'sended' if i.from_ == user else 'recved' }}">
+        <div class="message message-{{ 'sended' if i.from_ == user else ('system' if i.from_.login == 'SYSTEM' else 'recved') }}">
             {{ i.text }}
         </div>
     {% endfor %}
