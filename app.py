@@ -233,7 +233,11 @@ def get_messages_div(login):
     )
 
     messages.sort(key=lambda i: i.time)
-    a = render_template('messages-div.html', user=curr_user, dialoged=dialoged_user, messages=messages)
+    try:
+        a = render_template('messages-div.html', user=curr_user, dialoged=dialoged_user, messages=messages)
+    except AttributeError:
+        flash(f'Не удалось найти пользователя с логином {login}.', 'error')
+        a = redirect('/')
     return a
 
 
@@ -241,8 +245,9 @@ def get_messages_div(login):
 def get_dialogs_div():
     user = User.get_from_cookies(request, db_data)
     dialoged = user.get_dialoged(db_data)
-
     return render_template('dialogs-div.html', dialoged=dialoged, user=user)
+
+
 
 
 if __name__ == '__main__':
