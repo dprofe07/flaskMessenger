@@ -220,7 +220,7 @@ def new_dialog():
     if user_to is None:
         flash(f'Пользователь с логином {login} не найден', 'error')
         return redirect('/')
-    flash('Собеседник будет отображен только после написания сообщений')
+    flash('Собеседник будет отображен в ваших диалогах только после написания сообщений')
     return redirect(f'/dialog-to/{login}')
 
 
