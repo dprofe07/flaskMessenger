@@ -242,7 +242,7 @@ def get_dialogs_div():
     user = User.get_from_cookies(request, db_data)
     dialoged = user.get_dialoged(db_data)
 
-    return render_template('dialogs-div.html', dialoged=dialoged)
+    return render_template('dialogs-div.html', dialoged=dialoged, user=user)
 
 
 if __name__ == '__main__':
