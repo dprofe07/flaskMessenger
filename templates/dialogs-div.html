@@ -1,7 +1,7 @@
 <div class="need-update">
-    {% for i in dialoged %}
+    {% for i in chats %}
         <div class="dialog">
-            <a class="dialog-a" href="/dialog-to/{{ i.login }}">Пользователь {{ user.aliases.get(i.login, i.login) }}</a>
+            <a class="dialog-a" href="/chat/{{ i.id }}">{{ i.name }} [{{ ', '.join(i.members) }}]</a>
         </div>
     {% endfor %}
 </div>

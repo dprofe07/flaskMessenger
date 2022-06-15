@@ -56,7 +56,7 @@
     margin-left: auto;
     margin-right: auto;
     overflow-y: scroll;
-    max-height: 500px;
+    max-height: 400px;
 }
 
 .form-message {
@@ -95,10 +95,18 @@
     border: 1px solid black;
     padding-top: 5px;
     padding-bottom: 5px;
+    overflow-y: scroll;
+    max-height: 250px;
 }
 
 #form-new-dialog {
     display: none;
     margin: 10px auto;
     width: 100%;
+}
+
+.message-sender {
+    font-size: 0.8em;
+    margin: 0;
+    color: chocolate;
 }

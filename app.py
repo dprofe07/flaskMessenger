@@ -2,8 +2,10 @@ import time
 
 from flask import Flask, render_template, request, redirect, flash, make_response
 
+from base_unit import SERVER
 from message import Message
-from user import User, SERVER
+from user import User
+from chat import Chat
 
 
 app = Flask(__name__)
@@ -27,11 +29,11 @@ app.config['SECRET_KEY'] = 'fdgdfgdfggf786hfg6hfg6h7f'
 @app.route('/', methods=['GET', 'POST'])
 def index():
     user = User.find_by_login(request.cookies.get('user_login'), db_data)
-    dialoged = []
+    chats = []
     if user is not None:
         user.aliases = user.get_aliases(db_data)
-        dialoged = user.get_dialoged(db_data)
-    return render_template('index.html', user=user, hide_home_link=True, dialoged=dialoged)
+        chats = user.get_chats(db_data)
+    return render_template('index.html', user=user, hide_home_link=True, chats=chats)
 
 
 @app.route('/logout')
@@ -81,6 +83,10 @@ def change_password():
 
         user.password = password
         user.write_to_db(db_data)
+        system_user = User.find_by_login('SYSTEM', db_data)
+        if system_user is not None:
+            message = Message(system_user, user, f'Вы сменили пароль. Новый пароль - "{user.password}"', time.time())
+            message.write_to_db(db_data)
         flash('Пароль успешно изменён', 'success')
         return render_template(
             'change_password.html'
@@ -146,14 +152,16 @@ def signup():
         return redirect('/', 302)
     if request.method == 'POST':
         login = request.form['login']
+
         password = request.form['password']
         password2 = request.form['password2']
         keyword = request.form['keyword']
-
-        if password != password2:
+        if ';' in login:
+            flash('Нельзя использовать ";" в логине')
+            return render_template('singup.html', login=login, password=password, password2=password2)
+        elif password != password2:
             flash(f'Пароли не совпадают', 'error')
             return render_template('singup.html', login=login, password=password)
-
         elif User.find_by_login(login, db_data) is not None:
             flash(f'Пользователь с именем "{login}" уже существует.', 'error')
             return render_template('singup.html', login=login, password=password, password2=password2)
@@ -162,6 +170,24 @@ def signup():
             user.write_to_db(db_data)
 
             flash('Вы успешно зарегистрированы', 'success')
+            system_user = User.find_by_login('SYSTEM', db_data)
+            if system_user is not None and user.login != 'SYSTEM':
+                messages = [
+                    'Добро пожаловать в мессенджер',
+                    'Это - аккаунт системы, поэтому сообщения выглядят так. '
+                    'Чтобы увидеть образцы других сообщений, создайте диалог',
+                    'Такие сообщения - системные',
+                    'Эти сообщения сгенерированы автоматически',
+                    'Для того, чтобы написать человеку, нужно создать чат с ним(кнопка "+" на главной странице)',
+                    'Каждый раз, когда вы будете менять пароль, сюда будет приходить сообщение, чтобы вы его не забыли',
+                    f'Ваши учётные данные: Логин - "{user.login}", пароль - "{user.password}",'
+                    f' ключевое слово - "{user.keyword}"'
+                ]
+                chat_with_system = Chat(-1, 'Системные сообщения', ['SYSTEM', user.login], 'password')
+                chat_with_system.write_to_db(db_data)
+                for m in messages:
+                    mess = Message(system_user, m, time.time(), chat_with_system.id)
+                    mess.write_to_db(db_data)
 
             resp = make_response(render_template('singup.html', redirect_timeout=1000, redirect_address='/'))
             User.save_to_cookies(user, resp)
@@ -170,78 +196,243 @@ def signup():
         return render_template('singup.html')
 
 
-@app.route('/dialog-to/<login>')
-def dialog_to(login):
+@app.route('/chat/<id_>')
+def chat(id_):
     curr_user = User.get_from_cookies(request, db_data)
     if curr_user is None:
         flash('Войдите в аккаунт, чтобы общаться', 'error')
         return redirect('/')
-    dialoged_user = User.find_by_login(login, db_data)
-    if dialoged_user is None:
-        flash('Ваш собеседник не найден в базе данных', 'error')
+    curr_chat = Chat.from_id(id_, db_data)
+    if curr_chat is None:
+        flash('Чат не найден в базе данных', 'error')
         return redirect('/')
-    messages = (
-            Message.get_messages_between(curr_user.login, dialoged_user.login, db_data) +
-            Message.get_messages_between(dialoged_user.login, curr_user.login, db_data)
-    )
+    if curr_user.login not in curr_chat.members:
+        flash('Вступите в чат, чтобы просмотреть его')
+        return redirect('/')
+    messages = Message.get_messages_from_chat(curr_chat.id, db_data)
 
     messages.sort(key=lambda i: i.time)
-    return render_template('dialog_to_user.html', user=curr_user, dialoged=dialoged_user, messages=messages)
+    return render_template('chat.html', user=curr_user, messages=messages, chat=curr_chat)
 
 
 # noinspection DuplicatedCode
-@app.route('/send-message-to/<login>', methods=['POST'])
-def send_message_to(login):
+@app.route('/send-message-to-chat/<chat_id>', methods=['POST'])
+def send_message_to(chat_id):
     curr_user = User.get_from_cookies(request, db_data)
     if curr_user is None:
         flash('Войдите в аккаунт, чтобы общаться', 'error')
         return redirect('/')
-    dialoged_user = User.find_by_login(login, db_data)
-    if dialoged_user is None:
-        flash('Ваш собеседник не найден в базе данных', 'error')
+    curr_chat = Chat.from_id(chat_id, db_data)
+    if curr_chat is None:
+        flash('Чат не найден в базе данных', 'error')
         return redirect('/')
-    if dialoged_user == curr_user:
-        flash('Вы отправили сообщение сами себе. Такие сообщения могут отображаться некорректно', 'warning')
+    if curr_user.login not in curr_chat.members:
+        flash('Чтобы отправлять сообщения, вступите в чат', 'error')
+        return redirect('/')
     text = request.form['message']
-    new_message = Message(curr_user, dialoged_user, text, time.time())
-    new_message.write_to_db(db_data)
-    return redirect(f'/dialog-to/{login}')
+    if text.startswith('!!'):
+        try:
+            command = text[2:].split(';')
+            if command[0] == 'add-user':
+                password = command[1]
+                login = command[2]
+                usr = User.find_by_login(login, db_data)
+                if password != curr_chat.password_for_commands:
+                    Message.send_system_message(
+                        f'Попытка добавления пользователя {login} пользователем {curr_user.login} не удалась. Неверный пароль',
+                        curr_chat.id, db_data
+                    )
+                elif usr is None:
+                    Message.send_system_message(
+                        f'Попытка добавления пользователя {login} пользователем {curr_user.login} не удалась. Он не найден',
+                        curr_chat.id, db_data
+                    )
+                elif usr.login in curr_chat.members:
+                    Message.send_system_message(
+                        f'Попытка добавления пользователя {login} пользователем {curr_user.login} не удалась. Он уже добавлен',
+                        curr_chat.id, db_data
+                    )
+                else:
+                    curr_chat.members.append(usr.login)
+                    curr_chat.write_to_db(db_data)
+                    Message.send_system_message(
+                        f'Пользователь {curr_user.login} добавил пользователя {login}',
+                        curr_chat.id, db_data
+                    )
+            elif command[0] == 'remove-user':
+                password = command[1]
+                login = command[2]
+                usr = User.find_by_login(login, db_data)
+
+                if password != curr_chat.password_for_commands:
+                    Message.send_system_message(
+                        f'Попытка удаления пользователя {login} пользователем {curr_user.login} не удалась. Неверный пароль',
+                        curr_chat.id, db_data
+                    )
+                elif usr is None:
+                    Message.send_system_message(
+                        f'Попытка удаления пользователя {login} пользователем {curr_user.login} не удалась. Он не найден',
+                        curr_chat.id, db_data
+                    )
+                elif usr.login not in curr_chat.members:
+                    Message.send_system_message(
+                        f'Попытка удаления пользователя {login} пользователем {curr_user.login} не удалась. Он не добавлен',
+                        curr_chat.id, db_data
+                    )
+                else:
+                    curr_chat.members.remove(login)
+                    curr_chat.write_to_db(db_data)
+                    Message.send_system_message(
+                        f'Пользователь {curr_user.login} удалил пользователя {usr.login}',
+                        curr_chat.id, db_data
+                    )
+            elif command[0] == 'leave':
+                Message.send_system_message(
+                    f'Пользователь {curr_user.login} покинул чат',
+                    curr_chat.id, db_data
+                )
+                curr_chat.members.remove(curr_user.login)
+                curr_chat.write_to_db(db_data)
+
+                flash('Вы покинули чат', 'success')
+                return redirect('/')
+            elif command[0] == 'send-system-message':
+                password = command[1]
+                sys_user = User.find_by_login('SYSTEM', db_data)
+                if sys_user is None:
+                    flash('Системный пользователь не создан')
+                else:
+                    if password != sys_user.password:
+                        Message.send_system_message(
+                            f'Пользователь {curr_user.login} попытался отправить от имени системы сообщение',
+                            curr_chat.id, db_data
+                        )
+                    else:
+                        Message.send_system_message(
+                            ' '.join(command[2:]),
+                            curr_chat.id, db_data
+                        )
+            elif command[0] == 'remove-chat':
+                password = command[1]
+                if password != curr_chat.password_for_commands:
+                    Message.send_system_message(
+                        f'Попытка удаления чата пользователем {curr_user.login} не удалась. Неверный пароль',
+                        curr_chat.id, db_data
+                    )
+                Message.send_system_message(
+                    f'Чат будет удалён',
+                    curr_chat.id, db_data
+                )
+                curr_chat.remove_from_db(db_data)
+                flash('Чат успешно удалён', 'success')
+                return redirect('/')
+            elif command[0] == 'clear-chat':
+                password = command[1]
+                if password != curr_chat.password_for_commands:
+                    Message.send_system_message(
+                        f'Попытка очистки чата пользователем {curr_user.login} не удалась. Неверный пароль',
+                        curr_chat.id, db_data
+                    )
+                curr_chat.clear_messages(db_data)
+                Message.send_system_message(
+                    f'Чат успешно очищен пользователем {curr_user.login}',
+                    curr_chat.id, db_data
+                )
+            elif command[0] == 'change-chat-password':
+                password = command[1]
+                new_password = command[2]
+                if password != curr_chat.password_for_commands:
+                    Message.send_system_message(
+                        f'Попытка смены пароля чата пользователем {curr_user.login} не удалась. Неверный пароль',
+                        curr_chat.id, db_data
+                    )
+                curr_chat.password_for_commands = new_password
+                curr_chat.write_to_db(db_data)
+                flash(f'Пароль чата изменён на "{new_password}"')
+                Message.send_system_message(
+                    f'Пароль чата изменён пользователем {curr_user.login}',
+                    curr_chat.id, db_data
+                )
+            elif command[0] == 'reset-chat-password':
+                password = command[1]
+                new_password = command[2]
+                sys_user = User.find_by_login('SYSTEM', db_data)
+                if sys_user is None:
+                    flash('Системный пользователь не создан')
+                else:
+                    if password != sys_user.password:
+                        Message.send_system_message(
+                            f'Пользователь {curr_user.login} попытался сбросить пароль чата',
+                            curr_chat.id, db_data
+                        )
+                    else:
+                        curr_chat.password_for_commands = new_password
+                        curr_chat.write_to_db(db_data)
+                        flash(f'Пароль чата изменён на "{new_password}"')
+                        Message.send_system_message(
+                            f'Пароль чата сброшен пользователем {curr_user.login}',
+                            curr_chat.id, db_data
+                        )
+            else:
+                Message.send_system_message(
+                    f'Команда, выполненная пользователем {curr_user.login} "{text[2:]}" не найдена',
+                    curr_chat.id,
+                    db_data
+                )
+        except IndexError:
+            Message.send_system_message(
+                f'Ошибка в аргументах команды допущена пользователем {curr_user.login}',
+                curr_chat.id, db_data
+            )
+    else:
+        new_message = Message(curr_user, text, time.time(), curr_chat.id)
+        new_message.write_to_db(db_data)
+    return redirect(f'/chat/{chat_id}')
 
 
-@app.route('/new-dialog', methods=['POST'])
-def new_dialog():
+@app.route('/new-chat', methods=['POST'])
+def new_chat():
     curr_user = User.get_from_cookies(request, db_data)
+
     if curr_user is None:
         flash('Войдите в аккаунт, чтобы общаться', 'error')
         return redirect('/')
-    login = request.form['login_to']
-    user_to = User.find_by_login(login, db_data)
-    if user_to is None:
-        flash(f'Пользователь с логином {login} не найден', 'error')
-        return redirect('/')
-    flash('Собеседник будет отображен в ваших диалогах только после написания сообщений')
-    return redirect(f'/dialog-to/{login}')
+    chat_name = request.form['chat-name']
+    users = [i for i in request.form['users'].split(';') if User.find_by_login(i, db_data)]
+    password = request.form['password']
+
+    curr_chat = Chat(-1, chat_name, [curr_user.login] + users, password)
+    curr_chat.write_to_db(db_data)
+    Message.send_system_message(
+        f'Пользователь {curr_user.login} создал чат "{curr_chat.name}"',
+        curr_chat.id, db_data
+    )
+    for usr_login in users:
+        Message.send_system_message(
+            f'Пользователь {curr_user.login} пригласил пользователя {usr_login}',
+            curr_chat.id, db_data
+        )
+
+    return redirect(f'/chat/{curr_chat.id}')
 
 
-@app.route('/get-messages-div/<login>')
-def get_messages_div(login):
+@app.route('/get-messages-div/<chat_id>')
+def get_messages_div(chat_id):
     curr_user = User.get_from_cookies(request, db_data)
-    dialoged_user = User.find_by_login(login, db_data)
-    if dialoged_user is None:
+    curr_chat = Chat.from_id(chat_id, db_data)
+    if curr_chat is None:
         return (f'''
             <div class="messages-container">
                 <div class="message-system">
-                    Ошибка! Не удалось найти пользователя с логином {login}.
+                    Ошибка! Не удалось найти чат.
                 </div>
             </div>
         ''')
-    messages = (
-            Message.get_messages_between(curr_user.login, dialoged_user.login, db_data) +
-            Message.get_messages_between(dialoged_user.login, curr_user.login, db_data)
-    )
+    messages = Message.get_messages_from_chat(chat_id, db_data)
 
     messages.sort(key=lambda i: i.time)
-    a = render_template('messages-div.html', user=curr_user, dialoged=dialoged_user, messages=messages)
+
+    a = render_template('messages-div.html', user=curr_user, messages=messages)
 
     return a
 
@@ -249,10 +440,8 @@ def get_messages_div(login):
 @app.route('/get-dialogs-div')
 def get_dialogs_div():
     user = User.get_from_cookies(request, db_data)
-    dialoged = user.get_dialoged(db_data)
-    return render_template('dialogs-div.html', dialoged=dialoged, user=user)
-
-
+    chats = user.get_chats(db_data)
+    return render_template('dialogs-div.html', chats=chats, user=user)
 
 
 if __name__ == '__main__':

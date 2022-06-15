@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Чат {{ chat.name }}{% endblock %}
+
+{% block content -%}
+
+    <h1>Чат {{ chat.name }}</h1>
+    <h2>Вы вошли как {{ user.login }}</h2>
+
+    <p>Некоторые команды:</p>
+    <ul>
+        <li>!!<i>add-user</i>;<b>&lt;password&gt;</b>;<b>&lt;login&gt;</b> - добавить пользователя <b>&lt;login&gt;</b> в чат. Требуется пароль чата</li>
+        <li>!!<i>remove-user</i>;<b>&lt;password&gt;</b>;<b>&lt;login&gt;</b> - удалить пользователя <b>&lt;login&gt;</b> из чата. Требуется пароль чата</li>
+        <li>!!<i>leave</i> - Покинуть чат. Внимание, если все покинут чат, он будет удалён!</li>
+        <li>!!<i>send-system-message</i>;<b>&lt;system-password&gt;</b> - Отправить системное сообщение в чат. Требуется пароль системного пользователя.</li>
+        <li>!!<i>remove-chat</i>;<b>&lt;password&gt;</b> - Удалить чат. Требуется пароль чата</li>
+        <li>!!<i>clear-chat</i>;<b>&lt;password&gt;</b> - Очистить чат. Требуется пароль чата</li>
+        <li>!!<i>change-chat-password</i>;<b>&lt;old_password&gt;</b>;<b>&lt;new_password&gt;</b> - Сменить пароль чата. Требуется пароль чата</li>
+        <li>!!<i>reset-chat-password</i>;<b>&lt;system-password&gt;</b>;<b>&lt;new_password&gt;</b> - Сбросить пароль чата. Требуется пароль системного пользователя</li>
+    </ul>
+
+    {% include 'messages-div.html' %}
+
+
+    <form class="form-message" method="post" action="/send-message-to-chat/{{ chat.id }}">
+        <div style="display: table; width: 100%">
+            <span style="display: table-cell; width: 100%; overflow: hidden">
+                <!--suppress HtmlFormInputWithoutLabel -->
+                <input style="width: 100%;" type="text" name="message" placeholder="Сообщение..." required autocomplete="off"/>
+            </span>
+
+            <input style="display: table-cell" type="submit" value=">" class="btn-send-message" autocomplete="off"/>
+        </div>
+
+    </form>
+
+    <script lang="javascript">
+        async function reload_page() {
+            let data = await(await fetch("/get-messages-div/{{ chat.id }}")).text();
+
+            let div = document.getElementsByClassName("messages-container")[0];
+
+            let a = div.scrollTop;
+            div.outerHTML = data;
+            setTimeout(function() {document.getElementsByClassName("messages-container")[0].scrollTop = a;}, 0);
+
+        }
+        setTimeout(function() {document.getElementsByClassName("messages-container")[0].scrollTop = document.getElementsByClassName("messages-container")[0].scrollHeight;}, 0);
+        reload_page()
+        setInterval(reload_page, 10000);
+    </script>
+{% endblock %}
