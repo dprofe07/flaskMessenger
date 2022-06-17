@@ -1,7 +1,11 @@
 <div class="need-update">
     {% for i in chats %}
         <div class="dialog">
-            <a class="dialog-a" href="/chat/{{ i.id }}">{{ i.name }} [{{ ', '.join(i.members) }}]</a>
+            {% if 'DIALOG_BETWEEN' not in i.name %}
+                <a class="dialog-a" href="/chat/{{ i.id }}">{{ i.name }} [{{ ', '.join(i.members) }}]</a>
+            {% else %}
+                <a class="dialog-a" href="/chat/{{ i.id }}">Диалог с {{ i.name.replace('DIALOG_BETWEEN/', '').replace(user.login, '', 1).replace('-', '') }}</a>
+            {% endif %}
         </div>
     {% endfor %}
 </div>

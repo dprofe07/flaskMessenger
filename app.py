@@ -236,20 +236,26 @@ def send_message_to(chat_id):
             if command[0] == 'add-user':
                 password = command[1]
                 login = command[2]
+                Message(
+                    curr_user,
+                    text.replace(password, '<HIDDEN>'),
+                    time.time(),
+                    curr_chat.id
+                ).write_to_db(db_data)
                 usr = User.find_by_login(login, db_data)
                 if password != curr_chat.password_for_commands:
                     Message.send_system_message(
-                        f'Попытка добавления пользователя {login} пользователем {curr_user.login} не удалась. Неверный пароль',
+                        f'Неверный пароль',
                         curr_chat.id, db_data
                     )
                 elif usr is None:
                     Message.send_system_message(
-                        f'Попытка добавления пользователя {login} пользователем {curr_user.login} не удалась. Он не найден',
+                        f'Пользователь не найден',
                         curr_chat.id, db_data
                     )
                 elif usr.login in curr_chat.members:
                     Message.send_system_message(
-                        f'Попытка добавления пользователя {login} пользователем {curr_user.login} не удалась. Он уже добавлен',
+                        f'Пользователь уже добавлен',
                         curr_chat.id, db_data
                     )
                 else:
@@ -262,31 +268,43 @@ def send_message_to(chat_id):
             elif command[0] == 'remove-user':
                 password = command[1]
                 login = command[2]
+                Message(
+                    curr_user,
+                    text.replace(password, '<HIDDEN>'),
+                    time.time(),
+                    curr_chat.id
+                ).write_to_db(db_data)
                 usr = User.find_by_login(login, db_data)
 
                 if password != curr_chat.password_for_commands:
                     Message.send_system_message(
-                        f'Попытка удаления пользователя {login} пользователем {curr_user.login} не удалась. Неверный пароль',
+                        f'Неверный пароль',
                         curr_chat.id, db_data
                     )
                 elif usr is None:
                     Message.send_system_message(
-                        f'Попытка удаления пользователя {login} пользователем {curr_user.login} не удалась. Он не найден',
+                        f'Пользователь {login} не найден',
                         curr_chat.id, db_data
                     )
                 elif usr.login not in curr_chat.members:
                     Message.send_system_message(
-                        f'Попытка удаления пользователя {login} пользователем {curr_user.login} не удалась. Он не добавлен',
+                        f'Пользователь не состоит в чате',
                         curr_chat.id, db_data
                     )
                 else:
                     curr_chat.members.remove(login)
                     curr_chat.write_to_db(db_data)
                     Message.send_system_message(
-                        f'Пользователь {curr_user.login} удалил пользователя {usr.login}',
+                        f'Пользователь {usr.login} удалён из чата',
                         curr_chat.id, db_data
                     )
             elif command[0] == 'leave':
+                Message(
+                    curr_user,
+                    text,
+                    time.time(),
+                    curr_chat.id
+                ).write_to_db(db_data)
                 Message.send_system_message(
                     f'Пользователь {curr_user.login} покинул чат',
                     curr_chat.id, db_data
@@ -300,11 +318,26 @@ def send_message_to(chat_id):
                 password = command[1]
                 sys_user = User.find_by_login('SYSTEM', db_data)
                 if sys_user is None:
-                    flash('Системный пользователь не создан')
+                    Message(
+                        curr_user,
+                        text.replace(password, '<HIDDEN>'),
+                        time.time(),
+                        curr_chat.id
+                    ).write_to_db(db_data)
+                    Message.send_system_message(
+                        'Системный пользователь не создан',
+                        curr_chat.id, db_data
+                    )
                 else:
                     if password != sys_user.password:
+                        Message(
+                            curr_user,
+                            text.replace(password, '<HIDDEN>'),
+                            time.time(),
+                            curr_chat.id
+                        ).write_to_db(db_data)
                         Message.send_system_message(
-                            f'Пользователь {curr_user.login} попытался отправить от имени системы сообщение',
+                            f'Неверный пароль',
                             curr_chat.id, db_data
                         )
                     else:
@@ -314,55 +347,85 @@ def send_message_to(chat_id):
                         )
             elif command[0] == 'remove-chat':
                 password = command[1]
+                Message(
+                    curr_user,
+                    text.replace(password, '<HIDDEN>'),
+                    time.time(),
+                    curr_chat.id
+                ).write_to_db(db_data)
                 if password != curr_chat.password_for_commands:
                     Message.send_system_message(
-                        f'Попытка удаления чата пользователем {curr_user.login} не удалась. Неверный пароль',
+                        f'Неверный пароль',
                         curr_chat.id, db_data
                     )
-                Message.send_system_message(
-                    f'Чат будет удалён',
-                    curr_chat.id, db_data
-                )
-                curr_chat.remove_from_db(db_data)
-                flash('Чат успешно удалён', 'success')
-                return redirect('/')
+                else:
+                    Message.send_system_message(
+                        f'Чат будет удалён',
+                        curr_chat.id, db_data
+                    )
+                    curr_chat.remove_from_db(db_data)
+                    flash('Чат успешно удалён', 'success')
+                    return redirect('/')
             elif command[0] == 'clear-chat':
                 password = command[1]
+                Message(
+                    curr_user,
+                    text.replace(password, '<HIDDEN>'),
+                    time.time(),
+                    curr_chat.id
+                ).write_to_db(db_data)
                 if password != curr_chat.password_for_commands:
                     Message.send_system_message(
-                        f'Попытка очистки чата пользователем {curr_user.login} не удалась. Неверный пароль',
+                        f'Неверный пароль',
                         curr_chat.id, db_data
                     )
-                curr_chat.clear_messages(db_data)
-                Message.send_system_message(
-                    f'Чат успешно очищен пользователем {curr_user.login}',
-                    curr_chat.id, db_data
-                )
+                else:
+                    curr_chat.clear_messages(db_data)
+                    Message.send_system_message(
+                        f'Чат успешно очищен пользователем {curr_user.login}',
+                        curr_chat.id, db_data
+                    )
             elif command[0] == 'change-chat-password':
                 password = command[1]
                 new_password = command[2]
+                Message(
+                    curr_user,
+                    text.replace(password, '<HIDDEN>').replace(new_password, '<HIDDEN>'),
+                    time.time(),
+                    curr_chat.id
+                ).write_to_db(db_data)
                 if password != curr_chat.password_for_commands:
                     Message.send_system_message(
-                        f'Попытка смены пароля чата пользователем {curr_user.login} не удалась. Неверный пароль',
+                        f'Неверный пароль',
                         curr_chat.id, db_data
                     )
-                curr_chat.password_for_commands = new_password
-                curr_chat.write_to_db(db_data)
-                flash(f'Пароль чата изменён на "{new_password}"')
-                Message.send_system_message(
-                    f'Пароль чата изменён пользователем {curr_user.login}',
-                    curr_chat.id, db_data
-                )
+                else:
+                    curr_chat.password_for_commands = new_password
+                    curr_chat.write_to_db(db_data)
+                    flash(f'Пароль чата изменён на "{new_password}"')
+                    Message.send_system_message(
+                        f'Пароль чата изменён',
+                        curr_chat.id, db_data
+                    )
             elif command[0] == 'reset-chat-password':
                 password = command[1]
                 new_password = command[2]
                 sys_user = User.find_by_login('SYSTEM', db_data)
+                Message(
+                    curr_user,
+                    text.replace(password, '<HIDDEN>').replace(new_password, '<HIDDEN>'),
+                    time.time(),
+                    curr_chat.id
+                ).write_to_db(db_data)
                 if sys_user is None:
-                    flash('Системный пользователь не создан')
+                    Message.send_system_message(
+                        'Системный пользователь не создан',
+                        curr_chat.id, db_data
+                    )
                 else:
                     if password != sys_user.password:
                         Message.send_system_message(
-                            f'Пользователь {curr_user.login} попытался сбросить пароль чата',
+                            f'Пароль неверен',
                             curr_chat.id, db_data
                         )
                     else:
@@ -370,18 +433,53 @@ def send_message_to(chat_id):
                         curr_chat.write_to_db(db_data)
                         flash(f'Пароль чата изменён на "{new_password}"')
                         Message.send_system_message(
-                            f'Пароль чата сброшен пользователем {curr_user.login}',
+                            f'Пароль чата сброшен',
                             curr_chat.id, db_data
                         )
+            elif command[0] == 'call-sys-user':
+                sys_user = User.find_by_login('SYSTEM', db_data)
+                Message(
+                    curr_user,
+                    text,
+                    time.time(),
+                    curr_chat.id
+                ).write_to_db(db_data)
+                if sys_user is None:
+                    Message.send_system_message(
+                        'Системный пользователь не создан',
+                        curr_chat.id, db_data
+                    )
+                else:
+                    curr_chat.members.append('SYSTEM')
+                    curr_chat.write_to_db(db_data)
+                    Message.send_system_message(
+                        f'Пользователь {curr_user.login} добавил системного пользователя в чат',
+                        curr_chat.id, db_data
+                    )
+            elif command[0] == 'chat-members':
+                Message(
+                    curr_user,
+                    text,
+                    time.time(),
+                    curr_chat.id
+                ).write_to_db(db_data)
+
+                Message.send_system_message(
+                    f'В чат входят пользователи: {"; ".join(curr_chat.members)}',
+                    curr_chat.id, db_data
+                )
             else:
                 Message.send_system_message(
-                    f'Команда, выполненная пользователем {curr_user.login} "{text[2:]}" не найдена',
+                    f'Команда не найдена',
                     curr_chat.id,
                     db_data
                 )
         except IndexError:
+            Message(
+                curr_user, text, time.time(), curr_chat.id
+            ).write_to_db(db_data)
             Message.send_system_message(
-                f'Ошибка в аргументах команды допущена пользователем {curr_user.login}',
+                f'Ошибка в аргументах команды',
                 curr_chat.id, db_data
             )
     else:
@@ -412,6 +510,28 @@ def new_chat():
             f'Пользователь {curr_user.login} пригласил пользователя {usr_login}',
             curr_chat.id, db_data
         )
+
+    return redirect(f'/chat/{curr_chat.id}')
+
+
+@app.route('/new-dialog', methods=['POST'])
+def new_dialog():
+    curr_user = User.get_from_cookies(request, db_data)
+
+    if curr_user is None:
+        flash('Войдите в аккаунт, чтобы общаться', 'error')
+        return redirect('/')
+    login = request.form['login']
+    if User.find_by_login(login, db_data) is None:
+        flash('Пользователь не найден', 'error')
+        return redirect('/')
+
+    curr_chat = Chat(-1, f'DIALOG_BETWEEN/{login}-{curr_user.login}', [curr_user.login, login], '')
+    curr_chat.write_to_db(db_data)
+    Message.send_system_message(
+        f'Пользователь {curr_user.login} создал диалог с пользователем {login}',
+        curr_chat.id, db_data
+    )
 
     return redirect(f'/chat/{curr_chat.id}')
 

@@ -41,23 +41,11 @@ class Message(BaseUnit):
         db_conn = self.connect_to_db(db_data)
         cur = db_conn.cursor()
 
-        print(f'''
-                SELECT * FROM messages WHERE Login_from = {self.from_.login!r} AND 
-                Message = {self.text!r} AND 
-                Time = {self.time}
-        ''')
-
-        print(f'''
-                        SELECT * FROM messages WHERE Login_from = {self.from_.login!r} AND 
-                        Message = {self.text!r} AND 
-                        Time = {self.time}
-                ''')
         cur.execute(f'''
                 SELECT * FROM messages WHERE Login_from = {self.from_.login!r} AND 
                 Message = {self.text!r} AND 
                 Time = {self.time}
         ''')
-
 
         if cur.fetchall():
             cur.execute(f'''

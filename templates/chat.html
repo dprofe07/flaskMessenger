@@ -1,24 +1,63 @@
 {% extends 'base.html' %}
 
-{% block title %}Чат {{ chat.name }}{% endblock %}
+{% block title %}
+    {%- if 'DIALOG_BETWEEN' not in chat.name -%}
+    Чат {{ chat.name }}
+    {%- else -%}
+        Диалог с {{ chat.name.replace('DIALOG_BETWEEN/', '').replace('-', '').replace(user.login, '', 1) }}
+    {%- endif -%}
+{%- endblock %}
+
 
 {% block content -%}
-
-    <h1>Чат {{ chat.name }}</h1>
+    {% if 'DIALOG_BETWEEN' not in chat.name %}
+        <h1>Чат {{ chat.name }}</h1>
+    {%- else -%}
+        <h1>Диалог с {{ chat.name.replace('DIALOG_BETWEEN/', '').replace('-', '').replace(user.login, '', 1) }}</h1>
+    {%- endif -%}
     <h2>Вы вошли как {{ user.login }}</h2>
 
-    <p>Некоторые команды:</p>
-    <ul>
-        <li>!!<i>add-user</i>;<b>&lt;password&gt;</b>;<b>&lt;login&gt;</b> - добавить пользователя <b>&lt;login&gt;</b> в чат. Требуется пароль чата</li>
-        <li>!!<i>remove-user</i>;<b>&lt;password&gt;</b>;<b>&lt;login&gt;</b> - удалить пользователя <b>&lt;login&gt;</b> из чата. Требуется пароль чата</li>
-        <li>!!<i>leave</i> - Покинуть чат. Внимание, если все покинут чат, он будет удалён!</li>
-        <li>!!<i>send-system-message</i>;<b>&lt;system-password&gt;</b> - Отправить системное сообщение в чат. Требуется пароль системного пользователя.</li>
-        <li>!!<i>remove-chat</i>;<b>&lt;password&gt;</b> - Удалить чат. Требуется пароль чата</li>
-        <li>!!<i>clear-chat</i>;<b>&lt;password&gt;</b> - Очистить чат. Требуется пароль чата</li>
-        <li>!!<i>change-chat-password</i>;<b>&lt;old_password&gt;</b>;<b>&lt;new_password&gt;</b> - Сменить пароль чата. Требуется пароль чата</li>
-        <li>!!<i>reset-chat-password</i>;<b>&lt;system-password&gt;</b>;<b>&lt;new_password&gt;</b> - Сбросить пароль чата. Требуется пароль системного пользователя</li>
-    </ul>
+    {% macro row(val1, val2) %}
+            <tr>
+                <td>{{ val1 | safe }}</td>
+                <td>{{ val2 | safe }}</td>
+            </tr>
+        {% endmacro %}
+    {% if 'DIALOG_BETWEEN' not in chat.name %}
+        <script>
+            function show_commands() {
+                document.getElementById('hidden-div').style.display="table";
+                document.getElementById('hidden-p').style.display="none";
+            }
+            function hide_commands() {
+                document.getElementById('hidden-div').style.display="none";
+                document.getElementById('hidden-p').style.display="inline";
+            }
+        </script>
+        <p id="hidden-p"><a href="javascript:show_commands()">Показать комманды чата</a></p>
+        <div style="display:none" id="hidden-div">
+            <p>Некоторые команды:</p>
 
+            <table>
+                {{ row("!!<i>add-user</i>;<b>&lt;password&gt;</b>;<b>&lt;login&gt;</b>", "- добавить пользователя <b>&lt;login&gt;</b> в чат. Требуется пароль чата") }}
+                {{ row("!!<i>remove-user</i>;<b>&lt;password&gt;</b>;<b>&lt;login&gt;</b>", "- удалить пользователя <b>&lt;login&gt;</b> из чата. Требуется пароль чата") }}
+                {{ row("!!<i>leave</i>", "- Покинуть чат. Внимание, если все покинут чат, он будет удалён!") }}
+                {{ row("!!<i>send-system-message</i>;<b>&lt;system-password&gt;</b>", "- Отправить системное сообщение в чат. Требуется пароль системного пользователя") }}
+                {{ row("!!<i>remove-chat</i>;<b>&lt;password&gt;</b>", "- Удалить чат. Требуется пароль чата") }}
+                {{ row("!!<i>clear-chat</i>;<b>&lt;password&gt;</b>", "- Очистить чат. Требуется пароль чата") }}
+                {{ row("!!<i>change-chat-password</i>;<b>&lt;old_password&gt;</b>;<b>&lt;new_password&gt;</b>", "- Сменить пароль чата. Требуется пароль чата") }}
+                {{ row("!!<i>reset-chat-password</i>;<b>&lt;system-password&gt;</b>;<b>&lt;new_password&gt;</b>", "- Сбросить пароль чата. Требуется пароль системного пользователя") }}
+                {{ row("!!<i>call-sys-user</i>", "- Добавить в чат системного пользователя") }}
+                {{ row("!!<i>chat-members</i>", "- Показать список членов чата") }}
+            </table>
+
+            <p><a href="javascript: hide_commands()">Свернуть</a></p>
+        </div>
+
+
+    {% else %}
+        <p>Чтобы удалить диалог введите "!!remove-chat;", чтобы очистить - "!!clear-chat;", а чтобы покинуть - "!!leave"</p>
+    {% endif %}
     {% include 'messages-div.html' %}
 
 

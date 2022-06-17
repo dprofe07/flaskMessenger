@@ -76,12 +76,12 @@
     min-height: 30px;
 }
 
-.dialog a {
+.dialog-a {
     display: block;
     padding: 10px;
     text-decoration: none;
-
     color: inherit;
+    width: 100%;
 }
 
 .dialog-a:hover {
@@ -96,10 +96,10 @@
     padding-top: 5px;
     padding-bottom: 5px;
     overflow-y: scroll;
-    max-height: 250px;
+    max-height: 150px;
 }
 
-#form-new-dialog {
+#form-new-chat, #form-new-dialog {
     display: none;
     margin: 10px auto;
     width: 100%;
@@ -109,4 +109,16 @@
     font-size: 0.8em;
     margin: 0;
     color: chocolate;
+}
+
+#tbl-choice {
+    width: 100%;
+}
+
+.tbl-choice-tr {
+    width: 100%;
+}
+
+.tbl-choice-td {
+    width: 50%;
 }
