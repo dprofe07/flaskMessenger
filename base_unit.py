@@ -20,9 +20,9 @@ class BaseUnit:
             )
         ''')
 
-        cur.execute('''
+        cur.execute(f'''
             CREATE TABLE IF NOT EXISTS chats (
-                Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                Id INTEGER PRIMARY KEY AUTO{'_' if SERVER else ''}INCREMENT NOT NULL,
                 Name NVARCHAR(100) NOT NULL,
                 Password_for_commands NVARCHAR(100) NOT NULL
             )
