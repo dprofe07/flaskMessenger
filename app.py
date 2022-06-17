@@ -183,7 +183,7 @@ def signup():
                     f'Ваши учётные данные: Логин - "{user.login}", пароль - "{user.password}",'
                     f' ключевое слово - "{user.keyword}"'
                 ]
-                chat_with_system = Chat(-1, 'Системные сообщения', ['SYSTEM', user.login], 'password')
+                chat_with_system = Chat(-1, 'DIALOG_BETWEEN/SYSTEM-' + user.login, ['SYSTEM', user.login], 'password')
                 chat_with_system.write_to_db(db_data)
                 for m in messages:
                     mess = Message(system_user, m, time.time(), chat_with_system.id)
