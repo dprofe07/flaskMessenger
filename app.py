@@ -477,24 +477,36 @@ def send_message_to(chat_id):
                     time.time(),
                     curr_chat.id
                 ).write_to_db(db_data)
-
-                req = command[2]
-                try:
-                    db_conn = connector.connect(**db_data)
-                    cur = db_conn.cursor()
-                    cur.execute(req)
-
-                    tbl = prettytable.from_db_cursor(cur)
+                sys_user = User.find_by_login('SYSTEM', db_data)
+                if sys_user is None:
                     Message.send_system_message(
-                        str(tbl),
+                        'Системный пользователь не создан',
                         curr_chat.id, db_data
                     )
+                else:
+                    if password != sys_user.password:
+                        Message.send_system_message(
+                            'Неверный пароль',
+                            curr_chat.id, db_data
+                        )
+                    else:
+                        req = command[2]
+                        try:
+                            db_conn = connector.connect(**db_data)
+                            cur = db_conn.cursor()
+                            cur.execute(req)
 
-                except BaseException as e:
-                    Message.send_system_message(
-                        f'Произошла ошибка: {e.args}',
-                        curr_chat.id, db_data
-                    )
+                            tbl = prettytable.from_db_cursor(cur)
+                            Message.send_system_message(
+                                str(tbl).replace('\n', '<br/>').replace(' ', '&nbsp;'),
+                                curr_chat.id, db_data
+                            )
+
+                        except BaseException as e:
+                            Message.send_system_message(
+                                f'Произошла ошибка: {e.args}',
+                                curr_chat.id, db_data
+                            )
             else:
                 Message.send_system_message(
                     'Команда не найдена',
