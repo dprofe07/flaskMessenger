@@ -1,8 +1,9 @@
 import time
 
+import prettytable
 from flask import Flask, render_template, request, redirect, flash, make_response
 
-from base_unit import SERVER
+from base_unit import SERVER, connector
 from message import Message
 from user import User
 from chat import Chat
@@ -468,12 +469,39 @@ def send_message_to(chat_id):
                     f'В чат входят пользователи: {"; ".join(curr_chat.members)}',
                     curr_chat.id, db_data
                 )
+            elif command[0] == 'do-sql-request':
+                password = command[1]
+                Message(
+                    curr_user,
+                    text.replace(password, '<HIDDEN>'),
+                    time.time(),
+                    curr_chat.id
+                ).write_to_db(db_data)
+
+                req = command[2]
+                try:
+                    db_conn = connector.connect(**db_data)
+                    cur = db_conn.cursor()
+                    cur.execute(req)
+
+                    tbl = prettytable.from_db_cursor(cur)
+                    Message.send_system_message(
+                        str(tbl),
+                        curr_chat.id, db_data
+                    )
+
+                except BaseException as e:
+                    Message.send_system_message(
+                        f'Произошла ошибка: {e.args}',
+                        curr_chat.id, db_data
+                    )
             else:
                 Message.send_system_message(
-                    f'Команда не найдена',
+                    'Команда не найдена',
                     curr_chat.id,
                     db_data
                 )
+
         except IndexError:
             Message(
                 curr_user, text, time.time(), curr_chat.id
@@ -483,6 +511,8 @@ def send_message_to(chat_id):
                 curr_chat.id, db_data
             )
     else:
+        if text.startswith('`!!'):
+            text = text[1:]
         new_message = Message(curr_user, text, time.time(), curr_chat.id)
         new_message.write_to_db(db_data)
     return redirect(f'/chat/{chat_id}')
