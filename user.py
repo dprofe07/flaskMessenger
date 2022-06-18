@@ -29,9 +29,17 @@ class User(BaseUnit):
 
         cur.execute(f"SELECT * FROM chat_members WHERE UserLogin = {self.login!r}")
         for i in cur.fetchall():
-            res.append(Chat.from_id(i[0], db_data))
+            res.append([0, Chat.from_id(i[0], db_data)])
 
-        return res
+        for chat in res:
+            cur.execute(f"SELECT * FROM messages WHERE Chat_id = {chat[1].id}")
+            for message in cur.fetchall():
+                chat[0] = max(chat[0], message[2])
+
+        res.sort(key=lambda i: i[0])
+        res.reverse()
+
+        return [i[1] for i in res]
 
     def write_to_db(self, db_data):
         db_conn = self.connect_to_db(db_data)

@@ -96,7 +96,8 @@
     padding-top: 5px;
     padding-bottom: 5px;
     overflow-y: scroll;
-    max-height: 150px;
+    overflow-x: hidden;
+    max-height: 400px;
 }
 
 #form-new-chat, #form-new-dialog {
