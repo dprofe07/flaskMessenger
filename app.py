@@ -498,7 +498,7 @@ def send_message_to(chat_id):
 
                             tbl = prettytable.from_db_cursor(cur)
                             Message.send_system_message(
-                                str(tbl).replace('\n', '<br/>').replace(' ', '&nbsp;'),
+                                '<code>' + str(tbl).replace('\n', '<br/>').replace(' ', '&nbsp;') + '</code>',
                                 curr_chat.id, db_data
                             )
 
