@@ -13,15 +13,15 @@ class Message(BaseUnit):
         return [Message(*i) for i in cur.fetchall()]
 
     def __repr__(self):
-        return f'Message({self.from_}, {self.to}, {self.text!r}, {self.time}, {self.chat_id})'
+        return f'Message({self.from_}, {self.text!r}, {self.time}, {self.chat_id})'
 
     def __eq__(self, other):
         return self.time == other.time
 
-    def __init__(self, from_, text, time, chat_id):
+    def __init__(self, from_, text, time_, chat_id):
         self.from_ = from_
         self.text = text
-        self.time = time
+        self.time = time_
         self.chat_id = chat_id
 
     @staticmethod

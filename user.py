@@ -1,12 +1,22 @@
 from base_unit import BaseUnit
 from chat import Chat
 
+from random import choice
+
+
+def generate_rnd_password(length: int) -> str:
+    return ''.join(
+        choice('QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm0123456789@#!$%^&*')
+        for _ in range(length)
+    )
+
 
 class User(BaseUnit):
-    def __init__(self, login, password, keyword, aliases=None):
+    def __init__(self, login, password, keyword, token=None, aliases=None):
         self.login = login
         self.password = password
         self.keyword = keyword
+        self.token = token or generate_rnd_password(30)
         self.aliases = aliases or {}
 
     def get_aliases(self, db_data):
@@ -47,12 +57,12 @@ class User(BaseUnit):
 
         if User.find_by_login(self.login, db_data) is None:
             cur.execute(
-                f"insert into users values ({self.login!r}, {self.password!r}, {self.keyword!r})"
+                f"insert into users values ({self.login!r}, {self.password!r}, {self.keyword!r}, {self.token!r})"
             )
         else:
             cur.execute(
                 f"update users "
-                f"set Password = {self.password!r}, Keyword={self.keyword!r} "
+                f"set Password = {self.password!r}, Keyword={self.keyword!r}, Token={self.token!r} "
                 f"where Login = {self.login!r}"
             )
         db_conn.commit()
@@ -68,24 +78,37 @@ class User(BaseUnit):
         return res
 
     @staticmethod
-    def find_by_login(login: str, db_data):
+    def find_by_token(token: str, db_data):
+        db_conn = User.connect_to_db(db_data)
+        cur = db_conn.cursor()
+        cur.execute(f'SELECT * FROM users WHERE Token = {token!r}')
         for i in User.get_list(db_data):
-            if i.login == login:
+            if i.login == token:
                 return i
         return None
 
+    @staticmethod
+    def find_by_login(login: str, db_data):
+        db_conn = User.connect_to_db(db_data)
+        cur = db_conn.cursor()
+        cur.execute(f'SELECT * FROM users WHERE Login = {login!r}')
+        res = cur.fetchall()
+        if len(res) == 0:
+            return None
+        return User(*res[0])
+
     def save_to_cookies(self, resp):
-        resp.set_cookie('user_login', self.login, 60 * 60 * 24 * 365 * 1000)
+        resp.set_cookie('user_token', self.token, 60 * 60 * 24 * 365 * 1000)
         # on 1000 years
 
     @staticmethod
     def remove_from_cookies(resp):
-        resp.set_cookie('user_login', '', 0)
+        resp.set_cookie('user_token', '', 0)
         # on 0 seconds (expire and remove)
 
     @staticmethod
     def get_from_cookies(request, db_data):
-        return User.find_by_login(request.cookies.get('user_login'), db_data)
+        return User.find_by_token(request.cookies.get('user_token'), db_data)
 
     def remove_from_db(self, db_data):
         db_conn = self.connect_to_db(db_data)
@@ -94,7 +117,7 @@ class User(BaseUnit):
         db_conn.commit()
 
     def __repr__(self):
-        return f'User({self.login!r}, {self.password!r}, {self.keyword!r})'
+        return f'User({self.login!r}, {self.password!r}, {self.keyword!r}, {self.token!r})'
 
     def __eq__(self, other):
         return self.login == other.login

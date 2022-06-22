@@ -29,7 +29,7 @@ app.config['SECRET_KEY'] = 'fdgdfgdfggf786hfg6hfg6h7f'
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    user = User.find_by_login(request.cookies.get('user_login'), db_data)
+    user = User.get_from_cookies(request, db_data)
     chats = []
     if user is not None:
         user.aliases = user.get_aliases(db_data)
@@ -52,7 +52,7 @@ def remove_account():
 @app.route('/remove_account_confirmed')
 def remove_account_confirmed():
     user = User.get_from_cookies(request, db_data)
-    resp = redirect('/', 302)
+    resp = redirect('/')
     if user is not None:
         user.remove_from_cookies(resp)
         user.remove_from_db(db_data)
@@ -604,6 +604,7 @@ def get_dialogs_div():
     user = User.get_from_cookies(request, db_data)
     chats = user.get_chats(db_data)
     return render_template('dialogs-div.html', chats=chats, user=user)
+
 
 
 if __name__ == '__main__':

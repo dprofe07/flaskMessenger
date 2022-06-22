@@ -16,7 +16,8 @@ class BaseUnit:
             CREATE TABLE IF NOT EXISTS users (
                 Login NVARCHAR(100) PRIMARY KEY NOT NULL,
                 Password NVARCHAR(100) NOT NULL,
-                Keyword NVARCHAR(100) NOT NULL
+                Keyword NVARCHAR(100) NOT NULL,
+                Token NVARCHAR(100) NOT NULL UNIQUE
             )
         ''')
 
