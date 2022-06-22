@@ -81,16 +81,23 @@ class User(BaseUnit):
     def find_by_token(token: str, db_data):
         db_conn = User.connect_to_db(db_data)
         cur = db_conn.cursor()
+        print('!!FIND BY TOKEN:', token)
+        if not isinstance(token, str):
+            print('NI')
+            return None
+
         cur.execute(f'SELECT * FROM users WHERE Token = {token!r}')
-        for i in User.get_list(db_data):
-            if i.login == token:
-                return i
-        return None
+        res = cur.fetchall()
+        if len(res) == 0:
+            return None
+        return User(*res[0])
 
     @staticmethod
     def find_by_login(login: str, db_data):
         db_conn = User.connect_to_db(db_data)
         cur = db_conn.cursor()
+        if not isinstance(login, str):
+            return None
         cur.execute(f'SELECT * FROM users WHERE Login = {login!r}')
         res = cur.fetchall()
         if len(res) == 0:

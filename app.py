@@ -123,8 +123,8 @@ def err404(e):
 
 @app.route('/auth', methods=['POST', 'GET'])
 def auth():
-    if request.cookies.get('user_login') is not None:
-        return redirect('/', 302)
+    if User.get_from_cookies(request, db_data) is not None:
+        return redirect('/')
     if request.method == 'POST':
         login = request.form['login']
         password = request.form['password']
@@ -149,8 +149,8 @@ def auth():
 
 @app.route('/signup', methods=['POST', 'GET'])
 def signup():
-    if request.cookies.get('user_login') is not None:
-        return redirect('/', 302)
+    if User.get_from_cookies(request, db_data) is not None:
+        return redirect('/')
     if request.method == 'POST':
         login = request.form['login']
 
