@@ -6,7 +6,7 @@ from random import choice
 
 def generate_rnd_password(length: int) -> str:
     return ''.join(
-        choice('QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm0123456789@#!$%^&*')
+        choice('QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm0123456789@!$%^*')
         for _ in range(length)
     )
 
@@ -81,9 +81,7 @@ class User(BaseUnit):
     def find_by_token(token: str, db_data):
         db_conn = User.connect_to_db(db_data)
         cur = db_conn.cursor()
-        print('!!FIND BY TOKEN:', token)
         if not isinstance(token, str):
-            print('NI')
             return None
 
         cur.execute(f'SELECT * FROM users WHERE Token = {token!r}')
@@ -121,6 +119,7 @@ class User(BaseUnit):
         db_conn = self.connect_to_db(db_data)
         cur = db_conn.cursor()
         cur.execute(f"DELETE FROM users WHERE Login = {self.login!r}")
+        cur.execute(f"DELETE FROM chat_members WHERE UserLogin = {self.login!r}")
         db_conn.commit()
 
     def __repr__(self):

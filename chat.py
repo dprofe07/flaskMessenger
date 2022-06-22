@@ -2,6 +2,12 @@ from base_unit import BaseUnit
 
 
 class Chat(BaseUnit):
+    def __init__(self, id_, name, members, password_for_commands):
+        self.id = id_
+        self.members = members
+        self.name = name
+        self.password_for_commands = password_for_commands
+
     def __eq__(self, other):
         return self.id == other.id
 
@@ -16,15 +22,6 @@ class Chat(BaseUnit):
             res.append(Chat(*i))
         return res
 
-    def __repr__(self):
-        return f'Chat({self.id}, {self.name!r}, {self.members!r})'
-
-    def __init__(self, id_, name, members, password_for_commands):
-        self.id = id_
-        self.members = members
-        self.name = name
-        self.password_for_commands = password_for_commands
-
     def remove_from_db(self, db_data):
         db_conn = self.connect_to_db(db_data)
         cur = db_conn.cursor()
@@ -34,6 +31,9 @@ class Chat(BaseUnit):
         cur.execute(f'DELETE FROM messages WHERE Chat_id = {self.id}')
 
         db_conn.commit()
+
+    def __repr__(self):
+        return f'Chat({self.id}, {self.name!r}, {self.members!r})'
 
     def write_to_db(self, db_data):
         db_conn = self.connect_to_db(db_data)
