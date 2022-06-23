@@ -330,7 +330,7 @@ def get_messages_div(chat_id):
     if curr_chat is None:
         return (f'''
             <div class="messages-container">
-                <div class="message-system">
+                <div class="message message-system">
                     Ошибка! Не удалось найти чат.
                 </div>
             </div>

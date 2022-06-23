@@ -229,7 +229,7 @@ class BaseFunctions:
                 ).write_to_db(db_data)
                 if password != curr_chat.password_for_commands:
                     Message.send_system_message(
-                        f'Неверный пароль',
+                        f'',
                         curr_chat.id, db_data
                     )
                 else:
