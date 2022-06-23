@@ -413,7 +413,7 @@ def api_get_chats():
     if user is None:
         return json.dumps({'code': API_CODES.USER_NOT_FOUND})
 
-    chats = [{'id': i.id, 'members': i.members, 'name': i.name, 'password': i.password_for_commands} for i in
+    chats = [{'id': i.id, 'members': i.members, 'name': i.name} for i in
              user.get_chats(db_data)]
 
     return json.dumps({'code': API_CODES.SUCCESS, 'chats': chats})
