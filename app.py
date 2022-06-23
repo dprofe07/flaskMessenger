@@ -547,8 +547,13 @@ def send_message():
     if user.login not in curr_chat.members:
         return json.dumps({'code': API_CODES.NOT_A_CHAT_MEMBER})
 
-    msg = Message(user, text, time.time(), id_)
-    msg.write_to_db(db_data)
+    if text.startswith('!!'):
+        BaseFunctions.execute_message_command(text, curr_chat, user, db_data)
+    elif text.startswith('`!!'):
+        text = text[1:]
+    else:
+        msg = Message(user, text, time.time(), id_)
+        msg.write_to_db(db_data)
 
     return json.dumps({'code': API_CODES.SUCCESS})
 
