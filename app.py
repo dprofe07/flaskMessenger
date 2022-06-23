@@ -286,7 +286,11 @@ def new_chat():
         flash('Войдите в аккаунт, чтобы общаться', 'error')
         return redirect('/')
     chat_name = request.form['chat-name']
-    users = [i for i in request.form['users'].split(';') if User.find_by_login(i, db_data)]
+    users = []
+    for i in request.form['users'].split(';'):
+        if i not in users and i != curr_user.login:
+            if User.find_by_login(i, db_data):
+                users.append(i)
     password = request.form['password']
 
     curr_chat = BaseFunctions.create_chat(curr_user, chat_name, users, password, db_data)
@@ -302,6 +306,9 @@ def new_dialog():
         flash('Войдите в аккаунт, чтобы общаться', 'error')
         return redirect('/')
     login = request.form['login']
+    if login == curr_user.login:
+        flash('Нельзя создать диалог с самим собой. Используйте чат.')
+        return redirect('/')
     if User.find_by_login(login, db_data) is None:
         flash('Пользователь не найден', 'error')
         return redirect('/')

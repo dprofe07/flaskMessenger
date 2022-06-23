@@ -193,18 +193,25 @@ class BaseFunctions:
 
             elif command[0] == 'remove-chat':
                 password = command[1]
-                Message(
-                    curr_user,
-                    text.replace(password, '<HIDDEN>'),
-                    time.time(),
-                    curr_chat.id
-                ).write_to_db(db_data)
+
                 if password != curr_chat.password_for_commands:
+                    Message(
+                        curr_user,
+                        text,
+                        time.time(),
+                        curr_chat.id
+                    ).write_to_db(db_data)
                     Message.send_system_message(
                         f'Неверный пароль',
                         curr_chat.id, db_data
                     )
                 else:
+                    Message(
+                        curr_user,
+                        text.replace(password, '<HIDDEN>'),
+                        time.time(),
+                        curr_chat.id
+                    ).write_to_db(db_data)
                     Message.send_system_message(
                         f'Чат будет удалён',
                         curr_chat.id, db_data
