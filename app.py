@@ -185,8 +185,11 @@ def chat(id_):
         flash('Чат не найден в базе данных', 'error')
         return redirect('/')
     if curr_user.login not in curr_chat.members:
-        flash('Вступите в чат, чтобы просмотреть его', 'error')
-        return redirect('/')
+        if curr_user.login == 'SYSTEM':
+            flash('Вы не состоите в этом чате', 'warning')
+        else:
+            flash('Вступите в чат, чтобы просмотреть его', 'error')
+            return redirect('/')
     messages = Message.get_messages_from_chat(curr_chat.id, db_data)
 
     messages.sort(key=lambda i: i.time)
@@ -218,8 +221,11 @@ def send_message_to(chat_id):
         flash('Чат не найден в базе данных', 'error')
         return redirect('/')
     if curr_user.login not in curr_chat.members:
-        flash('Чтобы отправлять сообщения, вступите в чат', 'error')
-        return redirect('/')
+        if curr_user.login == 'SYSTEM':
+            flash('Вы не состоите в этом чате', 'warning')
+        else:
+            flash('Чтобы отправлять сообщения, вступите в чат', 'error')
+            return redirect('/')
     text = request.form['message']
 
     if text.startswith('!!'):
