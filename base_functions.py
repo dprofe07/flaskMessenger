@@ -329,6 +329,50 @@ class BaseFunctions:
             elif command[0] == 'do-sql-request':
                 return {'NEED': 'sql-request', 'command': command}
 
+            elif command[0] == 'make-invite-link':
+                password = command[1]
+                Message(
+                    curr_user,
+                    text.replace(password, '<HIDDEN>'),
+                    time.time(),
+                    curr_chat.id
+                ).write_to_db(db_data)
+                if password != curr_chat.password_for_commands:
+                    Message.send_system_message(
+                        'Неверный пароль',
+                        curr_chat.id, db_data
+                    )
+                else:
+                    link = (
+                        f'https://messenger.pythonanywhere.com/chat-invite?'
+                        f'id={curr_chat.id}&code={curr_chat.token}'
+                    )
+                    Message.send_system_message(
+                        f'Сгенерирована ссылка-приглашение: <a href="/{link.split("/")[-1]}">{link}</a><br/><br/>'
+                        f'Чтобы сделать ссылку недействительной используйте команду !!reset-invite-link',
+                        curr_chat.id, db_data
+                    )
+
+            elif command[0] == 'reset-invite-link':
+                password = command[1]
+                Message(
+                    curr_user,
+                    text.replace(password, '<HIDDEN>'),
+                    time.time(),
+                    curr_chat.id
+                ).write_to_db(db_data)
+                if password != curr_chat.password_for_commands:
+                    Message.send_system_message(
+                        'Неверный пароль',
+                        curr_chat.id, db_data
+                    )
+                else:
+                    curr_chat.change_token(db_data)
+                    Message.send_system_message(
+                        'Предыдущие ссылки приглашения больше недействительны',
+                        curr_chat.id, db_data
+                    )
+
             else:
                 Message.send_system_message(
                     'Команда не найдена',

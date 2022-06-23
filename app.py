@@ -4,11 +4,15 @@ import time
 import prettytable
 from flask import Flask, render_template, request, redirect, flash, make_response
 
-from base_unit import SERVER, connector
+from base_unit import SERVER, connector, generate_rnd_password
 from message import Message
 from user import User
 from chat import Chat
 from base_functions import BaseFunctions
+
+for i in range(8):
+    print(generate_rnd_password(30))
+1/0
 
 app = Flask(__name__)
 
@@ -326,6 +330,44 @@ def new_dialog():
         curr_chat.id, db_data
     )
 
+    return redirect(f'/chat/{curr_chat.id}')
+
+
+@app.route('/chat-invite')
+def invite_to_chat():
+    id_ = request.args.get('id')
+    code = request.args.get('code')
+
+    if id_ is None or code is None:
+        flash('Некорректная ссылка-приглашение', 'error')
+        return redirect('/')
+
+    curr_user = User.get_from_cookies(request, db_data)
+
+    if curr_user is None:
+        flash('Войдите на сайт чтобы использовать ссылки-приглашения', 'error')
+        return redirect('/')
+
+    curr_chat = Chat.from_id(id_, db_data)
+    if curr_chat is None:
+        flash('Некорректная ссылка-приглашение', 'error')
+        return redirect('/')
+
+    if curr_chat.token != code:
+        flash('Неверный код ссылки приглашения', 'error')
+        flash(f'{curr_chat.token!r}, {code!r}')
+        return redirect('/')
+
+    if curr_user.login in curr_chat.members:
+        flash('Вы уже состоите в этом чате')
+    else:
+        curr_chat.members.append(curr_user.login)
+        curr_chat.write_to_db(db_data)
+
+        Message.send_system_message(
+            f'Пользователь {curr_user.login} присоединился к чату по ссылке-приглашению',
+            curr_chat.id, db_data
+        )
     return redirect(f'/chat/{curr_chat.id}')
 
 

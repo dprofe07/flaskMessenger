@@ -1,14 +1,5 @@
-from base_unit import BaseUnit
+from base_unit import BaseUnit, generate_rnd_password
 from chat import Chat
-
-from random import choice
-
-
-def generate_rnd_password(length: int) -> str:
-    return ''.join(
-        choice('QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm0123456789@!$%^*')
-        for _ in range(length)
-    )
 
 
 class User(BaseUnit):

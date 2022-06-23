@@ -5,6 +5,15 @@ if SERVER:
 else:
     import sqlite3 as connector
 
+from random import choice
+
+
+def generate_rnd_password(length: int) -> str:
+    return ''.join(
+        choice('QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm0123456789@!$%^*')
+        for _ in range(length)
+    )
+
 
 class BaseUnit:
     @staticmethod
@@ -25,7 +34,8 @@ class BaseUnit:
             CREATE TABLE IF NOT EXISTS chats (
                 Id INTEGER PRIMARY KEY AUTO{'_' if SERVER else ''}INCREMENT NOT NULL,
                 Name NVARCHAR(100) NOT NULL,
-                Password_for_commands NVARCHAR(100) NOT NULL
+                Password_for_commands NVARCHAR(100) NOT NULL,
+                Token NVARCHAR(100) NOT NULL UNIQUE
             )
         ''')
 
