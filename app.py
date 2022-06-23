@@ -193,6 +193,19 @@ def chat(id_):
     return render_template('chat.html', user=curr_user, messages=messages, chat=curr_chat)
 
 
+@app.route('/change-token')
+def change_token():
+    curr_user = User.get_from_cookies(request, db_data)
+    if curr_user is None:
+        return redirect('/')
+    curr_user.token = User.generate_new_token()
+    curr_user.write_to_db(db_data)
+    resp = redirect('/')
+    curr_user.save_to_cookies(resp)
+    flash('Вы вышли на всех устройствах', 'success')
+    return resp
+
+
 # noinspection DuplicatedCode
 @app.route('/send-message-to-chat/<chat_id>', methods=['POST'])
 def send_message_to(chat_id):
@@ -252,9 +265,10 @@ def send_message_to(chat_id):
                             curr_chat.id, db_data
                         )
 
-        elif res.get('flash') is not None:
+        if res.get('flash') is not None:
             flash(*res['flash'])
-        elif res.get('redirect') is not None:
+
+        if res.get('redirect') is not None:
             return redirect(res['redirect'])
     else:
         if text.startswith('`!!'):
@@ -275,9 +289,9 @@ def new_chat():
     users = [i for i in request.form['users'].split(';') if User.find_by_login(i, db_data)]
     password = request.form['password']
 
-    chat = BaseFunctions.create_chat(curr_user, chat_name, users, password, db_data)
+    curr_chat = BaseFunctions.create_chat(curr_user, chat_name, users, password, db_data)
 
-    return redirect(f'/chat/{chat.id}')
+    return redirect(f'/chat/{curr_chat.id}')
 
 
 @app.route('/new-dialog', methods=['POST'])
@@ -342,6 +356,7 @@ class API_CODES:
     USER_ALREADY_EXISTS = 'USER_ALREADY_EXISTS'
 
 
+# noinspection DuplicatedCode
 @app.route('/api/get-token/')
 def api_get_token():
     login = request.args.get('login')
@@ -378,6 +393,7 @@ def api_signup():
     return json.dumps({'code': API_CODES.SUCCESS, 'token': user.token})
 
 
+# noinspection DuplicatedCode
 @app.route('/api/get-chats')
 def api_get_chats():
     token = request.args.get('token')
@@ -412,10 +428,11 @@ def api_create_chat():
     if user is None:
         return json.dumps({'code': API_CODES.USER_NOT_FOUND})
 
-    chat = BaseFunctions.create_chat(user, name, members, password, db_data)
-    return json.dumps({'code': API_CODES.SUCCESS, 'chat-id': chat.id})
+    curr_chat = BaseFunctions.create_chat(user, name, members, password, db_data)
+    return json.dumps({'code': API_CODES.SUCCESS, 'chat-id': curr_chat.id})
 
 
+# noinspection DuplicatedCode
 @app.route('/api/recover-password')
 def api_recover_password():
     login = request.args.get('login')
@@ -434,6 +451,7 @@ def api_recover_password():
     return json.dumps({'code': API_CODES.SUCCESS, 'password': user.password, 'token': user.token})
 
 
+# noinspection DuplicatedCode
 @app.route('/api/remove-account')
 def api_remove_account():
     token = request.args.get('token')
@@ -502,6 +520,7 @@ def api_chat():
     return json.dumps({'code': API_CODES.SUCCESS, 'messages': messages})
 
 
+# noinspection DuplicatedCode
 @app.route('/api/send-message')
 def send_message():
     token = request.args.get('token')

@@ -130,3 +130,7 @@ class User(BaseUnit):
 
     def __ne__(self, other):
         return not self == other
+
+    @staticmethod
+    def generate_new_token():
+        return generate_rnd_password(30)
