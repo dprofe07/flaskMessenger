@@ -10,9 +10,6 @@ from user import User
 from chat import Chat
 from base_functions import BaseFunctions
 
-for i in range(8):
-    print(generate_rnd_password(30))
-1/0
 
 app = Flask(__name__)
 
