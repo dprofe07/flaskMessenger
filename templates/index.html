@@ -4,6 +4,7 @@
 
 {% block content %}
     {% if user -%}
+        <!--suppress HtmlUnknownTarget -->
         <h1>Мессенджер</h1>
         <h2>Вы вошли как {{ user.login }}</h2>
         <p><a href="{{ url_for('logout') }}">Выйти из аккаунта</a></p>
@@ -50,6 +51,15 @@
                     </form>
                 </div>
             </div>
+            <div class="dialog">
+                <a href="javascript:show_form_join_chat()" style="font-size: 2em; color: #8b9536" class="center dialog-a" id="a_join_chat">Присоединиться по коду</a>
+                <form action="/join-chat" id="form-join-chat" style="display: none">
+                    <label for="chat-code">Код чата: </label>
+                    <input type="text" name="code" id="chat-code"><br/>
+
+                    <input type="submit" value="Присоединиться">
+                </form>
+            </div>
         </div>
 
 
@@ -73,6 +83,13 @@
                 form.style.display = "block";
                 let tbl_choice = document.getElementById('tbl-choice')
                 tbl_choice.style.display = "none";
+            }
+
+            function show_form_join_chat() {
+                let a = document.getElementById("a_join_chat")
+                a.style["display"] = "none"
+                let frm = document.getElementById("form-join-chat")
+                frm.style["display"] = "block"
             }
 
             async function reload_div() {

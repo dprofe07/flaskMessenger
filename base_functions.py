@@ -353,8 +353,28 @@ class BaseFunctions:
                         f'Чтобы сделать ссылку недействительной используйте команду !!reset-invite-link',
                         curr_chat.id, db_data
                     )
+            elif command[0] == 'make-invite-code':
+                password = command[1]
+                Message(
+                    curr_user,
+                    text.replace(password, '<HIDDEN>'),
+                    time.time(),
+                    curr_chat.id
+                ).write_to_db(db_data)
+                if password != curr_chat.password_for_commands:
+                    Message.send_system_message(
+                        'Неверный пароль',
+                        curr_chat.id, db_data
+                    )
+                else:
+                    code = f'{curr_chat.id}&&{curr_chat.token}'
+                    Message.send_system_message(
+                        f'Сгенерирован код-приглашение: <b>{code}</b><br/><br/>'
+                        f'Чтобы сделать код недействительным используйте команду !!reset-invite-code',
+                        curr_chat.id, db_data
+                    )
 
-            elif command[0] == 'reset-invite-link':
+            elif command[0] == 'reset-invite-code':
                 password = command[1]
                 Message(
                     curr_user,
@@ -370,7 +390,7 @@ class BaseFunctions:
                 else:
                     curr_chat.change_token(db_data)
                     Message.send_system_message(
-                        'Предыдущие ссылки приглашения больше недействительны',
+                        'Предыдущие коды приглашения больше недействительны',
                         curr_chat.id, db_data
                     )
 

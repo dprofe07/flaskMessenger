@@ -330,29 +330,27 @@ def new_dialog():
     return redirect(f'/chat/{curr_chat.id}')
 
 
-@app.route('/chat-invite')
+@app.route('/join-chat')
 def invite_to_chat():
-    id_ = request.args.get('id')
     code = request.args.get('code')
-
-    if id_ is None or code is None:
-        flash('Некорректная ссылка-приглашение', 'error')
-        return redirect('/')
 
     curr_user = User.get_from_cookies(request, db_data)
 
     if curr_user is None:
-        flash('Войдите на сайт чтобы использовать ссылки-приглашения', 'error')
+        flash('Войдите на сайт чтобы использовать коды-приглашения', 'error')
         return redirect('/')
-
+    if '&&' not in code:
+        flash('Некорректный код-приглашение', 'error')
+        return redirect('/')
+    id_, code = code.split('&&')
+    id_ = int(id_)
     curr_chat = Chat.from_id(id_, db_data)
     if curr_chat is None:
-        flash('Некорректная ссылка-приглашение', 'error')
+        flash('Некорректный код-приглашение', 'error')
         return redirect('/')
 
     if curr_chat.token != code:
-        flash('Неверный код ссылки приглашения', 'error')
-        flash(f'{curr_chat.token!r}, {code!r}')
+        flash('Неверный код-приглашение', 'error')
         return redirect('/')
 
     if curr_user.login in curr_chat.members:
@@ -362,7 +360,7 @@ def invite_to_chat():
         curr_chat.write_to_db(db_data)
 
         Message.send_system_message(
-            f'Пользователь {curr_user.login} присоединился к чату по ссылке-приглашению',
+            f'Пользователь {curr_user.login} присоединился к чату по коду-приглашению',
             curr_chat.id, db_data
         )
     return redirect(f'/chat/{curr_chat.id}')
