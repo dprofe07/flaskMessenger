@@ -2,7 +2,7 @@ import json
 import time
 
 import prettytable
-from flask import Flask, render_template, request, redirect, flash, make_response
+from flask import Flask, render_template, request, redirect, flash, make_response, url_for
 
 from base_unit import SERVER, connector, generate_rnd_password
 from message import Message

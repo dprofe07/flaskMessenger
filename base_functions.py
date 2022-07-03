@@ -4,6 +4,7 @@ from user import User
 from chat import Chat
 from message import Message
 
+from flask import request
 
 class BaseFunctions:
     @staticmethod
@@ -344,7 +345,7 @@ class BaseFunctions:
                     )
                 else:
                     link = (
-                        f'https://messenger.pythonanywhere.com/chat-invite?'
+                        request.url_root + '/chat-invite?'
                         f'id={curr_chat.id}&code={curr_chat.token}'
                     )
                     Message.send_system_message(
