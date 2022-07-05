@@ -24,8 +24,8 @@ class Chat(BaseUnit):
         return self.id == other.id
 
     @staticmethod
-    def get_list(db_data):
-        db_conn = Chat.connect_to_db(db_data)
+    def get_list():
+        db_conn = Chat.connect_to_db()
         cur = db_conn.cursor()
 
         cur.execute('SELECT * FROM chats')
@@ -34,12 +34,12 @@ class Chat(BaseUnit):
             res.append(Chat(*i))
         return res
 
-    def change_token(self, db_data):
+    def change_token(self):
         self.token = generate_rnd_password(30)
-        self.write_to_db(db_data)
+        self.write_to_db()
 
-    def remove_from_db(self, db_data):
-        db_conn = self.connect_to_db(db_data)
+    def remove_from_db(self):
+        db_conn = self.connect_to_db()
         cur = db_conn.cursor()
 
         cur.execute(f'DELETE FROM chats WHERE Id = {self.id}')
@@ -49,22 +49,22 @@ class Chat(BaseUnit):
         db_conn.commit()
 
     def __repr__(self):
-        return f'Chat({self.id}, {self.name!r}, {self.members!r}, {self.password_for_commands!r}, {self.token!r})'
+        return f'''Chat({self.id}, {self.name!r}, {self.members!r}, {self.password_for_commands!r}, {self.token!r})'''
 
-    def write_to_db(self, db_data):
-        db_conn = self.connect_to_db(db_data)
+    def write_to_db(self):
+        db_conn = self.connect_to_db()
         cur = db_conn.cursor()
 
         if len(self.members) == 0:
-            return self.remove_from_db(db_data)
+            return self.remove_from_db()
 
         cur.execute(f'SELECT * FROM chats WHERE Id = {self.id}')
 
         if cur.fetchall():
             cur.execute(f'''
                 UPDATE chats SET
-                Name = {self.name!r},
-                Password_for_commands = {self.password_for_commands!r},
+                Name = '{self.name.replace("'", "''").replace('"', '""')}',
+                Password_for_commands = '{self.password_for_commands.replace("'", "''").replace('"', '""')}',
                 Token = {self.token!r}
                 WHERE Id = {self.id}
             ''')
@@ -73,7 +73,11 @@ class Chat(BaseUnit):
                 INSERT INTO chats 
                 (Name, Password_for_commands, Token)
                 VALUES 
-                ({self.name!r}, {self.password_for_commands!r}, {self.token!r})
+                (
+                    '{self.name.replace("'", "''").replace('"', '""')}', 
+                    '{self.password_for_commands.replace("'", "''").replace('"', '""')}', 
+                    {self.token!r}
+                )
             ''')
             cur.execute('SELECT MAX(Id) FROM chats')
             self.id = cur.fetchall()[0][0]
@@ -84,16 +88,16 @@ class Chat(BaseUnit):
             cur.execute(f'''
                 INSERT INTO chat_members VALUES (
                     {self.id},
-                    {i!r}
+                    '{i.replace("'", "''").replace('"', '""')}'
                 )
             ''')
 
         db_conn.commit()
 
     @staticmethod
-    def from_id(id_, db_data):
+    def from_id(id_):
         try:
-            db_conn = Chat.connect_to_db(db_data)
+            db_conn = Chat.connect_to_db()
             cur = db_conn.cursor()
 
             cur.execute(f'''
@@ -113,8 +117,8 @@ class Chat(BaseUnit):
             print(e.args)
             return None
 
-    def clear_messages(self, db_data):
-        db_conn = self.connect_to_db(db_data)
+    def clear_messages(self):
+        db_conn = self.connect_to_db()
         cur = db_conn.cursor()
 
         cur.execute(f'DELETE FROM messages WHERE Chat_id = {self.id}')

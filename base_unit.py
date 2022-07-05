@@ -16,9 +16,11 @@ def generate_rnd_password(length: int) -> str:
 
 
 class BaseUnit:
+    db_data = {}
+
     @staticmethod
-    def create_tables(db_data):
-        db_conn = connector.connect(**db_data)
+    def create_tables():
+        db_conn = connector.connect(**BaseUnit.db_data)
         cur = db_conn.cursor()
 
         cur.execute('''
@@ -52,8 +54,10 @@ class BaseUnit:
             CREATE TABLE IF NOT EXISTS messages (
                 Login_from NVARCHAR(100) NOT NULL,
                 Message NVARCHAR(100000),
-                Time REAL NOT NULL UNIQUE,
+                Time REAL NOT NULL UNIQUE PRIMARY KEY,
                 Chat_id INTEGER NOT NULL,
+                Answer_to REAL NULL,
+                FOREIGN KEY (Answer_to) REFERENCES messages (Time),
                 FOREIGN KEY (Login_from) REFERENCES users (Login) ON DELETE CASCADE ON UPDATE CASCADE,
                 FOREIGN KEY (Chat_id) REFERENCES chats (Id) ON DELETE CASCADE ON UPDATE CASCADE
             )
@@ -72,16 +76,16 @@ class BaseUnit:
         db_conn.commit()
 
     @staticmethod
-    def connect_to_db(db_data):
-        BaseUnit.create_tables(db_data)
-        db_conn = connector.connect(**db_data)
+    def connect_to_db():
+        BaseUnit.create_tables()
+        db_conn = connector.connect(**BaseUnit.db_data)
         return db_conn
 
-    def write_to_db(self, db_data):
+    def write_to_db(self):
         raise NotImplementedError()
 
     @staticmethod
-    def get_list(db_data):
+    def get_list():
         raise NotImplementedError()
 
     def __repr__(self):

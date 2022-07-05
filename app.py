@@ -2,9 +2,9 @@ import json
 import time
 
 import prettytable
-from flask import Flask, render_template, request, redirect, flash, make_response, url_for
+from flask import Flask, render_template, request, redirect, flash, make_response
 
-from base_unit import SERVER, connector, generate_rnd_password
+from base_unit import SERVER, BaseUnit
 from message import Message
 from user import User
 from chat import Chat
@@ -26,15 +26,16 @@ else:
     }
 
 app.config['SECRET_KEY'] = 'fdgdfgdfggf786hfg6hfg6h7f'
+BaseUnit.db_data = db_data
 
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    user = User.get_from_cookies(request, db_data)
+    user = User.get_from_cookies(request)
     chats = []
     if user is not None:
-        user.aliases = user.get_aliases(db_data)
-        chats = user.get_chats(db_data)
+        user.aliases = user.get_aliases()
+        chats = user.get_chats()
     return render_template('index.html', user=user, hide_home_link=True, chats=chats)
 
 
@@ -52,11 +53,11 @@ def remove_account():
 
 @app.route('/remove_account_confirmed')
 def remove_account_confirmed():
-    user = User.get_from_cookies(request, db_data)
+    user = User.get_from_cookies(request)
     resp = redirect('/')
     if user is not None:
         user.remove_from_cookies(resp)
-        BaseFunctions.remove_account(user, db_data)
+        BaseFunctions.remove_account(user)
     return resp
 
 
@@ -68,7 +69,7 @@ def change_password():
         old_password = request.form['old_password']
         password = request.form['password']
         password2 = request.form['password2']
-        user = User.get_from_cookies(request, db_data)
+        user = User.get_from_cookies(request)
         if user.password != old_password:
             flash('Старый пароль не верен', 'error')
             return render_template(
@@ -83,7 +84,7 @@ def change_password():
                 password=password
             )
 
-        BaseFunctions.change_password(user, password, db_data)
+        BaseFunctions.change_password(user, password)
 
         flash('Пароль успешно изменён', 'success')
         return render_template('change_password.html')
@@ -97,7 +98,7 @@ def password_recovery():
         login = request.form['login']
         keyword = request.form['keyword']
 
-        user = User.find_by_login(login, db_data)
+        user = User.find_by_login(login)
         if user is None:
             flash(f'Пользователь с логином "{login}" не найден', 'error')
             return render_template('password_recovery.html', login=login, keyword=keyword)
@@ -118,12 +119,12 @@ def err404(e):
 
 @app.route('/auth', methods=['POST', 'GET'])
 def auth():
-    if User.get_from_cookies(request, db_data) is not None:
+    if User.get_from_cookies(request) is not None:
         return redirect('/')
     if request.method == 'POST':
         login = request.form['login']
         password = request.form['password']
-        user = User.find_by_login(login, db_data)
+        user = User.find_by_login(login)
         if user is not None:
             if password == user.password:
                 flash('Вы успешно вошли', 'success')
@@ -144,7 +145,7 @@ def auth():
 
 @app.route('/signup', methods=['POST', 'GET'])
 def signup():
-    if User.get_from_cookies(request, db_data) is not None:
+    if User.get_from_cookies(request) is not None:
         return redirect('/')
     if request.method == 'POST':
         login = request.form['login']
@@ -158,12 +159,12 @@ def signup():
         elif password != password2:
             flash(f'Пароли не совпадают', 'error')
             return render_template('singup.html', login=login, password=password)
-        elif User.find_by_login(login, db_data) is not None:
+        elif User.find_by_login(login) is not None:
             flash(f'Пользователь с именем "{login}" уже существует.', 'error')
             return render_template('singup.html', login=login, password=password, password2=password2)
         else:
             user = User(login, password, keyword)
-            BaseFunctions.sign_up(user, db_data)
+            BaseFunctions.sign_up(user)
 
             flash('Вы успешно зарегистрированы', 'success')
 
@@ -177,11 +178,11 @@ def signup():
 # noinspection DuplicatedCode
 @app.route('/chat/<id_>')
 def chat(id_):
-    curr_user = User.get_from_cookies(request, db_data)
+    curr_user = User.get_from_cookies(request)
     if curr_user is None:
         flash('Войдите в аккаунт, чтобы общаться', 'error')
         return redirect('/')
-    curr_chat = Chat.from_id(id_, db_data)
+    curr_chat = Chat.from_id(id_)
     if curr_chat is None:
         flash('Чат не найден в базе данных', 'error')
         return redirect('/')
@@ -189,7 +190,7 @@ def chat(id_):
         if curr_user.login != 'SYSTEM':
             flash('Вступите в чат, чтобы просмотреть его', 'error')
             return redirect('/')
-    messages = Message.get_messages_from_chat(curr_chat.id, db_data)
+    messages = Message.get_messages_from_chat(curr_chat.id)
 
     messages.sort(key=lambda i: i.time)
     dialog = 'DIALOG_BETWEEN' in curr_chat.name
@@ -207,11 +208,11 @@ def chat(id_):
 
 @app.route('/change-token')
 def change_token():
-    curr_user = User.get_from_cookies(request, db_data)
+    curr_user = User.get_from_cookies(request)
     if curr_user is None:
         return redirect('/')
     curr_user.token = User.generate_new_token()
-    curr_user.write_to_db(db_data)
+    curr_user.write_to_db()
     resp = redirect('/')
     curr_user.save_to_cookies(resp)
     flash('Вы вышли на всех устройствах', 'success')
@@ -221,11 +222,11 @@ def change_token():
 # noinspection DuplicatedCode
 @app.route('/send-message-to-chat/<chat_id>', methods=['POST'])
 def send_message_to(chat_id):
-    curr_user = User.get_from_cookies(request, db_data)
+    curr_user = User.get_from_cookies(request)
     if curr_user is None:
         flash('Войдите в аккаунт, чтобы общаться', 'error')
         return redirect('/')
-    curr_chat = Chat.from_id(chat_id, db_data)
+    curr_chat = Chat.from_id(chat_id)
     if curr_chat is None:
         flash('Чат не найден в базе данных', 'error')
         return redirect('/')
@@ -236,7 +237,7 @@ def send_message_to(chat_id):
     text = request.form['message']
 
     if text.startswith('!!'):
-        res = BaseFunctions.execute_message_command(text, curr_chat, curr_user, db_data)
+        res = BaseFunctions.execute_message_command(text, curr_chat, curr_user)
 
         if 'NEED' in res:
             command = res['command']
@@ -246,36 +247,36 @@ def send_message_to(chat_id):
                 text.replace(password, '<HIDDEN>'),
                 time.time(),
                 curr_chat.id
-            ).write_to_db(db_data)
-            sys_user = User.find_by_login('SYSTEM', db_data)
+            ).write_to_db()
+            sys_user = User.find_by_login('SYSTEM')
             if sys_user is None:
                 Message.send_system_message(
                     'Системный пользователь не создан',
-                    curr_chat.id, db_data
+                    curr_chat.id
                 )
             else:
                 if password != sys_user.password:
                     Message.send_system_message(
                         'Неверный пароль',
-                        curr_chat.id, db_data
+                        curr_chat.id
                     )
                 else:
                     req = command[2]
                     try:
-                        db_conn = connector.connect(**db_data)
+                        db_conn = BaseUnit.connect_to_db()
                         cur = db_conn.cursor()
                         cur.execute(req)
 
                         tbl = prettytable.from_db_cursor(cur)
                         Message.send_system_message(
                             '<code>' + str(tbl).replace('\n', '<br/>').replace(' ', '&nbsp;') + '</code>',
-                            curr_chat.id, db_data
+                            curr_chat.id
                         )
 
                     except BaseException as e:
                         Message.send_system_message(
                             f'Произошла ошибка: {e.args}',
-                            curr_chat.id, db_data
+                            curr_chat.id
                         )
 
         if res.get('flash') is not None:
@@ -287,13 +288,13 @@ def send_message_to(chat_id):
         if text.startswith('`!!'):
             text = text[1:]
         new_message = Message(curr_user, text, time.time(), curr_chat.id)
-        new_message.write_to_db(db_data)
+        new_message.write_to_db()
     return redirect(f'/chat/{chat_id}')
 
 
 @app.route('/new-chat', methods=['POST'])
 def new_chat():
-    curr_user = User.get_from_cookies(request, db_data)
+    curr_user = User.get_from_cookies(request)
 
     if curr_user is None:
         flash('Войдите в аккаунт, чтобы общаться', 'error')
@@ -304,18 +305,18 @@ def new_chat():
     users = []
     for i in request.form['users'].split(';'):
         if i not in users and i != curr_user.login:
-            if User.find_by_login(i, db_data):
+            if User.find_by_login(i):
                 users.append(i)
     password = request.form['password']
 
-    curr_chat = BaseFunctions.create_chat(curr_user, chat_name, users, password, db_data)
+    curr_chat = BaseFunctions.create_chat(curr_user, chat_name, users, password)
 
     return redirect(f'/chat/{curr_chat.id}')
 
 
 @app.route('/new-dialog', methods=['POST'])
 def new_dialog():
-    curr_user = User.get_from_cookies(request, db_data)
+    curr_user = User.get_from_cookies(request)
 
     if curr_user is None:
         flash('Войдите в аккаунт, чтобы общаться', 'error')
@@ -324,15 +325,15 @@ def new_dialog():
     if login == curr_user.login:
         flash('Нельзя создать диалог с самим собой. Используйте чат.', 'error')
         return redirect('/')
-    if User.find_by_login(login, db_data) is None:
+    if User.find_by_login(login) is None:
         flash('Пользователь не найден', 'error')
         return redirect('/')
 
     curr_chat = Chat(-1, f'DIALOG_BETWEEN/{login};{curr_user.login}', [curr_user.login, login], '')
-    curr_chat.write_to_db(db_data)
+    curr_chat.write_to_db()
     Message.send_system_message(
         f'Пользователь {curr_user.login} создал диалог с пользователем {login}',
-        curr_chat.id, db_data
+        curr_chat.id
     )
 
     return redirect(f'/chat/{curr_chat.id}')
@@ -342,7 +343,7 @@ def new_dialog():
 def invite_to_chat():
     code = request.args.get('code')
 
-    curr_user = User.get_from_cookies(request, db_data)
+    curr_user = User.get_from_cookies(request)
 
     if curr_user is None:
         flash('Войдите на сайт чтобы использовать коды-приглашения', 'error')
@@ -352,7 +353,7 @@ def invite_to_chat():
         return redirect('/')
     id_, code = code.split('&&')
     id_ = int(id_)
-    curr_chat = Chat.from_id(id_, db_data)
+    curr_chat = Chat.from_id(id_)
     if curr_chat is None:
         flash('Некорректный код-приглашение', 'error')
         return redirect('/')
@@ -365,19 +366,19 @@ def invite_to_chat():
         flash('Вы уже состоите в этом чате')
     else:
         curr_chat.members.append(curr_user.login)
-        curr_chat.write_to_db(db_data)
+        curr_chat.write_to_db()
 
         Message.send_system_message(
             f'Пользователь {curr_user.login} присоединился к чату по коду-приглашению',
-            curr_chat.id, db_data
+            curr_chat.id
         )
     return redirect(f'/chat/{curr_chat.id}')
 
 
 @app.route('/get-messages-div/<chat_id>')
 def get_messages_div(chat_id):
-    curr_user = User.get_from_cookies(request, db_data)
-    curr_chat = Chat.from_id(chat_id, db_data)
+    curr_user = User.get_from_cookies(request)
+    curr_chat = Chat.from_id(chat_id)
     if curr_chat is None:
         return (f'''
             <div class="messages-container">
@@ -386,7 +387,7 @@ def get_messages_div(chat_id):
                 </div>
             </div>
         ''')
-    messages = Message.get_messages_from_chat(chat_id, db_data)
+    messages = Message.get_messages_from_chat(chat_id)
 
     messages.sort(key=lambda i: i.time)
 
@@ -397,8 +398,8 @@ def get_messages_div(chat_id):
 
 @app.route('/get-dialogs-div')
 def get_dialogs_div():
-    user = User.get_from_cookies(request, db_data)
-    chats = user.get_chats(db_data)
+    user = User.get_from_cookies(request)
+    chats = user.get_chats()
     return render_template('dialogs-div.html', chats=chats, user=user)
 
 
@@ -423,7 +424,7 @@ def api_get_token():
     if login is None or password is None:
         return json.dumps({'code': API_CODES.INCORRECT_SYNTAX})
 
-    user = User.find_by_login(login, db_data)
+    user = User.find_by_login(login)
     if user is None:
         return json.dumps({'code': API_CODES.USER_NOT_FOUND})
     if user.password != password:
@@ -441,12 +442,12 @@ def api_signup():
     if login is None or password is None or keyword is None:
         return json.dumps({'code': API_CODES.INCORRECT_SYNTAX})
 
-    if User.find_by_login(login, db_data) is not None:
+    if User.find_by_login(login) is not None:
         return json.dumps({'code': API_CODES.USER_ALREADY_EXISTS})
     if ';' in login:
         return json.dumps({'code': API_CODES.FORBIDDEN_SYMBOLS_IN_LOGIN, 'symbol': ';'})
     user = User(login, password, keyword)
-    user.write_to_db(db_data)
+    user.write_to_db()
 
     return json.dumps({'code': API_CODES.SUCCESS, 'token': user.token})
 
@@ -459,13 +460,13 @@ def api_get_chats():
     if token is None:
         return json.dumps({'code': API_CODES.INCORRECT_SYNTAX})
 
-    user = User.find_by_token(token, db_data)
+    user = User.find_by_token(token)
 
     if user is None:
         return json.dumps({'code': API_CODES.USER_NOT_FOUND})
 
     chats = [{'id': i.id, 'members': i.members, 'name': i.name} for i in
-             user.get_chats(db_data)]
+             user.get_chats()]
 
     return json.dumps({'code': API_CODES.SUCCESS, 'chats': chats})
 
@@ -481,12 +482,12 @@ def api_create_chat():
         print(f'{token=}, {name=}, {members=}, {password=}')
         return json.dumps({'code': API_CODES.INCORRECT_SYNTAX})
     members = members.split(';')
-    user = User.find_by_token(token, db_data)
+    user = User.find_by_token(token)
 
     if user is None:
         return json.dumps({'code': API_CODES.USER_NOT_FOUND})
 
-    curr_chat = BaseFunctions.create_chat(user, name, members, password, db_data)
+    curr_chat = BaseFunctions.create_chat(user, name, members, password)
     return json.dumps({'code': API_CODES.SUCCESS, 'chat-id': curr_chat.id})
 
 
@@ -499,7 +500,7 @@ def api_recover_password():
     if login is None or keyword is None:
         return json.dumps({'code': API_CODES.INCORRECT_SYNTAX})
 
-    user = User.find_by_login(login, db_data)
+    user = User.find_by_login(login)
 
     if user is None:
         return json.dumps({'code': API_CODES.USER_NOT_FOUND})
@@ -517,12 +518,12 @@ def api_remove_account():
     if token is None:
         return json.dumps({'code': API_CODES.INCORRECT_SYNTAX})
 
-    user = User.find_by_token(token, db_data)
+    user = User.find_by_token(token)
 
     if user is None:
         return json.dumps({'code': API_CODES.USER_NOT_FOUND})
 
-    BaseFunctions.remove_account(user, db_data)
+    BaseFunctions.remove_account(user)
 
     return json.dumps({'code': API_CODES.SUCCESS})
 
@@ -535,12 +536,12 @@ def api_change_password():
     if token is None or new_password is None:
         return json.dumps({'code': API_CODES.INCORRECT_SYNTAX})
 
-    user = User.find_by_token(token, db_data)
+    user = User.find_by_token(token)
 
     if user is None:
         return json.dumps({'code': API_CODES.USER_NOT_FOUND})
 
-    BaseFunctions.change_password(user, new_password, db_data)
+    BaseFunctions.change_password(user, new_password)
 
     return json.dumps({'code': API_CODES.SUCCESS})
 
@@ -553,16 +554,16 @@ def api_chat():
     if token is None or id_ is None:
         return json.dumps({'code': API_CODES.INCORRECT_SYNTAX})
 
-    user = User.find_by_token(token, db_data)
+    user = User.find_by_token(token)
 
     if user is None:
         return json.dumps({'code': API_CODES.USER_NOT_FOUND})
-    curr_chat = Chat.from_id(id_, db_data)
+    curr_chat = Chat.from_id(id_)
     if curr_chat is None:
         return json.dumps({'code': API_CODES.CHAT_NOT_FOUND})
     if user.login not in curr_chat.members:
         return json.dumps({'code': API_CODES.NOT_A_CHAT_MEMBER})
-    messages = Message.get_messages_from_chat(curr_chat.id, db_data)
+    messages = Message.get_messages_from_chat(curr_chat.id)
 
     messages.sort(key=lambda i: i.time)
 
@@ -588,23 +589,23 @@ def send_message():
     if token is None or id_ is None or text is None:
         return json.dumps({'code': API_CODES.INCORRECT_SYNTAX})
 
-    user = User.find_by_token(token, db_data)
+    user = User.find_by_token(token)
 
     if user is None:
         return json.dumps({'code': API_CODES.USER_NOT_FOUND})
-    curr_chat = Chat.from_id(id_, db_data)
+    curr_chat = Chat.from_id(id_)
     if curr_chat is None:
         return json.dumps({'code': API_CODES.CHAT_NOT_FOUND})
     if user.login not in curr_chat.members:
         return json.dumps({'code': API_CODES.NOT_A_CHAT_MEMBER})
 
     if text.startswith('!!'):
-        BaseFunctions.execute_message_command(text, curr_chat, user, db_data)
+        BaseFunctions.execute_message_command(text, curr_chat, user)
     elif text.startswith('`!!'):
         text = text[1:]
     else:
         msg = Message(user, text, time.time(), id_)
-        msg.write_to_db(db_data)
+        msg.write_to_db()
 
     return json.dumps({'code': API_CODES.SUCCESS})
 

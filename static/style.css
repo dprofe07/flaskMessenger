@@ -29,19 +29,16 @@
 }
 
 .message-sended {
-    text-align: right;
     background-color: aqua;
     margin-left: auto;
 }
 
 .message-recved {
-    text-align: left;
     background-color: #84e24a;
     margin-right: auto;
 }
 
 .message-system {
-    text-align: center;
     margin-left: auto;
     margin-right: auto;
     background-color: #de52ff;
@@ -149,4 +146,12 @@
 
 .index-menu a:hover {
     background-color: #efff26;
+}
+
+.answered {
+    border-left: 3px black solid;
+    margin-top: 2px;
+    margin-bottom: 5px;
+    padding-left: 15px;
+    padding-bottom: 5px;
 }

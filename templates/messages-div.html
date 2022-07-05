@@ -1,12 +1,15 @@
 <div class="messages-container">
     {% for i in messages %}
         <div class="message message-{{ 'sended' if i.from_ == user else ('system' if i.from_.login == 'SYSTEM' else 'recved') }}">
-            {% if i.from_.login != 'SYSTEM' %}<span class="message-sender">Отправил: {{ i.from_.login if i.from_.login != user.login else 'Вы' }}</span><br/>{% endif %}
-            {% if i.from_.login != 'SYSTEM' -%}
-                <span>{{ i.text }}</span>
-            {% else %}
-                <span>{{ i.text | safe }}</span>
-            {% endif %}
+            {{ i.get_html(user) | safe }}
+            {# {% if i.from_.login != 'SYSTEM' %}<span class="message-sender">Отправил: {{ i.from_.login if i.from_.login != user.login else 'Вы' }}</span><br/>{% endif %}
+            {#            {% if i.from_.login != 'SYSTEM' -%}
+            {#                <span>{{ i.text }}</span>
+            {#            {% else %}
+            {#                <span>{{ i.text | safe }}</span>
+            {#            {% endif %} #}
+
+
         </div>
     {% endfor %}
 

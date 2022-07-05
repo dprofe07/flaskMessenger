@@ -10,8 +10,8 @@ class User(BaseUnit):
         self.token = token or generate_rnd_password(30)
         self.aliases = aliases or {}
 
-    def get_aliases(self, db_data):
-        db_conn = self.connect_to_db(db_data)
+    def get_aliases(self):
+        db_conn = self.connect_to_db()
         cur = db_conn.cursor()
 
         res = {}
@@ -22,8 +22,8 @@ class User(BaseUnit):
 
         return res
 
-    def get_chats(self, db_data):
-        db_conn = self.connect_to_db(db_data)
+    def get_chats(self):
+        db_conn = self.connect_to_db()
         cur = db_conn.cursor()
 
         res = []
@@ -47,7 +47,7 @@ class User(BaseUnit):
         res.sort(key=lambda i: i[0])
         res.reverse()
 
-        res = [Chat.from_id(i[1], db_data) for i in res]
+        res = [Chat.from_id(i[1]) for i in res]
         for i in res:
             if 'DIALOG_BETWEEN' in i.name:
                 new_name = i.name.replace('DIALOG_BETWEEN/', '')
@@ -60,25 +60,35 @@ class User(BaseUnit):
                     i.show_name = f'Диалог между {dialoged[0]} и {dialoged[1]}'
         return res
 
-    def write_to_db(self, db_data):
-        db_conn = self.connect_to_db(db_data)
+    def write_to_db(self):
+        db_conn = self.connect_to_db()
         cur = db_conn.cursor()
 
-        if User.find_by_login(self.login, db_data) is None:
+        if User.find_by_login(self.login) is None:
             cur.execute(
-                f"insert into users values ({self.login!r}, {self.password!r}, {self.keyword!r}, {self.token!r})"
+                f"""
+                    insert into users values (
+                        '{self.login.replace("'", "''").replace('"', '""')}', 
+                        '{self.password.replace("'", "''").replace('"', '""')}', 
+                        '{self.keyword.replace("'", "''").replace('"', '""')}', 
+                        {self.token!r}
+                    )
+                """
             )
         else:
             cur.execute(
-                f"update users "
-                f"set Password = {self.password!r}, Keyword={self.keyword!r}, Token={self.token!r} "
-                f"where Login = {self.login!r}"
+                f"""update users 
+                set 
+                Password = '{self.password.replace("'", "''").replace('"', '""')}',
+                Keyword = '{self.keyword.replace("'", "''").replace('"', '""')}', 
+                Token={self.token!r}
+                where Login = '{self.login.replace("'", "''").replace('"', '""')}'"""
             )
         db_conn.commit()
 
     @staticmethod
-    def get_list(db_data):
-        db_conn = User.connect_to_db(db_data)
+    def get_list():
+        db_conn = User.connect_to_db()
         cur = db_conn.cursor()
         cur.execute('SELECT * FROM users')
         res = []
@@ -87,8 +97,8 @@ class User(BaseUnit):
         return res
 
     @staticmethod
-    def find_by_token(token: str, db_data):
-        db_conn = User.connect_to_db(db_data)
+    def find_by_token(token: str):
+        db_conn = User.connect_to_db()
         cur = db_conn.cursor()
         if not isinstance(token, str):
             return None
@@ -100,12 +110,12 @@ class User(BaseUnit):
         return User(*res[0])
 
     @staticmethod
-    def find_by_login(login: str, db_data):
-        db_conn = User.connect_to_db(db_data)
+    def find_by_login(login: str):
+        db_conn = User.connect_to_db()
         cur = db_conn.cursor()
         if not isinstance(login, str):
             return None
-        cur.execute(f'SELECT * FROM users WHERE Login = {login!r}')
+        cur.execute(f'''SELECT * FROM users WHERE Login = '{login.replace("'", "''").replace('"', '""')}' ''')
         res = cur.fetchall()
         if len(res) == 0:
             return None
@@ -121,14 +131,14 @@ class User(BaseUnit):
         # on 0 seconds (expire and remove)
 
     @staticmethod
-    def get_from_cookies(request, db_data):
-        return User.find_by_token(request.cookies.get('user_token'), db_data)
+    def get_from_cookies(request):
+        return User.find_by_token(request.cookies.get('user_token'))
 
-    def remove_from_db(self, db_data):
-        db_conn = self.connect_to_db(db_data)
+    def remove_from_db(self):
+        db_conn = self.connect_to_db()
         cur = db_conn.cursor()
-        cur.execute(f"DELETE FROM users WHERE Login = {self.login!r}")
-        cur.execute(f"DELETE FROM chat_members WHERE UserLogin = {self.login!r}")
+        cur.execute(f"""DELETE FROM users WHERE Login = '{self.login.replace("'", "''").replace('"', '""')}'""")
+        cur.execute(f"""DELETE FROM chat_members WHERE UserLogin = '{self.login.replace("'", "''").replace('"', '""')}'""")
         db_conn.commit()
 
     def __repr__(self):
