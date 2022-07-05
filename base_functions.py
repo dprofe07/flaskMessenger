@@ -36,7 +36,7 @@ class BaseFunctions:
         user.password = new_password
         user.write_to_db()
         system_user = User.find_by_login('SYSTEM')
-        if system_user is not None and send_message:
+        if system_user is not None and send_message and user.login != 'SYSTEM':
             sys_messages = None
             for i in user.get_chats():
                 if 'SYSTEM' in i.members:
@@ -331,29 +331,6 @@ class BaseFunctions:
             elif command[0] == 'do-sql-request':
                 return {'NEED': 'sql-request', 'command': command}
 
-            elif command[0] == 'make-invite-link':
-                password = command[1]
-                Message(
-                    curr_user,
-                    text.replace(password, '<HIDDEN>'),
-                    time.time(),
-                    curr_chat.id
-                ).write_to_db()
-                if password != curr_chat.password_for_commands:
-                    Message.send_system_message(
-                        'Неверный пароль',
-                        curr_chat.id
-                    )
-                else:
-                    link = (
-                        request.url_root + '/chat-invite?'
-                        f'id={curr_chat.id}&code={curr_chat.token}'
-                    )
-                    Message.send_system_message(
-                        f'Сгенерирована ссылка-приглашение: <a href="/{link.split("/")[-1]}">{link}</a><br/><br/>'
-                        f'Чтобы сделать ссылку недействительной используйте команду !!reset-invite-link',
-                        curr_chat.id
-                    )
             elif command[0] == 'make-invite-code':
                 password = command[1]
                 Message(
@@ -368,9 +345,10 @@ class BaseFunctions:
                         curr_chat.id
                     )
                 else:
+                    import urllib.parse
                     code = f'{curr_chat.id}&&{curr_chat.token}'
                     Message.send_system_message(
-                        f'Сгенерирован код-приглашение: <b><a href="/join-chat?code={code}">{code}</a></b><br/><br/>'
+                        f'Сгенерирован код-приглашение: <b><a href="/join-chat?code={urllib.parse.quote_plus(code)}">{code}</a></b><br/><br/>'
                         f'Чтобы сделать код недействительным используйте команду !!reset-invite-code',
                         curr_chat.id
                     )
