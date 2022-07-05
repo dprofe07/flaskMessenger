@@ -4,23 +4,29 @@
 
 {% block content %}
     {% if user -%}
+        <ul class="index-menu">
+            <li><a href="/"><img src="{{ url_for('static', filename='home.png') }}" alt="home"/></a></li>
+            <li><a href="{{ url_for('logout') }}">Выйти из аккаунта</a></li>
+            <li><a href="{{ url_for('remove_account') }}">Удалить аккаунт</a></li>
+            <li><a href="{{ url_for('logout') }}">Выйти из аккаунта</a></li>
+            <li><a href="{{ url_for('remove_account') }}">Удалить аккаунт</a></li>
+            <li><a href="{{ url_for('change_password') }}">Сменить пароль</a></li>
+            <li><a href="{{ url_for('change_token') }}">Выйти на всех устройствах (кроме этого)</a></li>
+        </ul>
+
         <!--suppress HtmlUnknownTarget -->
         <h1>Мессенджер</h1>
         <h2>Вы вошли как {{ user.login }}</h2>
-        <p><a href="{{ url_for('logout') }}">Выйти из аккаунта</a></p>
-        <p><a href="{{ url_for('remove_account') }}">Удалить аккаунт</a></p>
-        <p><a href="{{ url_for('change_password') }}">Сменить пароль</a></p>
-        <p><a href="{{ url_for('change_token') }}">Выйти на всех устройствах (кроме этого)</a></p>
         <h3 class="center">Чаты</h3>
 
-        <div class="dialogs-container">
+        <div class="chats-container">
             {% include 'dialogs-div.html' %}
-            <div class="dialog">
-                <a href="javascript:show_choice_chat_or_dialog()" style="font-size: 2em; color: #8b9536" class="center dialog-a" id="plus">+</a>
+            <div class="chat">
+                <a href="javascript:show_choice_chat_or_dialog()" style="font-size: 2em; color: #8b9536" class="center chat-a" id="plus">+</a>
                 <table style="display:none" id="tbl-choice">
                     <tr class="tbl-choice-tr">
-                        <td class="tbl-choice-td"><a href="javascript:show_form_chat()" style="font-size: 2em; color: #8b9536" class="center dialog-a" id="add-chat">Чат</a></td>
-                        <td class="tbl-choice-td"><a href="javascript:show_form_dialog()" style="font-size: 2em; color: #8b9536" class="center dialog-a" id="add-dialog">Диалог</a></td>
+                        <td class="tbl-choice-td"><a href="javascript:show_form_chat()" style="font-size: 2em; color: #8b9536" class="center chat-a" id="add-chat">Чат</a></td>
+                        <td class="tbl-choice-td"><a href="javascript:show_form_dialog()" style="font-size: 2em; color: #8b9536" class="center chat-a" id="add-dialog">Диалог</a></td>
                     </tr>
                 </table>
 
@@ -51,8 +57,8 @@
                     </form>
                 </div>
             </div>
-            <div class="dialog">
-                <a href="javascript:show_form_join_chat()" style="font-size: 2em; color: #8b9536" class="center dialog-a" id="a_join_chat">Присоединиться по коду</a>
+            <div class="chat">
+                <a href="javascript:show_form_join_chat()" style="font-size: 2em; color: #8b9536" class="center chat-a" id="a_join_chat">Присоединиться по коду</a>
                 <form action="/join-chat" id="form-join-chat" style="display: none">
                     <label for="chat-code">Код чата: </label>
                     <input type="text" name="code" id="chat-code"><br/>

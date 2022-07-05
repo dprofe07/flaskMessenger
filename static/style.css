@@ -71,13 +71,14 @@
     text-align: center;
 }
 
-.dialog {
+.chat {
     border: 2px solid black;
     background-color: #efff5f;
     min-height: 30px;
+    overflow-x: hidden;
 }
 
-.dialog-a {
+.chat-a {
     display: block;
     padding: 10px;
     text-decoration: none;
@@ -85,11 +86,11 @@
     width: 100%;
 }
 
-.dialog-a:hover {
-    background-color: #efff26 !important;
+.chat-a:hover {
+    background-color: #efff26;
 }
 
-.dialogs-container {
+.chats-container {
     width: 80%;
     margin-left: auto;
     margin-right: auto;
@@ -97,7 +98,6 @@
     padding-top: 5px;
     padding-bottom: 5px;
     overflow-y: scroll;
-    overflow-x: hidden;
     max-height: 400px;
 }
 
@@ -123,4 +123,30 @@
 
 .tbl-choice-td {
     width: 50%;
+}
+
+.index-menu {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    overflow-x: hidden;
+    list-style-type: none;
+    background-color: #efff5f;
+}
+
+.index-menu li {
+    display: inline;
+    height: 100%;
+    vertical-align: middle;
+}
+
+.index-menu a {
+    display: inline-block;
+    padding: 10px;
+    text-decoration: none;
+    color: inherit;
+}
+
+.index-menu a:hover {
+    background-color: #efff26;
 }

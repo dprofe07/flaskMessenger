@@ -1,7 +1,7 @@
 <div class="need-update">
     {% for i in chats %}
-        <div class="dialog">
-            <a class="dialog-a" href="/chat/{{ i.id }}">{{ i.name }} [{{ ', '.join(i.members) }}]</a>
+        <div class="chat">
+            <a class="chat-a" href="/chat/{{ i.id }}">{{ i.name }} [{{ ', '.join(i.members) }}]</a>
         </div>
     {% endfor %}
 </div>
