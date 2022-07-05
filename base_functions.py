@@ -369,7 +369,7 @@ class BaseFunctions:
                 else:
                     code = f'{curr_chat.id}&&{curr_chat.token}'
                     Message.send_system_message(
-                        f'Сгенерирован код-приглашение: <b>{code}</b><br/><br/>'
+                        f'Сгенерирован код-приглашение: <b><a href="/join-chat?code={code}">{code}</a></b><br/><br/>'
                         f'Чтобы сделать код недействительным используйте команду !!reset-invite-code',
                         curr_chat.id, db_data
                     )

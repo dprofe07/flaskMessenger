@@ -8,6 +8,17 @@ class Chat(BaseUnit):
         self.name = name
         self.password_for_commands = password_for_commands
         self.token = token or generate_rnd_password(30)
+        self.show_name = None
+
+    @property
+    def show_name(self):
+        if self.__show_name is None:
+            return self.name
+        return self.__show_name
+
+    @show_name.setter
+    def show_name(self, new_val):
+        self.__show_name = new_val
 
     def __eq__(self, other):
         return self.id == other.id

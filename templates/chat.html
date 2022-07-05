@@ -1,19 +1,20 @@
 {% extends 'base.html' %}
 
 {% block title %}
-    {%- if 'DIALOG_BETWEEN' not in chat.name -%}
-    Чат {{ chat.name }}
+
+    {%- if dialog -%}
+        {{ chat.show_name }}
     {%- else -%}
-        Диалог с {{ chat.name.replace('DIALOG_BETWEEN/', '').replace('-', '').replace(user.login, '', 1) }}
+        Чат {{ chat.show_name }}
     {%- endif -%}
 {%- endblock %}
 
 
 {% block content -%}
-    {% if 'DIALOG_BETWEEN' not in chat.name %}
-        <h1>Чат {{ chat.name }}</h1>
+    {% if dialog -%}
+        <h1>{{ chat.show_name }}</h1>
     {%- else -%}
-        <h1>Диалог с {{ chat.name.replace('DIALOG_BETWEEN/', '').replace('-', '').replace(user.login, '', 1) }}</h1>
+        <h1>Чат {{ chat.show_name }}</h1>
     {%- endif -%}
     <h2>Вы вошли как {{ user.login }}</h2>
 
@@ -23,7 +24,7 @@
                 <td>{{ val2 | safe }}</td>
             </tr>
         {% endmacro %}
-    {% if 'DIALOG_BETWEEN' not in chat.name %}
+    {% if not dialog %}
         <script>
             function show_commands() {
                 document.getElementById('hidden-div').style.display="table";
@@ -56,11 +57,13 @@
 
             <p><a href="javascript: hide_commands()">Свернуть</a></p>
         </div>
-
-
     {% else %}
         <p>Чтобы удалить диалог введите "!!remove-chat;", чтобы очистить - "!!clear-chat;", а чтобы покинуть - "!!leave"</p>
     {% endif %}
+    {% if user.login == 'SYSTEM' and user.login not in chat.members %}
+        <div class="message-system message">Вы не состоите в этот чате</div>
+    {% endif %}
+
     {% include 'messages-div.html' %}
 
 

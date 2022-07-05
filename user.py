@@ -27,10 +27,14 @@ class User(BaseUnit):
         cur = db_conn.cursor()
 
         res = []
-
-        cur.execute(f"SELECT * FROM chat_members WHERE UserLogin = {self.login!r}")
-        for i in cur.fetchall():
-            if i[0] not in res:
+        if self.login != 'SYSTEM':
+            cur.execute(f"SELECT * FROM chat_members WHERE UserLogin = {self.login!r}")
+            for i in cur.fetchall():
+                if i[0] not in res:
+                    res.append(i[0])
+        else:
+            cur.execute('SELECT * FROM chats')
+            for i in cur.fetchall():
                 res.append(i[0])
 
         res = [[0, i] for i in res]
@@ -43,7 +47,18 @@ class User(BaseUnit):
         res.sort(key=lambda i: i[0])
         res.reverse()
 
-        return [Chat.from_id(i[1], db_data) for i in res]
+        res = [Chat.from_id(i[1], db_data) for i in res]
+        for i in res:
+            if 'DIALOG_BETWEEN' in i.name:
+                new_name = i.name.replace('DIALOG_BETWEEN/', '')
+                dialoged = new_name.split(';')
+                if self.login in dialoged:
+                    dialoged.remove(self.login)
+                    other = dialoged[0]
+                    i.show_name = f'Диалог с {other}'
+                else:
+                    i.show_name = f'Диалог между {dialoged[0]} и {dialoged[1]}'
+        return res
 
     def write_to_db(self, db_data):
         db_conn = self.connect_to_db(db_data)

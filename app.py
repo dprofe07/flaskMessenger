@@ -186,15 +186,23 @@ def chat(id_):
         flash('Чат не найден в базе данных', 'error')
         return redirect('/')
     if curr_user.login not in curr_chat.members:
-        if curr_user.login == 'SYSTEM':
-            flash('Вы не состоите в этом чате', 'warning')
-        else:
+        if curr_user.login != 'SYSTEM':
             flash('Вступите в чат, чтобы просмотреть его', 'error')
             return redirect('/')
     messages = Message.get_messages_from_chat(curr_chat.id, db_data)
 
     messages.sort(key=lambda i: i.time)
-    return render_template('chat.html', user=curr_user, messages=messages, chat=curr_chat)
+    dialog = 'DIALOG_BETWEEN' in curr_chat.name
+    if dialog:
+        new_name = curr_chat.name.replace('DIALOG_BETWEEN/', '', 1)
+        dialoged = new_name.split(';')
+        if curr_user.login in dialoged:
+            dialoged.remove(curr_user.login)
+            other = dialoged[0]
+            curr_chat.show_name = f'Диалог с {other}'
+        else:
+            curr_chat.show_name = f'Диалог между {dialoged[0]} и {dialoged[1]}'
+    return render_template('chat.html', user=curr_user, messages=messages, chat=curr_chat, dialog=dialog)
 
 
 @app.route('/change-token')
@@ -222,9 +230,7 @@ def send_message_to(chat_id):
         flash('Чат не найден в базе данных', 'error')
         return redirect('/')
     if curr_user.login not in curr_chat.members:
-        if curr_user.login == 'SYSTEM':
-            flash('Вы не состоите в этом чате', 'warning')
-        else:
+        if curr_user.login != 'SYSTEM':
             flash('Чтобы отправлять сообщения, вступите в чат', 'error')
             return redirect('/')
     text = request.form['message']
@@ -293,6 +299,8 @@ def new_chat():
         flash('Войдите в аккаунт, чтобы общаться', 'error')
         return redirect('/')
     chat_name = request.form['chat-name']
+    if 'DIALOG_BETWEEN' in chat_name:
+        flash(f'Недопустимое название чата: "{chat_name}"', 'error')
     users = []
     for i in request.form['users'].split(';'):
         if i not in users and i != curr_user.login:
@@ -314,13 +322,13 @@ def new_dialog():
         return redirect('/')
     login = request.form['login']
     if login == curr_user.login:
-        flash('Нельзя создать диалог с самим собой. Используйте чат.')
+        flash('Нельзя создать диалог с самим собой. Используйте чат.', 'error')
         return redirect('/')
     if User.find_by_login(login, db_data) is None:
         flash('Пользователь не найден', 'error')
         return redirect('/')
 
-    curr_chat = Chat(-1, f'DIALOG_BETWEEN/{login}-{curr_user.login}', [curr_user.login, login], '')
+    curr_chat = Chat(-1, f'DIALOG_BETWEEN/{login};{curr_user.login}', [curr_user.login, login], '')
     curr_chat.write_to_db(db_data)
     Message.send_system_message(
         f'Пользователь {curr_user.login} создал диалог с пользователем {login}',
