@@ -611,7 +611,7 @@ def send_message():
 
 
 @app.route('/api/change-token')
-def change_token():
+def api_change_token():
     token = request.args.get('token')
 
     if token is None:
