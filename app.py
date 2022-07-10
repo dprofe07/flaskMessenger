@@ -433,6 +433,21 @@ def api_get_token():
     return json.dumps({'code': API_CODES.SUCCESS, 'token': user.token})
 
 
+# noinspection DuplicatedCode
+@app.route('/api/get-login-password/')
+def api_get_login_password():
+    token = request.args.get('token')
+
+    if token is None:
+        return json.dumps({'code': API_CODES.INCORRECT_SYNTAX})
+
+    user = User.find_by_token(token)
+    if user is None:
+        return json.dumps({'code': API_CODES.USER_NOT_FOUND})
+
+    return json.dumps({'code': API_CODES.SUCCESS, 'login': user.login, 'password': user.password})
+
+
 @app.route('/api/signup')
 def api_signup():
     login = request.args.get('login')
