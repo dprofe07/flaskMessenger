@@ -465,7 +465,7 @@ def api_get_chats():
     if user is None:
         return json.dumps({'code': API_CODES.USER_NOT_FOUND})
 
-    chats = [{'id': i.id, 'members': i.members, 'name': i.name} for i in
+    chats = [{'id': i.id, 'members': ';'.split(i.members), 'name': i.name} for i in
              user.get_chats()]
 
     return json.dumps({'code': API_CODES.SUCCESS, 'chats': chats})
