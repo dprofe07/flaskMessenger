@@ -610,5 +610,23 @@ def send_message():
     return json.dumps({'code': API_CODES.SUCCESS})
 
 
+@app.route('/api/change-token')
+def change_token():
+    token = request.args.get('token')
+
+    if token is None:
+        return json.dumps({'code': API_CODES.INCORRECT_SYNTAX})
+
+    user = User.find_by_token(token)
+
+    if user is None:
+        return json.dumps({'code': API_CODES.USER_NOT_FOUND})
+
+    user.token = User.generate_new_token()
+    user.write_to_db()
+
+    return json.dumps({'code': API_CODES.SUCCESS, 'token': user.token})
+
+
 if __name__ == '__main__':
     app.run('192.168.1.12', port=5000, debug=not SERVER)
