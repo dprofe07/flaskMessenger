@@ -416,7 +416,7 @@ class API_CODES:
 
 
 # noinspection DuplicatedCode
-@app.route('/api/get-token/')
+@app.route('/api/get-token')
 def api_get_token():
     login = request.args.get('login')
     password = request.args.get('password')
@@ -434,7 +434,7 @@ def api_get_token():
 
 
 # noinspection DuplicatedCode
-@app.route('/api/get-login-password/')
+@app.route('/api/get-login-password')
 def api_get_login_password():
     token = request.args.get('token')
 
