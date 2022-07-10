@@ -422,15 +422,15 @@ def api_get_token():
     password = request.args.get('password')
 
     if login is None or password is None:
-        return json.dumps({'code': API_CODES.INCORRECT_SYNTAX})
+        return json.dumps({'code': API_CODES.INCORRECT_SYNTAX}, ensure_ascii=False)
 
     user = User.find_by_login(login)
     if user is None:
-        return json.dumps({'code': API_CODES.USER_NOT_FOUND})
+        return json.dumps({'code': API_CODES.USER_NOT_FOUND}, ensure_ascii=False)
     if user.password != password:
-        return json.dumps({'code': API_CODES.INCORRECT_PASSWORD})
+        return json.dumps({'code': API_CODES.INCORRECT_PASSWORD}, ensure_ascii=False)
 
-    return json.dumps({'code': API_CODES.SUCCESS, 'token': user.token})
+    return json.dumps({'code': API_CODES.SUCCESS, 'token': user.token}, ensure_ascii=False)
 
 
 # noinspection DuplicatedCode
@@ -439,13 +439,13 @@ def api_get_login_password():
     token = request.args.get('token')
 
     if token is None:
-        return json.dumps({'code': API_CODES.INCORRECT_SYNTAX})
+        return json.dumps({'code': API_CODES.INCORRECT_SYNTAX}, ensure_ascii=False)
 
     user = User.find_by_token(token)
     if user is None:
-        return json.dumps({'code': API_CODES.USER_NOT_FOUND})
+        return json.dumps({'code': API_CODES.USER_NOT_FOUND}, ensure_ascii=False)
 
-    return json.dumps({'code': API_CODES.SUCCESS, 'login': user.login, 'password': user.password})
+    return json.dumps({'code': API_CODES.SUCCESS, 'login': user.login, 'password': user.password}, ensure_ascii=False)
 
 
 @app.route('/api/signup')
@@ -455,16 +455,16 @@ def api_signup():
     keyword = request.args.get('keyword')
 
     if login is None or password is None or keyword is None:
-        return json.dumps({'code': API_CODES.INCORRECT_SYNTAX})
+        return json.dumps({'code': API_CODES.INCORRECT_SYNTAX}, ensure_ascii=False)
 
     if User.find_by_login(login) is not None:
-        return json.dumps({'code': API_CODES.USER_ALREADY_EXISTS})
+        return json.dumps({'code': API_CODES.USER_ALREADY_EXISTS}, ensure_ascii=False)
     if ';' in login:
-        return json.dumps({'code': API_CODES.FORBIDDEN_SYMBOLS_IN_LOGIN, 'symbol': ';'})
+        return json.dumps({'code': API_CODES.FORBIDDEN_SYMBOLS_IN_LOGIN, 'symbol': ';'}, ensure_ascii=False)
     user = User(login, password, keyword)
     user.write_to_db()
 
-    return json.dumps({'code': API_CODES.SUCCESS, 'token': user.token})
+    return json.dumps({'code': API_CODES.SUCCESS, 'token': user.token}, ensure_ascii=False)
 
 
 # noinspection DuplicatedCode
@@ -473,17 +473,17 @@ def api_get_chats():
     token = request.args.get('token')
 
     if token is None:
-        return json.dumps({'code': API_CODES.INCORRECT_SYNTAX})
+        return json.dumps({'code': API_CODES.INCORRECT_SYNTAX}, ensure_ascii=False)
 
     user = User.find_by_token(token)
 
     if user is None:
-        return json.dumps({'code': API_CODES.USER_NOT_FOUND})
+        return json.dumps({'code': API_CODES.USER_NOT_FOUND}, ensure_ascii=False)
 
     chats = [{'id': i.id, 'members': ';'.join(i.members), 'name': i.name} for i in
              user.get_chats()]
 
-    return json.dumps({'code': API_CODES.SUCCESS, 'chats': chats})
+    return json.dumps({'code': API_CODES.SUCCESS, 'chats': chats}, ensure_ascii=False)
 
 
 @app.route('/api/create-chat')
@@ -495,15 +495,15 @@ def api_create_chat():
 
     if token is None or name is None or members is None or password is None:
         print(f'{token=}, {name=}, {members=}, {password=}')
-        return json.dumps({'code': API_CODES.INCORRECT_SYNTAX})
+        return json.dumps({'code': API_CODES.INCORRECT_SYNTAX}, ensure_ascii=False)
     members = members.split(';')
     user = User.find_by_token(token)
 
     if user is None:
-        return json.dumps({'code': API_CODES.USER_NOT_FOUND})
+        return json.dumps({'code': API_CODES.USER_NOT_FOUND}, ensure_ascii=False)
 
     curr_chat = BaseFunctions.create_chat(user, name, members, password)
-    return json.dumps({'code': API_CODES.SUCCESS, 'chat-id': curr_chat.id})
+    return json.dumps({'code': API_CODES.SUCCESS, 'chat-id': curr_chat.id}, ensure_ascii=False)
 
 
 # noinspection DuplicatedCode
@@ -513,16 +513,16 @@ def api_recover_password():
     keyword = request.args.get('keyword')
 
     if login is None or keyword is None:
-        return json.dumps({'code': API_CODES.INCORRECT_SYNTAX})
+        return json.dumps({'code': API_CODES.INCORRECT_SYNTAX}, ensure_ascii=False)
 
     user = User.find_by_login(login)
 
     if user is None:
-        return json.dumps({'code': API_CODES.USER_NOT_FOUND})
+        return json.dumps({'code': API_CODES.USER_NOT_FOUND}, ensure_ascii=False)
     if user.keyword != keyword:
-        return json.dumps({'code': API_CODES.INCORRECT_PASSWORD})
+        return json.dumps({'code': API_CODES.INCORRECT_PASSWORD}, ensure_ascii=False)
 
-    return json.dumps({'code': API_CODES.SUCCESS, 'password': user.password, 'token': user.token})
+    return json.dumps({'code': API_CODES.SUCCESS, 'password': user.password, 'token': user.token}, ensure_ascii=False)
 
 
 # noinspection DuplicatedCode
@@ -531,16 +531,16 @@ def api_remove_account():
     token = request.args.get('token')
 
     if token is None:
-        return json.dumps({'code': API_CODES.INCORRECT_SYNTAX})
+        return json.dumps({'code': API_CODES.INCORRECT_SYNTAX}, ensure_ascii=False)
 
     user = User.find_by_token(token)
 
     if user is None:
-        return json.dumps({'code': API_CODES.USER_NOT_FOUND})
+        return json.dumps({'code': API_CODES.USER_NOT_FOUND}, ensure_ascii=False)
 
     BaseFunctions.remove_account(user)
 
-    return json.dumps({'code': API_CODES.SUCCESS})
+    return json.dumps({'code': API_CODES.SUCCESS}, ensure_ascii=False)
 
 
 @app.route('/api/change-password')
@@ -549,16 +549,16 @@ def api_change_password():
     new_password = request.args.get('password')
 
     if token is None or new_password is None:
-        return json.dumps({'code': API_CODES.INCORRECT_SYNTAX})
+        return json.dumps({'code': API_CODES.INCORRECT_SYNTAX}, ensure_ascii=False)
 
     user = User.find_by_token(token)
 
     if user is None:
-        return json.dumps({'code': API_CODES.USER_NOT_FOUND})
+        return json.dumps({'code': API_CODES.USER_NOT_FOUND}, ensure_ascii=False)
 
     BaseFunctions.change_password(user, new_password)
 
-    return json.dumps({'code': API_CODES.SUCCESS})
+    return json.dumps({'code': API_CODES.SUCCESS}, ensure_ascii=False)
 
 
 @app.route('/api/chat')
@@ -567,17 +567,17 @@ def api_chat():
     id_ = request.args.get('chat-id')
 
     if token is None or id_ is None:
-        return json.dumps({'code': API_CODES.INCORRECT_SYNTAX})
+        return json.dumps({'code': API_CODES.INCORRECT_SYNTAX}, ensure_ascii=False)
 
     user = User.find_by_token(token)
 
     if user is None:
-        return json.dumps({'code': API_CODES.USER_NOT_FOUND})
+        return json.dumps({'code': API_CODES.USER_NOT_FOUND}, ensure_ascii=False)
     curr_chat = Chat.from_id(id_)
     if curr_chat is None:
-        return json.dumps({'code': API_CODES.CHAT_NOT_FOUND})
+        return json.dumps({'code': API_CODES.CHAT_NOT_FOUND}, ensure_ascii=False)
     if user.login not in curr_chat.members:
-        return json.dumps({'code': API_CODES.NOT_A_CHAT_MEMBER})
+        return json.dumps({'code': API_CODES.NOT_A_CHAT_MEMBER}, ensure_ascii=False)
     messages = Message.get_messages_from_chat(curr_chat.id)
 
     messages.sort(key=lambda i: i.time)
@@ -591,7 +591,7 @@ def api_chat():
         for i in messages
     ]
 
-    return json.dumps({'code': API_CODES.SUCCESS, 'messages': messages})
+    return json.dumps({'code': API_CODES.SUCCESS, 'messages': messages}, ensure_ascii=False)
 
 
 # noinspection DuplicatedCode
@@ -602,17 +602,17 @@ def send_message():
     text = request.args.get('text')
 
     if token is None or id_ is None or text is None:
-        return json.dumps({'code': API_CODES.INCORRECT_SYNTAX})
+        return json.dumps({'code': API_CODES.INCORRECT_SYNTAX}, ensure_ascii=False)
 
     user = User.find_by_token(token)
 
     if user is None:
-        return json.dumps({'code': API_CODES.USER_NOT_FOUND})
+        return json.dumps({'code': API_CODES.USER_NOT_FOUND}, ensure_ascii=False)
     curr_chat = Chat.from_id(id_)
     if curr_chat is None:
-        return json.dumps({'code': API_CODES.CHAT_NOT_FOUND})
+        return json.dumps({'code': API_CODES.CHAT_NOT_FOUND}, ensure_ascii=False)
     if user.login not in curr_chat.members:
-        return json.dumps({'code': API_CODES.NOT_A_CHAT_MEMBER})
+        return json.dumps({'code': API_CODES.NOT_A_CHAT_MEMBER}, ensure_ascii=False)
 
     if text.startswith('!!'):
         BaseFunctions.execute_message_command(text, curr_chat, user)
@@ -622,7 +622,7 @@ def send_message():
         msg = Message(user, text, time.time(), id_)
         msg.write_to_db()
 
-    return json.dumps({'code': API_CODES.SUCCESS})
+    return json.dumps({'code': API_CODES.SUCCESS}, ensure_ascii=False)
 
 
 @app.route('/api/change-token')
@@ -630,17 +630,17 @@ def api_change_token():
     token = request.args.get('token')
 
     if token is None:
-        return json.dumps({'code': API_CODES.INCORRECT_SYNTAX})
+        return json.dumps({'code': API_CODES.INCORRECT_SYNTAX}, ensure_ascii=False)
 
     user = User.find_by_token(token)
 
     if user is None:
-        return json.dumps({'code': API_CODES.USER_NOT_FOUND})
+        return json.dumps({'code': API_CODES.USER_NOT_FOUND}, ensure_ascii=False)
 
     user.token = User.generate_new_token()
     user.write_to_db()
 
-    return json.dumps({'code': API_CODES.SUCCESS, 'token': user.token})
+    return json.dumps({'code': API_CODES.SUCCESS, 'token': user.token}, ensure_ascii=False)
 
 
 if __name__ == '__main__':
