@@ -117,6 +117,14 @@ def err404(e):
     return render_template('error.html', error_message='Страница не найдена')
 
 
+@app.errorhandler(500)
+def err500(e):
+    return render_template(
+        'error.html',
+        error_message='Ошибка 500. Скорее всего слабенький бесплатный сервер не справляется с нагрузкой'
+    )
+
+
 @app.route('/auth', methods=['POST', 'GET'])
 def auth():
     if User.get_from_cookies(request) is not None:
