@@ -616,9 +616,9 @@ def send_message():
 
     if text.startswith('!!'):
         BaseFunctions.execute_message_command(text, curr_chat, user)
-    elif text.startswith('`!!'):
-        text = text[1:]
     else:
+        if text.startswith('`!!'):
+            text = text[1:]
         msg = Message(user, text, time.time(), id_)
         msg.write_to_db()
 
