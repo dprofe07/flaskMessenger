@@ -2,7 +2,7 @@ import json
 import time
 
 import prettytable
-from flask import Flask, render_template, request, redirect, flash, make_response
+from flask import Flask, render_template, request, redirect, flash, make_response, send_file, url_for
 
 from base_unit import SERVER, BaseUnit
 from message import Message
@@ -383,6 +383,11 @@ def invite_to_chat():
     return redirect(f'/chat/{curr_chat.id}')
 
 
+@app.route('/download-app')
+def download_app():
+    return send_file('static/messenger_app.apk', as_attachment=True)
+
+
 @app.route('/get-messages-div/<chat_id>')
 def get_messages_div(chat_id):
     curr_user = User.get_from_cookies(request)
@@ -470,7 +475,7 @@ def api_signup():
     if ';' in login:
         return json.dumps({'code': API_CODES.FORBIDDEN_SYMBOLS_IN_LOGIN, 'symbol': ';'}, ensure_ascii=False)
     user = User(login, password, keyword)
-    user.write_to_db()
+    BaseFunctions.sign_up(user)
 
     return json.dumps({'code': API_CODES.SUCCESS, 'token': user.token}, ensure_ascii=False)
 
