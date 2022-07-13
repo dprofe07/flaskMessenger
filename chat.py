@@ -23,6 +23,15 @@ class Chat(BaseUnit):
     def __eq__(self, other):
         return self.id == other.id
 
+    @property
+    def last_message_time(self):
+        db_conn = self.connect_to_db()
+        cur = db_conn.cursor()
+
+        cur.execute(f"SELECT Time FROM messages WHERE Chat_id = {self.id}")
+        times = [i[0] for i in cur.fetchall()]
+        return max(times)
+
     @staticmethod
     def get_list():
         db_conn = Chat.connect_to_db()

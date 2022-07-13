@@ -493,8 +493,14 @@ def api_get_chats():
     if user is None:
         return json.dumps({'code': API_CODES.USER_NOT_FOUND}, ensure_ascii=False)
 
-    chats = [{'id': i.id, 'members': ';'.join(i.members), 'name': i.name} for i in
-             user.get_chats()]
+    chats = [
+        {
+            'id': i.id,
+            'members': ';'.join(i.members),
+            'name': i.name,
+            'time_last_message': i.last_message_time
+         } for i in user.get_chats()
+    ]
 
     return json.dumps({'code': API_CODES.SUCCESS, 'chats': chats}, ensure_ascii=False)
 
