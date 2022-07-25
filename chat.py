@@ -104,7 +104,9 @@ class Chat(BaseUnit):
         db_conn.commit()
 
     @staticmethod
-    def from_id(id_):
+    def from_id(id_: int):
+        if not isinstance(id_, int):
+            return None
         try:
             db_conn = Chat.connect_to_db()
             cur = db_conn.cursor()

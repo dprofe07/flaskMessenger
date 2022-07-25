@@ -388,3 +388,16 @@ class BaseFunctions:
                 curr_chat.id
             )
         return {}
+
+    @staticmethod
+    def any_is_none(*args):
+        return any(map(lambda i: i is None, args))
+
+    @staticmethod
+    def which_is_none(values_to_check: list, values_to_return: list):
+        if len(values_to_check) != len(values_to_return):
+            return None
+
+        for i in range(len(values_to_check)):
+            if values_to_check[i] is None:
+                return values_to_return[i]
