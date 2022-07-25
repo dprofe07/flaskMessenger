@@ -105,7 +105,7 @@ class Chat(BaseUnit):
 
     @staticmethod
     def from_id(id_: int):
-        if not isinstance(id_, int):
+        if id_ is None:
             return None
         try:
             db_conn = Chat.connect_to_db()
