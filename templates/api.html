@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}API{% endblock %}
+
+{% block content %}
+    <p>Система API для мессенджера на <a href="messenger.pythonanywhere.com">messenger.pythonanywhere.com</a>
+
+    <p>В этой программе для системы API используются GET-запросы. В запрос надо передать некоторые параметры, сервер возвращает JSON-словарь с кодом возврата и некоторыми дополнительными данными</p>
+
+    <table border="1">
+        <tr>
+            <td>Адрес</td>
+            <td>Требуемые параметры</td>
+            <td>Возвращаемые значения</td>
+        </tr>
+        <tr>
+            <td><a href="/api/get-token">/api/get-token</a></td>
+            <td>login - логин<br/>password - пароль</td>
+            <td>токен</td>
+        </tr>
+    </table>
+\Табличка\
+Адрес,Требуемые аргументы,Возвращаемые значения
+/api/get-token/,login + password
+{% endblock %}

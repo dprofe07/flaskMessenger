@@ -432,6 +432,11 @@ class API_CODES:
     DO_NOT_NEED_UPDATE = 8
 
 
+@app.route('/api/')
+def api():
+    return render_template('api.html')
+
+
 @app.route('/api/get-token')
 def api_get_token():
     login = request.args.get('login')
