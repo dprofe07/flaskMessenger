@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block style %}
+<link href="{{ url_for('static', filename='form.css') }}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block content %}
+
+<form action="/form?name={{ name }}">
+    <h1>{{ form.title }}</h1>
+    {% for option in form.options %}
+    <div class="input-block">
+        <span>{{ option.name }}</span>
+        <input type="text" id="{{ option.idx }}" name="{{ option.idx }}"
+            placeholder="{{ option.placeholder}}">
+        {% if option.under %}
+        <span class="under">{{option.under}}</span>
+        {% endif %}
+    </div>
+    {% endfor %}
+    <span class="message error" style="display:none"></span>
+    <input type="submit" value="{{ form.submit }}">
+    {% if form.hint %}
+    <a class="hint" href="{{ form.hint.href }}">{{ form.hint.text }}</a>
+    {% endif %}
+</form>
+
+
+{% endblock %}
