@@ -457,7 +457,7 @@ def api_get_token():
         return json.dumps({'code': ret_code}, ensure_ascii=False)
 
     if user.password != password:
-        return json.dumps({'code': API_CODES.INCORRECT_PASSWORD}, ensure_anscii=False)
+        return json.dumps({'code': API_CODES.INCORRECT_PASSWORD}, ensure_ascii=False)
 
     return json.dumps({'code': API_CODES.SUCCESS, 'token': user.token}, ensure_ascii=False)
 
