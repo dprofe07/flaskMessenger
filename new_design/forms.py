@@ -1,7 +1,7 @@
 class Option:
     def __init__(self, name, idx, required=True, placeholder='', under='', input_type='plain'):
         self.name = name
-        self.id = idx
+        self.idx = idx
         self.placeholder = placeholder
         self.under = under
         self.input_type = input_type
@@ -22,15 +22,15 @@ class Form:
 
 forms = {
     'login': Form([
-        Option('Логин', 'login', required=True),
-        Option('Пароль', 'password', required=True),
+        Option('Логин', 'login'),
+        Option('Пароль', 'password'),
     ], None, title='Авторизация', submit='Войти'),
     'register': Form([
-        Option('Логин', 'login', required=True),
-        Option('Пароль', 'password', required=True),
-        Option('Повторите пароль', 'password-2', required=True),
-        Option('Кодовое слово', 'special-word', required=True,
+        Option('Логин', 'login'),
+        Option('Пароль', 'password'),
+        Option('Повторите пароль', 'password-2'),
+        Option('Кодовое слово', 'special-word', required=False,
             under='Для восстановления пароля')
-    ], None, title='Регистрация', submit='Создать', 
+    ], lambda x: x['login'], title='Регистрация', submit='Создать', 
         hint=Hint('Забыли пароль?', '#'))
 }

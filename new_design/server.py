@@ -7,15 +7,21 @@ app = Flask(__name__)
 def index():
     return render_template('guest.html')
 
+@app.route('/error')
+def error():
+    args = request.args
+    msg = 'Произошла ошибка по' + \
+        ' неизвестной причине' if 'msg' not in args else args['msg']
+    return render_template('error.html', msg=msg, title='Ошибка!')
+
 @app.route('/form', methods=['GET', 'POST'])
 def form():
-    formobj = request.form
-    print(formobj)
-    if len(formobj) != 0:
-        return str(formobj)
     args = request.args
     name = args['name']
     form = forms[name]
+    if request.method == 'POST':
+        formobj = request.form
+        return form.on_recieve(formobj)
     return render_template('form.html', form=form, name=name)
 
 

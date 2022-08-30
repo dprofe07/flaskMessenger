@@ -3,7 +3,12 @@ form h1 {
 }
 
 form div.input-block {
-    margin-top:10px;
+    margin-top:15px;
+}
+
+form div.input-block label {
+    display:block;
+    margin-bottom:5px;
 }
 
 form input[type="submit"] {

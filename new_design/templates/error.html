@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block style %}
+
+<style>
+    main h1 {
+        font-size:35px;
+    }
+    main span {
+        margin-top:30px;
+    }
+    footer {
+        display:none;
+    }
+</style>
+
+{% endblock %}
+
+{% block content %}
+
+<h1>Ошибка!</h1>
+<span>{{ msg }}</span>
+<span><a href="{{ url_for('index') }}">Вернуться на главную страницу</a></span>
+
+{% endblock %}

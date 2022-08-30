@@ -6,13 +6,13 @@
 
 {% block content %}
 
-<form action="/form?name={{ name }}">
+<form action="#" method="post">
     <h1>{{ form.title }}</h1>
     {% for option in form.options %}
     <div class="input-block">
-        <span>{{ option.name }}</span>
+        <label for="{{ option.idx }}">{{ option.name + (' *' if option.required else '') }}</label>
         <input type="text" id="{{ option.idx }}" name="{{ option.idx }}"
-            placeholder="{{ option.placeholder}}">
+            placeholder="{{ option.placeholder}}" {{'' if not option.required else 'required' }}>
         {% if option.under %}
         <span class="under">{{option.under}}</span>
         {% endif %}

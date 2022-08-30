@@ -7,14 +7,14 @@
     <link href="{{ url_for('static', filename='base.css') }}" rel="stylesheet" type="text/css">
     {% block style %}
     {% endblock %}
-    <title>BASE PAGE</title>
+    <title>{{ title }}</title>
 </head>
 <body>
     <div class="page">
         <header>
-            <a href="#" class="logo">LOGO</a>
+            <a href="{{ url_for('index') }}" class="logo local">LOGO</a>
             <nav>
-                <a href="#">Друзья</a>
+                <a href="{{ url_for('form') }}">Друзья</a>
                 <a href="#">Сообщения</a>
                 <a href="#">Настройки</a>
             </nav>
@@ -27,5 +27,6 @@
             <span>Dmitry Profe & Kostin Ilya. All rights reserved.</span>
         </footer>
     </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
