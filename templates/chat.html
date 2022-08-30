@@ -19,11 +19,11 @@
     <h2>Вы вошли как {{ user.login }}</h2>
 
     {% macro row(val1, val2) %}
-            <tr>
-                <td>{{ val1 | safe }}</td>
-                <td>{{ val2 | safe }}</td>
-            </tr>
-        {% endmacro %}
+        <tr>
+            <td>{{ val1 | safe }}</td>
+            <td>{{ val2 | safe }}</td>
+        </tr>
+    {% endmacro %}
     {% if not dialog %}
         <script>
             function show_commands() {

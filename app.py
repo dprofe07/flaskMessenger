@@ -432,7 +432,7 @@ class API_CODES:
     DO_NOT_NEED_UPDATE = 8
 
 
-@app.route('/api/')
+@app.route('/api')
 def api():
     return render_template('api.html')
 
@@ -455,6 +455,9 @@ def api_get_token():
 
     if ret_code is not None:
         return json.dumps({'code': ret_code}, ensure_ascii=False)
+
+    if user.password != password:
+        return json.dumps({'code': API_CODES.INCORRECT_PASSWORD}, ensure_anscii=False)
 
     return json.dumps({'code': API_CODES.SUCCESS, 'token': user.token}, ensure_ascii=False)
 
@@ -702,4 +705,4 @@ def api_change_token():
 
 
 if __name__ == '__main__':
-    app.run('192.168.1.12', port=5000, debug=not SERVER)
+    app.run('192.168.0.200', port=5000, debug=not SERVER)

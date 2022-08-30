@@ -3,9 +3,25 @@
 {% block title %}API{% endblock %}
 
 {% block content %}
-    <p>Система API для мессенджера на <a href="messenger.pythonanywhere.com">messenger.pythonanywhere.com</a>
+    <p>Система API для мессенджера на <a href="/">messenger.pythonanywhere.com</a>
 
     <p>В этой программе для системы API используются GET-запросы. В запрос надо передать некоторые параметры, сервер возвращает JSON-словарь с кодом возврата и некоторыми дополнительными данными</p>
+
+    <p>Используемые коды возврата:</p>
+    <table border="1">
+        <tr>
+            <td>Код</td>
+            <td>Значение</td>
+        </tr>
+        <tr><td>0</td><td>Успех</td></tr>
+        <tr><td>1</td><td>Ошибка: вы не являетесь членом этого чата</td></tr>
+        <tr><td>2</td><td>Ошибка: чат не найден</td></tr>
+        <tr><td>3</td><td>Ошибка: в логин входят запрещённые символы</td></tr>
+        <tr><td>4</td><td>Ошибка: пользователь не найден</td></tr>
+        <tr><td>5</td><td>Ошибка: неверный пароль</td></tr>
+        <tr><td>6</td><td>Ошибка: не указаны все необходимые параметры</td></tr>
+        <tr><td>7</td><td>Ошибка: пользователь с таким логином существует</td></tr>
+    </table>
 
     <table border="1">
         <tr>
@@ -16,10 +32,67 @@
         <tr>
             <td><a href="/api/get-token">/api/get-token</a></td>
             <td>login - логин<br/>password - пароль</td>
-            <td>токен</td>
+            <td>code - код<br/>token - токен</td>
         </tr>
+        <tr>
+            <td><a href="/api/get-login-password">/api/get-login-password</a></td>
+            <td>token - ваш токен</td>
+            <td>code - код<br/>login - логин<br/>password - пароль</td>
+        </tr>
+        <tr>
+            <td><a href="/api/signup">/api/signup</a></td>
+            <td>login - логин<br/>password - пароль<br/>keyword - ключевое слово для восстановления пароля</td>
+            <td>code - код<br/>token - токен</td>
+        </tr>
+        <tr>
+            <td><a href="/api/get-chats">/api/get-chats</a></td>
+            <td>token - токен</td>
+            <td>code - код<br/>chats - список чатов - словарей с полями: <br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;id - идентификатор чата<br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;members - список логинов участников чата<br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;name - название чата<br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;time_last_message - время отправки последнего сообщения<br/>
+            </td>
+        </tr>
+        <tr>
+            <td><a href="/api/create-chat">/api/create-chat</a></td>
+            <td>token - токен<br/>name - название чата<br/>members - участники чата<br/>password - пароль чата</td>
+            <td>code - код<br/>chat-id - идентификатор чата</td>
+        </tr>
+        <tr>
+            <td><a href="/api/recover-password">/api/recover-password</a></td>
+            <td>login - логин<br/>keyword - ключавое слово</td>
+            <td>code - код<br/>password - пароль<br/>token - токен</td>
+        </tr>
+        <tr>
+            <td><a href="/api/remove-account">/api/remove-account</a></td>
+            <td>token - токен</td>
+            <td>code - код</td>
+        </tr>
+        <tr>
+            <td><a href="/api/change-password">/api/change-password</a></td>
+            <td>token - токен<br/>password - новый пароль</td>
+            <td>code - код</td>
+        </tr>
+        <tr>
+            <td><a href="/api/chat">/api/chat</a></td>
+            <td>token - токен<br/>chat-id - идентификатор чата</td>
+            <td>code - код<br/>messages - список сообщений - словарей с полями:<br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;sender_login - логин отправителя<br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;text - текст<br/>
+                &nbsp;&nbsp;&nbsp;&nbsp;time - время отправления<br/>
+            </td>
+        </tr>
+        <tr>
+            <td><a href="/api/send-message">/api/send-message</a></td>
+            <td>token - токен<br/>chat-id - идентификатор чата<br/>text - текст сообщения</td>
+            <td>code - код</td>
+        </tr>
+        <tr>
+            <td><a href="/api/change-token">/api/change-token</a></td>
+            <td>token - токен</td>
+            <td>code - код<br/>token - новый токен</td>
+        </tr>
+
     </table>
-\Табличка\
-Адрес,Требуемые аргументы,Возвращаемые значения
-/api/get-token/,login + password
 {% endblock %}

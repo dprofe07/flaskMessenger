@@ -104,7 +104,7 @@ class Chat(BaseUnit):
         db_conn.commit()
 
     @staticmethod
-    def from_id(id_: int):
+    def from_id(id_: str or None):
         if id_ is None:
             return None
         try:
