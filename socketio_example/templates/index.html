@@ -20,9 +20,17 @@
             const msg_input = document.querySelector('#msg-input');
             const send_btn = document.querySelector('#send-btn');
 
+            const url_params = new URLSearchParams(window.location.search);
+            const room = url_params.get('room');
+        
+            socket.emit('join', {
+                room: room
+            });
+
             socket.on('connect', () => {
                 socket.send({
-                    'msg': 'Новый клиент!'
+                    'msg': 'Новый клиент!',
+                    'room': room
                 });
             });
 
@@ -33,12 +41,11 @@
             send_btn.addEventListener('click', _ => {
                 if (msg_input.value == '') return;
                 socket.send({
-                    'msg': msg_input.value
+                    'msg': msg_input.value,
+                    'room': room
                 });
                 msg_input.value = '';
             });
-
-
         </script>
     </body>
 </html>
