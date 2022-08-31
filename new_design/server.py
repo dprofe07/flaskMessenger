@@ -1,8 +1,10 @@
-from this import d
 from flask import Flask, render_template, request
+from flask_socketio import SocketIO, send, join_room, emit
 from forms import forms
 
 app = Flask(__name__)
+io = SocketIO(app, cors_allowed_origins='*')
+
 
 @app.route('/')
 def index():
@@ -25,10 +27,19 @@ def form():
         return form.on_recieve(formobj)
     return render_template('form.html', form=form, name=name)
 
-@app.route('/chat')
-def chat():
-    return render_template('chat.html')
+@app.route('/chat/<int:room>')
+def chat(room):
+    return render_template('chat.html', room=room)
+
+@io.on('join')
+def join(data):
+    join_room(data['room'])
+
+@io.on('message')
+def handle_message(data):
+    print('Message:', data)
+    send(data, to=data['room'])
 
 
 if __name__ == '__main__':
-    app.run('127.0.0.1', 5000, debug=True)
+    io.run(app, host='127.0.0.1', port=5000, debug=True)

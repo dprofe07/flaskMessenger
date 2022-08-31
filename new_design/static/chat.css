@@ -9,7 +9,7 @@
     overflow:hidden;
 }
 
-.messages-container {
+.message-holder {
     display:flex;
     flex-direction: column;
     gap:16px;
@@ -20,7 +20,7 @@
     height:100%;
 }
 
-.messages-container::-webkit-scrollbar {
+.message-holder::-webkit-scrollbar {
     width:10px;
     box-sizing: border-box;
     padding:0px 1px;
@@ -28,14 +28,14 @@
     background:#d5d5d5;
 }
 
-.messages-container::-webkit-scrollbar-thumb {
+.message-holder::-webkit-scrollbar-thumb {
     background:#9c9c9c;
     border-radius:10px;
     border: 1px solid transparent;
     background-clip: content-box;
 }
 
-.messages-container::-webkit-scrollbar-thumb:hover {
+.message-holder::-webkit-scrollbar-thumb:hover {
     background:#858585;
     border: 1px solid transparent;
     background-clip: content-box;
