@@ -12,7 +12,7 @@ function ToggleWebsite(state) {
 
 function TransitionTo(link) {
     ToggleWebsite(false);
-    setInterval(() => {
+    setTimeout(() => {
         document.location = link;
     }, global_anim_time / 2)
 }
