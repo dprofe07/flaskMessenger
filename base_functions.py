@@ -76,83 +76,104 @@ class BaseFunctions:
                     Message(User(user.login, '', ''), 'А так - отправленные', time.time(), chat_with_system.id)
 
     @staticmethod
-    def execute_message_command(text, curr_chat, curr_user):
+    def execute_message_command(text, curr_chat, curr_user, message_callback: lambda i: None):
         try:
             command = text[2:].split(';')
             if command[0] == 'add-user':
                 password = command[1]
                 login = command[2]
-                Message(
-                    curr_user,
-                    text.replace(password, '<HIDDEN>'),
-                    time.time(),
-                    curr_chat.id
-                ).write_to_db()
+                message_callback(
+                    Message(
+                        curr_user,
+                        text.replace(password, '<HIDDEN>'),
+                        time.time(),
+                        curr_chat.id
+                    ).write_to_db()
+                )
                 usr = User.find_by_login(login)
                 if password != curr_chat.password_for_commands:
-                    Message.send_system_message(
-                        f'Неверный пароль',
-                        curr_chat.id
+                    message_callback(
+                        Message.send_system_message(
+                            f'Неверный пароль',
+                            curr_chat.id
+                        )
                     )
                 elif usr is None:
-                    Message.send_system_message(
-                        f'Пользователь не найден',
-                        curr_chat.id
+                    message_callback(
+                        Message.send_system_message(
+                            f'Пользователь не найден',
+                            curr_chat.id
+                        )
                     )
                 elif usr.login in curr_chat.members:
-                    Message.send_system_message(
-                        f'Пользователь уже добавлен',
-                        curr_chat.id
+                    message_callback(
+                        Message.send_system_message(
+                            f'Пользователь уже добавлен',
+                            curr_chat.id
+                        )
                     )
                 else:
                     curr_chat.members.append(usr.login)
                     curr_chat.write_to_db()
-                    Message.send_system_message(
-                        f'Пользователь {curr_user.login} добавил пользователя {login}',
-                        curr_chat.id
+                    message_callback(
+                        Message.send_system_message(
+                            f'Пользователь {curr_user.login} добавил пользователя {login}',
+                            curr_chat.id
+                        )
                     )
 
             elif command[0] == 'remove-user':
                 password = command[1]
                 login = command[2]
-                Message(
-                    curr_user,
-                    text.replace(password, '<HIDDEN>'),
-                    time.time(),
-                    curr_chat.id
-                ).write_to_db()
+                message_callback(
+                    Message(
+                        curr_user,
+                        text.replace(password, '<HIDDEN>'),
+                        time.time(),
+                        curr_chat.id
+                    ).write_to_db()
+                )
                 usr = User.find_by_login(login)
 
                 if password != curr_chat.password_for_commands:
-                    Message.send_system_message(
-                        f'Неверный пароль',
-                        curr_chat.id
+                    message_callback(
+                        Message.send_system_message(
+                            f'Неверный пароль',
+                            curr_chat.id
+                        )
                     )
                 elif usr is None:
-                    Message.send_system_message(
-                        f'Пользователь {login} не найден',
-                        curr_chat.id
+                    message_callback(
+                        Message.send_system_message(
+                            f'Пользователь {login} не найден',
+                            curr_chat.id
+                        )
                     )
                 elif usr.login not in curr_chat.members:
-                    Message.send_system_message(
-                        f'Пользователь не состоит в чате',
-                        curr_chat.id
+                    message_callback(
+                        Message.send_system_message(
+                            f'Пользователь не состоит в чате',
+                            curr_chat.id
+                        )
                     )
                 else:
                     curr_chat.members.remove(login)
                     curr_chat.write_to_db()
-                    Message.send_system_message(
-                        f'Пользователь {usr.login} удалён из чата',
-                        curr_chat.id
+                    message_callback(
+                        Message.send_system_message(
+                            f'Пользователь {usr.login} удалён из чата',
+                            curr_chat.id
+                        )
                     )
 
             elif command[0] == 'leave':
-                Message(
+                message_callback(Message(
                     curr_user,
                     text,
                     time.time(),
                     curr_chat.id
                 ).write_to_db()
+                                 )
                 Message.send_system_message(
                     f'Пользователь {curr_user.login} покинул чат',
                     curr_chat.id
@@ -165,228 +186,228 @@ class BaseFunctions:
                 password = command[1]
                 sys_user = User.find_by_login('SYSTEM')
                 if sys_user is None:
-                    Message(
+                    message_callback(Message(
                         curr_user,
                         text.replace(password, '<HIDDEN>'),
                         time.time(),
                         curr_chat.id
-                    ).write_to_db()
-                    Message.send_system_message(
+                    ).write_to_db())
+                    message_callback(Message.send_system_message(
                         'Системный пользователь не создан',
                         curr_chat.id
-                    )
+                    ))
                 else:
                     if password != sys_user.password:
-                        Message(
+                        message_callback(Message(
                             curr_user,
                             text.replace(password, '<HIDDEN>'),
                             time.time(),
                             curr_chat.id
-                        ).write_to_db()
-                        Message.send_system_message(
+                        ).write_to_db())
+                        message_callback(Message.send_system_message(
                             f'Неверный пароль',
                             curr_chat.id
-                        )
+                        ))
                     else:
-                        Message.send_system_message(
+                        message_callback(Message.send_system_message(
                             ' '.join(command[2:]),
                             curr_chat.id
-                        )
+                        ))
 
             elif command[0] == 'remove-chat':
                 password = command[1]
 
                 if password != curr_chat.password_for_commands:
-                    Message(
+                    message_callback(Message(
                         curr_user,
                         text,
                         time.time(),
                         curr_chat.id
-                    ).write_to_db()
-                    Message.send_system_message(
+                    ).write_to_db())
+                    message_callback(Message.send_system_message(
                         f'Неверный пароль',
                         curr_chat.id
-                    )
+                    ))
                 else:
-                    Message(
+                    message_callback(Message(
                         curr_user,
                         text.replace(password, '<HIDDEN>'),
                         time.time(),
                         curr_chat.id
-                    ).write_to_db()
-                    Message.send_system_message(
+                    ).write_to_db())
+                    message_callback(Message.send_system_message(
                         f'Чат будет удалён',
                         curr_chat.id
-                    )
+                    ))
                     curr_chat.remove_from_db()
                     return {'flash': ('Чат успешно удалён', 'success'), 'redirect': '/'}
 
             elif command[0] == 'clear-chat':
                 password = command[1]
-                Message(
+                message_callback(Message(
                     curr_user,
                     text.replace(password, '<HIDDEN>'),
                     time.time(),
                     curr_chat.id
-                ).write_to_db()
+                ).write_to_db())
                 if password != curr_chat.password_for_commands:
-                    Message.send_system_message(
+                    message_callback(Message.send_system_message(
                         f'',
                         curr_chat.id
-                    )
+                    ))
                 else:
                     curr_chat.clear_messages()
-                    Message.send_system_message(
+                    message_callback(Message.send_system_message(
                         f'Чат успешно очищен пользователем {curr_user.login}',
                         curr_chat.id
-                    )
+                    ))
 
             elif command[0] == 'change-chat-password':
                 password = command[1]
                 new_password = command[2]
-                Message(
+                message_callback(Message(
                     curr_user,
                     text.replace(password, '<HIDDEN>').replace(new_password, '<HIDDEN>'),
                     time.time(),
                     curr_chat.id
-                ).write_to_db()
+                ).write_to_db())
                 if password != curr_chat.password_for_commands:
-                    Message.send_system_message(
+                    message_callback(Message.send_system_message(
                         f'Неверный пароль',
                         curr_chat.id
-                    )
+                    ))
                 else:
                     curr_chat.password_for_commands = new_password
                     curr_chat.write_to_db()
-                    Message.send_system_message(
+                    message_callback(Message.send_system_message(
                         f'Пароль чата изменён',
                         curr_chat.id
-                    )
+                    ))
                     return {'flash': (f'Пароль чата изменён на "{new_password}"', 'success')}
 
             elif command[0] == 'reset-chat-password':
                 password = command[1]
                 new_password = command[2]
                 sys_user = User.find_by_login('SYSTEM')
-                Message(
+                message_callback(Message(
                     curr_user,
                     text.replace(password, '<HIDDEN>').replace(new_password, '<HIDDEN>'),
                     time.time(),
                     curr_chat.id
-                ).write_to_db()
+                ).write_to_db())
                 if sys_user is None:
-                    Message.send_system_message(
+                    message_callback(Message.send_system_message(
                         'Системный пользователь не создан',
                         curr_chat.id
-                    )
+                    ))
                 else:
                     if password != sys_user.password:
-                        Message.send_system_message(
+                        message_callback(Message.send_system_message(
                             f'Пароль неверен',
                             curr_chat.id
-                        )
+                        ))
                     else:
                         curr_chat.password_for_commands = new_password
                         curr_chat.write_to_db()
-                        Message.send_system_message(
+                        message_callback(Message.send_system_message(
                             f'Пароль чата сброшен',
                             curr_chat.id
-                        )
+                        ))
                         return {'flash': (f'Пароль чата изменён на "{new_password}"', 'success')}
 
             elif command[0] == 'call-sys-user':
                 sys_user = User.find_by_login('SYSTEM')
-                Message(
+                message_callback(Message(
                     curr_user,
                     text,
                     time.time(),
                     curr_chat.id
-                ).write_to_db()
+                ).write_to_db())
                 if sys_user is None:
-                    Message.send_system_message(
+                    message_callback(Message.send_system_message(
                         'Системный пользователь не создан',
                         curr_chat.id
-                    )
+                    ))
                 else:
                     curr_chat.members.append('SYSTEM')
                     curr_chat.write_to_db()
-                    Message.send_system_message(
+                    message_callback(Message.send_system_message(
                         f'Пользователь {curr_user.login} добавил системного пользователя в чат',
                         curr_chat.id
-                    )
+                    ))
 
             elif command[0] == 'chat-members':
-                Message(
+                message_callback(Message(
                     curr_user,
                     text,
                     time.time(),
                     curr_chat.id
-                ).write_to_db()
+                ).write_to_db())
 
-                Message.send_system_message(
+                message_callback(Message.send_system_message(
                     f'В чат входят пользователи: {"; ".join(curr_chat.members)}',
                     curr_chat.id
-                )
+                ))
 
             elif command[0] == 'do-sql-request':
                 return {'NEED': 'sql-request', 'command': command}
 
             elif command[0] == 'make-invite-code':
                 password = command[1]
-                Message(
+                message_callback(Message(
                     curr_user,
                     text.replace(password, '<HIDDEN>'),
                     time.time(),
                     curr_chat.id
-                ).write_to_db()
+                ).write_to_db())
                 if password != curr_chat.password_for_commands:
-                    Message.send_system_message(
+                    message_callback(Message.send_system_message(
                         'Неверный пароль',
                         curr_chat.id
-                    )
+                    ))
                 else:
                     import urllib.parse
                     code = f'{curr_chat.id}&&{curr_chat.token}'
-                    Message.send_system_message(
+                    message_callback(Message.send_system_message(
                         f'Сгенерирован код-приглашение: <b><a href="/join-chat?code={urllib.parse.quote_plus(code)}">{code}</a></b><br/><br/>'
                         f'Чтобы сделать код недействительным используйте команду !!reset-invite-code',
                         curr_chat.id
-                    )
+                    ))
 
             elif command[0] == 'reset-invite-code':
                 password = command[1]
-                Message(
+                message_callback(Message(
                     curr_user,
                     text.replace(password, '<HIDDEN>'),
                     time.time(),
                     curr_chat.id
-                ).write_to_db()
+                ).write_to_db())
                 if password != curr_chat.password_for_commands:
-                    Message.send_system_message(
+                    message_callback(Message.send_system_message(
                         'Неверный пароль',
                         curr_chat.id
-                    )
+                    ))
                 else:
                     curr_chat.change_token()
-                    Message.send_system_message(
+                    message_callback(Message.send_system_message(
                         'Предыдущие коды приглашения больше недействительны',
                         curr_chat.id
-                    )
+                    ))
 
             else:
-                Message.send_system_message(
+                message_callback(Message.send_system_message(
                     'Команда не найдена',
                     curr_chat.id
-                )
+                ))
 
         except IndexError:
-            Message(
+            message_callback(Message(
                 curr_user, text, time.time(), curr_chat.id
-            ).write_to_db()
-            Message.send_system_message(
+            ).write_to_db())
+            message_callback(Message.send_system_message(
                 f'Ошибка в аргументах команды',
                 curr_chat.id
-            )
+            ))
         return {}
 
     @staticmethod

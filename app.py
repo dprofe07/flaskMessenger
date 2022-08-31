@@ -3,6 +3,7 @@ import time
 
 import prettytable
 from flask import Flask, render_template, request, redirect, flash, make_response, send_file
+from flask_socketio import SocketIO, send, join_room
 
 from base_unit import SERVER, BaseUnit
 from message import Message
@@ -13,6 +14,7 @@ from forms import forms
 
 
 app = Flask(__name__)
+io = SocketIO(app, cors_allowed_origins='*')
 
 if SERVER:
     db_data = {
@@ -28,6 +30,99 @@ else:
 
 app.config['SECRET_KEY'] = 'fdgdfgdfggf786hfg6hfg6h7f'
 BaseUnit.db_data = db_data
+
+
+@io.on('join')
+def join(data):
+    join_room(data['room'])
+
+
+def socket_send_message(message, room):
+    new_data = {
+        'html_sender': message.get_html(message.from_),
+        'html_any': message.get_html(None),
+        'source': message.from_.login,
+    }
+
+    send(new_data, to=room)
+
+
+@io.on('message')
+def handle_message(data):
+    user = User.find_by_login(data['source'])
+
+    if user is None:
+        return
+    curr_chat = Chat.from_id(int(data['room']))
+    if curr_chat is None:
+        return
+
+    if user.login not in curr_chat.members and user.login != 'SYSTEM':
+        return
+    text = data['text']
+
+    if text.startswith('!!'):
+        res = BaseFunctions.execute_message_command(
+            text,
+            curr_chat,
+            user,
+            lambda message: socket_send_message(message, data['room'])
+        )
+
+        if 'NEED' in res:
+            command = res['command']
+            password = command[1]
+            msg = Message(
+                user,
+                text.replace(password, '<HIDDEN>'),
+                time.time(),
+                curr_chat.id
+            ).write_to_db()
+            socket_send_message(msg, data['room'])
+
+            sys_user = User.find_by_login('SYSTEM')
+            if sys_user is None:
+                msg = Message.send_system_message(
+                    'Системный пользователь не создан',
+                    curr_chat.id
+                )
+                socket_send_message(msg, data['room'])
+            else:
+                if password != sys_user.password:
+                    msg = Message.send_system_message(
+                        'Неверный пароль',
+                        curr_chat.id
+                    )
+
+                    socket_send_message(msg, data['room'])
+                else:
+                    req = command[2]
+                    try:
+                        db_conn = BaseUnit.connect_to_db()
+                        cur = db_conn.cursor()
+                        cur.execute(req)
+
+                        tbl = prettytable.from_db_cursor(cur)
+                        msg = Message.send_system_message(
+                            '<code>' + str(tbl).replace('\n', '<br/>').replace(' ', '&nbsp;') + '</code>',
+                            curr_chat.id
+                        )
+
+                        socket_send_message(msg, data['room'])
+
+                    except BaseException as e:
+                        msg = Message.send_system_message(
+                            f'Произошла ошибка: {e.args}',
+                            curr_chat.id
+                        )
+                        socket_send_message(msg, data['room'])
+    else:
+        if text.startswith('`!!'):
+            text = text[1:]
+        new_message = Message(user, text, time.time(), curr_chat.id)
+        new_message.write_to_db()
+
+        socket_send_message(new_message, data['room'])
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -282,7 +377,7 @@ def chat(id_):
         else:
             curr_chat.show_name = f'Диалог между {dialoged[0]} и {dialoged[1]}'
     return render_template(
-        'chat.html',
+        'new_chat.html',
         title=curr_chat.show_name if dialog else f'Чат {curr_chat.show_name}',
         user=curr_user,
         messages=messages,
@@ -784,4 +879,6 @@ def api_change_token():
 
 
 if __name__ == '__main__':
-    app.run('192.168.0.200', port=5000, debug=not SERVER)
+    # io.run(app, host='127.0.0.1', port=5000, debug=True)
+    io.run(app, '192.168.0.200', port=5000, debug=True)
+    # app.run('192.168.0.200', port=5000, debug=not SERVER)

@@ -16,9 +16,10 @@ class Message(BaseUnit):
 
     def get_html(self, for_: User):
         res = ''
+        any_ = for_ is None
         if self.from_.login != 'SYSTEM':
             sender = self.from_.login
-            if sender == for_.login:
+            if any_ or sender == for_.login:
                 sender = 'Вы'
             res += f'<span class="source">{sender}</span>'
 
@@ -74,6 +75,11 @@ class Message(BaseUnit):
             0
         )
         msg.write_to_db()
+        data = {
+            'html_sender': msg.get_html(msg.from_),
+            'html_any': msg.get_html(None)
+        }
+        return msg
 
     def write_to_db(self):
         db_conn = self.connect_to_db()
@@ -103,6 +109,7 @@ class Message(BaseUnit):
                 )"""
             )
         db_conn.commit()
+        return self
 
     @staticmethod
     def get_messages_from_chat(chat_id):

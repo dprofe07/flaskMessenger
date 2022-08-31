@@ -54,14 +54,34 @@
     {% else %}
         <p>Чтобы удалить диалог введите "!!remove-chat;", чтобы очистить - "!!clear-chat;", а чтобы покинуть - "!!leave"</p>
     {% endif %}
+
     {% if user.login == 'SYSTEM' and user.login not in chat.members %}
         <span class="alert">Вы не состоите в этот чате</span>
     {% endif %}
+
     <div class="holder-wrapper">
-        {% include 'messages-div.html' %}
+        <div class="messages-container">
+            {% for i in messages %}
+                {% if i.from_.login == 'SYSTEM' %}
+                    <span class="alert">{{ i.get_html(user) | safe }}</span>
+                {% else %}
+                <div class="message {{ 'my' if i.from_ == user else '' }}">
+                    {{ i.get_html(user) | safe }}
+                </div>
+                {% endif %}
+            {% endfor %}
+
+            {% if not messages %}
+                <span class="alert">Пока нет сообщений</span>
+                <span class="alert">Это системное сообщение</span>
+                <div class="message message-system"></div>
+                <div class="message my">Вот так будут выглядеть отправленные сообщения</div>
+                <div class="message">А так - полученные</div>
+            {% endif %}
+        </div>
     </div>
 
-    <form class="form-message" method="post" action="/send-message-to-chat/{{ chat.id }}" onsubmit="stop_updating()">
+    <!--<form class="form-message" method="post" action="/send-message-to-chat/{{ chat.id }}" onsubmit="stop_updating()">-->
         <div style="display: table; width: 100%" class="input-bar">
             <span style="display: table-cell; width: 100%; overflow: hidden">
                 <!--suppress HtmlFormInputWithoutLabel -->
@@ -71,25 +91,82 @@
             <input type="submit" value="Отправить" autocomplete="off" class="message-send"/>
         </div>
 
-    </form>
+<!--    </form>-->
+
+    <script src="{{ url_for('static', filename='socket.io.min.js') }}" type="text/javascript"></script>
 
     <script lang="javascript">
-        async function reload_page() {
-            let data = await(await fetch("/get-messages-div/{{ chat.id }}")).text();
+        const socket = io.connect('http://192.168.0.200:5000');
+        const holder = document.querySelector('.messages-container');
+        const send_button = document.querySelector('.message-send');
+        const message_input = document.querySelector('.message-input');
+        const my_login = "{{ user.login }}";
+        const room_id = "{{ chat.id }}";
 
-            let div = document.getElementsByClassName("messages-container")[0];
-
-            let a = div.scrollTop;
-            div.outerHTML = data;
-            setTimeout(function() {document.getElementsByClassName("messages-container")[0].scrollTop = a;}, 0);
-
+        function UpdateHolder() {
+            holder.scroll({
+                top: holder.scrollHeight,
+                behavior: 'smooth'
+            });
         }
-        setTimeout(function() {document.getElementsByClassName("messages-container")[0].scrollTop = document.getElementsByClassName("messages-container")[0].scrollHeight;}, 0);
-        reload_page()
-        let updating_interval = setInterval(reload_page, 15000);
 
-        function stop_updating() {
-            clearInterval(updating_interval);
+        function AddAlert(text) {
+            holder.innerHTML += `<span class="alert">${text}</span>`;
+            UpdateHolder();
         }
+
+        function AddMessage(data, my) {
+            holder.innerHTML += `<div class="${'message' + (my? ' my' : '')}">` +
+                `${data}` +
+                '</div>';
+            UpdateHolder();
+        }
+
+        function strweight(s) {
+            for (let i = 0; i < s.length; i += 1)
+                if (s[i] != '\n' && s[i] != ' ') return true;
+            return false;
+        }
+
+        function send() {
+            let msg = message_input.value;
+            if (!strweight(msg)) return;
+            socket.send({
+                text: message_input.value,
+                source: my_login,
+                room: room_id
+            });
+            message_input.value = '';
+        }
+
+        socket.on('connect', () => {
+            socket.emit('join', {
+                room: room_id
+            });
+        });
+
+        socket.on('message', data => {
+            if (data['source'] != 'SYSTEM') {
+                if (data['source'] == my_login) {
+                    AddMessage(data['html_sender'], true);
+                } else {
+                    AddMessage(data['html_any'], false);
+                }
+            } else {
+                AddAlert(data['html_any']);
+            }
+        });
+
+        send_button.addEventListener('click', send);
+        message_input.addEventListener('keydown', ev => {
+            if (ev.key == 'Enter') send();
+        });
+
+        function reload() {
+            if (strweight(message_input.value)) return;
+            document.location.reload();
+        }
+        setInterval(reload, 100_000);
+        UpdateHolder();
     </script>
 {% endblock %}
