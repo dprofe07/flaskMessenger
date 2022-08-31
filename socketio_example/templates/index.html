@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://cdn.socket.io/4.5.1/socket.io.min.js" type="text/javascript"></script>
+        <title>Document</title>
+    </head>
+    <body>
+        <div id="msg-holder">
+            <p>Начало чата.</p>
+        </div>
+        <input type="text" placeholder="Введите сообщение" id="msg-input">
+        <input type="button" value="Отправить" id="send-btn">
+
+        <script>
+            const socket = io.connect('http://127.0.0.1:5000');
+            const msg_holder = document.querySelector('#msg-holder');
+            const msg_input = document.querySelector('#msg-input');
+            const send_btn = document.querySelector('#send-btn');
+
+            socket.on('connect', () => {
+                socket.send({
+                    'msg': 'Новый клиент!'
+                });
+            });
+
+            socket.on('message', data => {
+                msg_holder.innerHTML += `<p>${data.msg}</p>`
+            });
+
+            send_btn.addEventListener('click', _ => {
+                if (msg_input.value == '') return;
+                socket.send({
+                    'msg': msg_input.value
+                });
+                msg_input.value = '';
+            });
+
+
+        </script>
+    </body>
+</html>
