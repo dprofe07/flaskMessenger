@@ -1,0 +1,137 @@
+body {
+    margin:0;
+    padding:0;
+    font-family:'Segoe UI';
+    font-size:18px;
+}
+
+.page {
+    width:1000px;
+    max-width:100%;
+    min-height:200px;
+    margin-left:50%;
+    transform:translate(-50%, 0);
+}
+
+header {
+    height:50px;
+    width:100%;
+    display:flex;
+    justify-content: space-between;
+    align-items: center;
+
+}
+
+header a {
+    color:black;
+    text-decoration: none;
+    user-select: none;
+    cursor:pointer;
+}
+
+header .logo {
+    font-weight: bold;
+    font-size:30px;
+    line-height:0;
+}
+
+header nav {
+    display:flex;
+    justify-content: flex;
+    gap:25px;
+}
+
+header nav a:hover {
+    text-decoration: underline;
+}
+
+main, footer {
+    margin-top:65px;
+    box-sizing: border-box;
+}
+
+input {
+    outline: none;
+    background: #e3e3e3;
+    font-family: inherit;
+    border:none;
+    display:block;
+    transition:background .15s ease-in-out;
+}
+
+input[type="button"], input[type="submit"] {
+    cursor:pointer;
+    padding:7px 18px;
+    border-radius:15px;
+    font-size:16px;
+}
+
+input[type="button"]:hover, input[type="submit"]:hover {
+    background:#d7d7d7;
+}
+
+input[type="button"]:active, input[type="submit"]:active {
+    background:#c2c2c2;
+}
+
+input[type="text"] {
+    font-size:17px;
+    padding:7px 14px;
+    border-radius:12px;
+}
+
+input[type="text"]:focus {
+    background:#dfdfdf;
+}
+
+
+main a {
+    text-decoration: none;
+    color:#0b0beb;
+    transition:color .35s ease-in-out;
+}
+
+main a:hover {
+    text-decoration: underline;
+    color:#0000c0;
+}
+
+main span { 
+    display:block;
+    margin-top:10px;
+    margin-bottom:5px;
+}
+
+main p {
+    text-indent: 50px;
+    justify-content: center;
+    margin-bottom:30px;
+}
+
+main h1 {
+    margin-top:20px;
+    margin-bottom:20px;
+    font-size:30px;
+}
+
+@keyframes appear {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes disappear {
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+main, footer {
+    opacity: 0;
+}

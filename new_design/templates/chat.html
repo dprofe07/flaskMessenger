@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block style %}
+<link href="{{ url_for('static', filename='chat.css') }}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block content %}
+
+<div class="holder-wrapper">
+    <div class="message-holder">
+        <span class="alert">Новый участник!</span>
+        <div class="message">
+            <span class="source">Дима Профе</span>
+            <p class="text">Всем привет! Меня зовут Дима Профе. Lorem ipsum dolor sit amet consectetur adipisicing elit. Quod consequuntur corrupti ex natus fugit facere ab accusamus suscipit delectus libero?</p>
+            <span class="date">12:05</span>
+        </div>
+        <div class="message my">
+            <span class="source">Илья Костин</span>
+            <p class="text">Всем привет! Меня зовут Костин Илья. Lorem ipsum dolor sit amet consectetur adipisicing elit. Quod consequuntur corrupti ex natus fugit facere ab accusamus suscipit delectus libero?</p>
+            <span class="date">12:37</span>
+        </div>
+    </div>
+</div>
+
+<div class="input-bar">
+    <input type="text" class="message-input" placeholder="Введите сообщение">
+    <input type="button" class="message-send" value="Отправить">
+</div>
+
+<script>
+    const holder = document.querySelector('.message-holder');
+    const send_button = document.querySelector('.message-send');
+    const message_input = document.querySelector('.message-input');
+    const nickname = 'DEFAULT USER';
+
+    function UpdateHolder() {
+        holder.scroll({
+            top: holder.scrollHeight,
+            behavior: 'smooth'
+        });
+    }
+
+    function AddAlert(text) {
+        holder.innerHTML += `<span class="alert">${text}</span>`;
+        UpdateHolder();
+    }
+
+    function AddMessage(data) {
+        holder.innerHTML += `<div class="${'message' + (data.my? ' my' : '')}">` +
+            `<span class="source">${data.source}</span>` +
+            `<p class="text">${data.text}</p>` +
+            `<span class="date">${data.date}</span>` +
+            '</div>';
+        UpdateHolder();
+    }
+
+    function strweight(s) {
+        for (let i = 0; i < s.length; i += 1)
+            if (s[i] != '\n' && s[i] != ' ') return true;
+        return false;
+    }
+
+    function send() {
+        let msg = message_input.value;
+        let date = new Date();
+        if (!strweight(msg)) return;
+        AddMessage({
+            my: true,
+            text: msg,
+            source: nickname,
+            date: date.getHours()
+                + ':' + (Math.floor(date.getMinutes() / 10) > 0?
+                date.getMinutes() : '0' + date.getMinutes())
+        });
+        message_input.value = '';
+    }
+
+    send_button.addEventListener('click', send);
+    message_input.addEventListener('keydown', ev => {
+        if (ev.key == 'Enter') send();
+    });
+
+</script>
+
+{% endblock %}
