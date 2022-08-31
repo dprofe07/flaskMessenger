@@ -9,6 +9,7 @@ from message import Message
 from user import User
 from chat import Chat
 from base_functions import BaseFunctions
+from forms import forms
 
 
 app = Flask(__name__)
@@ -32,11 +33,18 @@ BaseUnit.db_data = db_data
 @app.route('/', methods=['GET', 'POST'])
 def index():
     user = User.get_from_cookies(request)
-    chats = []
-    if user is not None:
+    if user is None:
+        return render_template('guest.html',  title='Главная')
+    else:
         user.aliases = user.get_aliases()
         chats = user.get_chats()
-    return render_template('index.html', user=user, hide_home_link=True, chats=chats)
+        return render_template(
+            'index.html',
+            user=user,
+            hide_home_link=True,
+            chats=chats,
+            title='Главная'
+        )
 
 
 @app.route('/logout')
@@ -48,7 +56,7 @@ def logout():
 
 @app.route('/remove_account')
 def remove_account():
-    return render_template('remove_account.html')
+    return render_template('remove_account.html', title='Удалить аккаунт')
 
 
 @app.route('/remove_account_confirmed')
@@ -64,7 +72,7 @@ def remove_account_confirmed():
 @app.route('/change_password', methods=['GET', 'POST'])
 def change_password():
     if request.method == 'GET':
-        return render_template('change_password.html')
+        return render_template('change_password.html', title='Смена пароля')
     else:
         old_password = request.form['old_password']
         password = request.form['password']
@@ -74,26 +82,33 @@ def change_password():
             flash('Старый пароль не верен', 'error')
             return render_template(
                 'change_password.html',
-                old_password=old_password, password=password, password2=password2
+                old_password=old_password,
+                password=password,
+                password2=password2,
+                title='Смена пароля'
             )
         if password != password2:
             flash('Пароли не совпадают', 'error')
             return render_template(
                 'change_password.html',
                 old_password=old_password,
-                password=password
+                password=password,
+                title='Смена пароля'
             )
 
         BaseFunctions.change_password(user, password)
 
         flash('Пароль успешно изменён', 'success')
-        return render_template('change_password.html')
+        return render_template(
+            'change_password.html',
+            title='Смена пароля'
+        )
 
 
 @app.route('/password_recovery', methods=['GET', 'POST'])
 def password_recovery():
     if request.method == 'GET':
-        return render_template('password_recovery.html')
+        return render_template('password_recovery.html', title='Восстановление пароля')
     else:
         login = request.form['login']
         keyword = request.form['keyword']
@@ -101,12 +116,20 @@ def password_recovery():
         user = User.find_by_login(login)
         if user is None:
             flash(f'Пользователь с логином "{login}" не найден', 'error')
-            return render_template('password_recovery.html', login=login, keyword=keyword)
+            return render_template('password_recovery.html', login=login, keyword=keyword, title='Восстановление пароля')
         if user.keyword != keyword:
             flash(f'Неверное ключевое слово', 'error')
-            return render_template('password_recovery.html', login=login, keyword=keyword)
+            return render_template('password_recovery.html', login=login, keyword=keyword, title='Восстановление пароля')
         password = user.password
-        resp = make_response(render_template('password_recovery.html', login=login, keyword=keyword, password=password))
+        resp = make_response(
+            render_template(
+                'password_recovery.html',
+                login=login,
+                keyword=keyword,
+                password=password,
+                title='Восстановление пароля'
+            )
+        )
         user.save_to_cookies(resp)
         return resp
 
@@ -114,14 +137,16 @@ def password_recovery():
 # noinspection PyUnusedLocal
 @app.errorhandler(404)
 def err404(e):
-    return render_template('error.html', error_message='Страница не найдена')
+    return render_template('error.html', msg='Страница не найдена', title='Ошибка')
 
 
+# noinspection PyUnusedLocal
 @app.errorhandler(500)
 def err500(e):
     return render_template(
         'error.html',
-        error_message='Ошибка 500. Скорее всего слабенький бесплатный сервер не справляется с нагрузкой'
+        msg='Ошибка 500. Скорее всего слабенький бесплатный сервер не справляется с нагрузкой',
+        title='Ошибка'
     )
 
 
@@ -137,18 +162,37 @@ def auth():
             if password == user.password:
                 flash('Вы успешно вошли', 'success')
 
-                resp = make_response(render_template('auth.html', redirect_timeout=1000, redirect_address='/'))
+                resp = make_response(
+                    render_template(
+                        'form.html',
+                        title='Авторизация',
+                        form=forms['login'],
+                        name='login',
+                        redirect_timeout=1000,
+                        redirect_address='/'
+                    )
+                )
                 User.save_to_cookies(user, resp)
 
                 return resp
             else:
                 flash(f'Неверный пароль для пользователя "{login}"', 'error')
-                return render_template('auth.html', login=login, password=password)
+                return render_template(
+                    'form.html',
+                    title='Авторизация',
+                    form=forms['login'](login, password),
+                    name='login'
+                )
         else:
             flash(f'Пользователь с именем "{login}" не найден.', 'error')
-            return render_template('auth.html', login=login, password=password)
+            return render_template(
+                'form.html',
+                title='Авторизиция',
+                form=forms['login'](login, password),
+                name='login'
+            )
     else:
-        return render_template('auth.html')
+        return render_template('form.html', form=forms['login'], name='login', title='Авторизация')
 
 
 @app.route('/signup', methods=['POST', 'GET'])
@@ -163,24 +207,51 @@ def signup():
         keyword = request.form['keyword']
         if ';' in login:
             flash('Нельзя использовать ";" в логине')
-            return render_template('singup.html', login=login, password=password, password2=password2)
+            return render_template(
+                'form.html',
+                title='Регистрация',
+                name='register',
+                form=forms['register'](login, password, password2, keyword)
+            )
         elif password != password2:
             flash(f'Пароли не совпадают', 'error')
-            return render_template('singup.html', login=login, password=password)
+            return render_template(
+                'form.html',
+                title='Регистрация',
+                name='register',
+                form=forms['register'](login, password, '', keyword)
+            )
         elif User.find_by_login(login) is not None:
             flash(f'Пользователь с именем "{login}" уже существует.', 'error')
-            return render_template('singup.html', login=login, password=password, password2=password2)
+            return render_template(
+                'form.html',
+                title='Регистрация',
+                name='register',
+                form=forms['register'](login, password, password2, keyword)
+            )
         else:
             user = User(login, password, keyword)
             BaseFunctions.sign_up(user)
 
             flash('Вы успешно зарегистрированы', 'success')
 
-            resp = make_response(render_template('singup.html', redirect_timeout=1000, redirect_address='/'))
+            resp = make_response(
+                render_template(
+                    'form.html',
+                    title='Регистрация',
+                    name='register',
+                    form=forms['register']()
+                )
+            )
             user.save_to_cookies(resp)
             return resp
     else:
-        return render_template('singup.html')
+        return render_template(
+            'form.html',
+            title='Регистрация',
+            name='register',
+            form=forms['register']
+        )
 
 
 # noinspection DuplicatedCode
@@ -194,10 +265,9 @@ def chat(id_):
     if curr_chat is None:
         flash('Чат не найден в базе данных', 'error')
         return redirect('/')
-    if curr_user.login not in curr_chat.members:
-        if curr_user.login != 'SYSTEM':
-            flash('Вступите в чат, чтобы просмотреть его', 'error')
-            return redirect('/')
+    if curr_user.login not in curr_chat.members and curr_user.login != 'SYSTEM':
+        flash('Вступите в чат, чтобы просмотреть его', 'error')
+        return redirect('/')
     messages = Message.get_messages_from_chat(curr_chat.id)
 
     messages.sort(key=lambda i: i.time)
@@ -211,7 +281,13 @@ def chat(id_):
             curr_chat.show_name = f'Диалог с {other}'
         else:
             curr_chat.show_name = f'Диалог между {dialoged[0]} и {dialoged[1]}'
-    return render_template('chat.html', user=curr_user, messages=messages, chat=curr_chat, dialog=dialog)
+    return render_template(
+        'chat.html',
+        title=curr_chat.show_name if dialog else f'Чат {curr_chat.show_name}',
+        user=curr_user,
+        messages=messages,
+        chat=curr_chat
+    )
 
 
 @app.route('/change-token')
@@ -434,7 +510,10 @@ class API_CODES:
 
 @app.route('/api')
 def api():
-    return render_template('api.html')
+    return render_template(
+        'api.html',
+        title='API'
+    )
 
 
 @app.route('/api/get-token')

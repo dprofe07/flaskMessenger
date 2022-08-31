@@ -2,20 +2,43 @@
 <html lang="ru">
     <head>
         <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-        <title>{% block title %}{% endblock %} - Мессенджер</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='base.css') }}">
+        {% block style %}{% endblock %}
+        {% if title %}
+            <title>{{ title }} - Мессенджер</title>
+        {% else %}
+            <title>Мессенджер</title>
+        {% endif %}
     </head>
 
     <body>
-        {% if not hide_home_link -%}
-            <a href="/">На главную</a>
-        {% endif %}
+        <div class="page">
+            <header>
+                <a href="{{ url_for('index') }}" class="logo local">LOGO</a>
+                <nav>
+                    <!--<a href="{ url_for('form') }}">Друзья</a>-->
+                    <a href="/">Сообщения</a>
+                    <a href="#">Настройки</a>
+                </nav>
+            </header>
+            <main>
+                {% block content %}
+                {% endblock %}
 
-        {% block content %}{% endblock %}
+                {% for cat, msg in get_flashed_messages(True) %}
+                    <p class="flash flash-{{ cat }}">{{ msg }}</p>
+                {% endfor %}
+            </main>
+            <footer>
+                <span>Dmitry Profe & Kostin Ilya. All rights reserved.</span>
+            </footer>
+        </div>
+        <script src="{{ url_for('static', filename='script.js') }}"></script>
 
-        {% for cat, msg in get_flashed_messages(True) %}
-            <p class="flash flash-{{ cat }}">{{ msg }}</p>
-        {% endfor %}
+
         <script>
             function redirectTo(str) {
                 document.location.href = str;

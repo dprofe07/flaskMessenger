@@ -1,114 +1,105 @@
 {% extends 'base.html' %}
 
-{% block title %}Главная{% endblock %}
-
 {% block content %}
-    {% if user -%}
-        <ul class="index-menu">
-            <li><a href="/"><img src="{{ url_for('static', filename='home.png') }}" alt="home"/></a></li>
-            <li><a href="{{ url_for('logout') }}">Выйти из аккаунта</a></li>
-            <li><a href="{{ url_for('remove_account') }}">Удалить аккаунт</a></li>
-            <li><a href="{{ url_for('change_password') }}">Сменить пароль</a></li>
-            <li><a href="{{ url_for('change_token') }}">Выйти на всех устройствах (кроме этого)</a></li>
-            <li><a href="{{ url_for('download_app') }}">Скачать приложение</a></li>
-        </ul>
+    <ul class="index-menu">
+        <li><a href="/"><img src="{{ url_for('static', filename='home.png') }}" alt="home"/></a></li>
+        <li><a href="{{ url_for('logout') }}">Выйти из аккаунта</a></li>
+        <li><a href="{{ url_for('remove_account') }}">Удалить аккаунт</a></li>
+        <li><a href="{{ url_for('change_password') }}">Сменить пароль</a></li>
+        <li><a href="{{ url_for('change_token') }}">Выйти на всех устройствах (кроме этого)</a></li>
+        <li><a href="{{ url_for('download_app') }}">Скачать приложение</a></li>
+    </ul>
 
-        <!--suppress HtmlUnknownTarget -->
-        <h1>Мессенджер</h1>
-        <h2>Вы вошли как {{ user.login }}</h2>
-        <h3 class="center">Чаты</h3>
+    <!--suppress HtmlUnknownTarget -->
+    <h1>Мессенджер</h1>
+    <h2>Вы вошли как {{ user.login }}</h2>
+    <h3 class="center">Чаты</h3>
 
-        <div class="chats-container">
-            {% include 'dialogs-div.html' %}
-            <div class="chat">
-                <a href="javascript:show_choice_chat_or_dialog()" style="font-size: 2em; color: #8b9536" class="center chat-a" id="plus">+</a>
-                <table style="display:none" id="tbl-choice">
-                    <tr class="tbl-choice-tr">
-                        <td class="tbl-choice-td"><a href="javascript:show_form_chat()" style="font-size: 2em; color: #8b9536" class="center chat-a" id="add-chat">Чат</a></td>
-                        <td class="tbl-choice-td"><a href="javascript:show_form_dialog()" style="font-size: 2em; color: #8b9536" class="center chat-a" id="add-dialog">Диалог</a></td>
-                    </tr>
-                </table>
+    <div class="chats-container">
+        {% include 'dialogs-div.html' %}
+        <div class="chat">
+            <a href="javascript:show_choice_chat_or_dialog()" style="font-size: 2em; color: #8b9536" class="center chat-a" id="plus">+</a>
+            <table style="display:none" id="tbl-choice">
+                <tr class="tbl-choice-tr">
+                    <td class="tbl-choice-td"><a href="javascript:show_form_chat()" style="font-size: 2em; color: #8b9536" class="center chat-a" id="add-chat">Чат</a></td>
+                    <td class="tbl-choice-td"><a href="javascript:show_form_dialog()" style="font-size: 2em; color: #8b9536" class="center chat-a" id="add-dialog">Диалог</a></td>
+                </tr>
+            </table>
 
-                <div id="form-new-chat">
-                    <form action="/new-chat" method="post">
-                        <span>Вы можете сразу добавить некоторых пользователей, но вы можете добавить их и позже</span><br/>
-                        <span>Для совершения некоторых действий (добавление пользователей и пр.) нужен пароль</span><br/><br/>
+            <div id="form-new-chat">
+                <form action="/new-chat" method="post">
+                    <span>Вы можете сразу добавить некоторых пользователей, но вы можете добавить их и позже</span><br/>
+                    <span>Для совершения некоторых действий (добавление пользователей и пр.) нужен пароль</span><br/><br/>
 
-                        <label for="chat-name">Название чата: </label>
-                        <input type="text" name="chat-name" id="chat-name" autocomplete="off" required/><br/>
+                    <label for="chat-name">Название чата: </label>
+                    <input type="text" name="chat-name" id="chat-name" autocomplete="off" required/><br/>
 
-                        <label for="users">Добавить пользователей (разделяйте ";"): </label>
-                        <input type="text" name="users" id="users" autocomplete="off"/><br/>
+                    <label for="users">Добавить пользователей (разделяйте ";"): </label>
+                    <input type="text" name="users" id="users" autocomplete="off"/><br/>
 
-                        <label for="password">Пароль: </label>
-                        <input type="password" name="password" id="password" autocomplete="off" required/><br/>
+                    <label for="password">Пароль: </label>
+                    <input type="password" name="password" id="password" autocomplete="off" required/><br/>
 
-                        <input type="submit" value="Создать"/>
-                    </form>
-                </div>
-
-                <div id="form-new-dialog">
-                    <form action="/new-dialog" method="post">
-                        <label for="login">Логин собеседника: </label>
-                        <input type="text" name="login" id="login" autocomplete="off"/>
-
-                        <input type="submit" value="Создать"/>
-                    </form>
-                </div>
+                    <input type="submit" value="Создать"/>
+                </form>
             </div>
-            <div class="chat">
-                <a href="javascript:show_form_join_chat()" style="font-size: 2em; color: #8b9536" class="center chat-a" id="a_join_chat">Присоединиться по коду</a>
-                <form action="/join-chat" id="form-join-chat" style="display: none">
-                    <label for="chat-code">Код чата: </label>
-                    <input type="text" name="code" id="chat-code"><br/>
 
-                    <input type="submit" value="Присоединиться">
+            <div id="form-new-dialog">
+                <form action="/new-dialog" method="post">
+                    <label for="login">Логин собеседника: </label>
+                    <input type="text" name="login" id="login" autocomplete="off"/>
+
+                    <input type="submit" value="Создать"/>
                 </form>
             </div>
         </div>
+        <div class="chat">
+            <a href="javascript:show_form_join_chat()" style="font-size: 2em; color: #8b9536" class="center chat-a" id="a_join_chat">Присоединиться по коду</a>
+            <form action="/join-chat" id="form-join-chat" style="display: none">
+                <label for="chat-code">Код чата: </label>
+                <input type="text" name="code" id="chat-code"><br/>
+
+                <input type="submit" value="Присоединиться">
+            </form>
+        </div>
+    </div>
 
 
-        <script lang="javascript">
-            function show_choice_chat_or_dialog() {
-                let a_plus = document.getElementById('plus');
-                a_plus.style.display = "none";
-                let tbl_choice = document.getElementById('tbl-choice')
-                tbl_choice.style.display = "table";
-            }
+    <script lang="javascript">
+        function show_choice_chat_or_dialog() {
+            let a_plus = document.getElementById('plus');
+            a_plus.style.display = "none";
+            let tbl_choice = document.getElementById('tbl-choice')
+            tbl_choice.style.display = "table";
+        }
 
-            function show_form_chat() {
-                let form = document.getElementById('form-new-chat');
-                form.style.display = "block";
-                let tbl_choice = document.getElementById('tbl-choice')
-                tbl_choice.style.display = "none";
-            }
+        function show_form_chat() {
+            let form = document.getElementById('form-new-chat');
+            form.style.display = "block";
+            let tbl_choice = document.getElementById('tbl-choice')
+            tbl_choice.style.display = "none";
+        }
 
-            function show_form_dialog() {
-                let form = document.getElementById('form-new-dialog');
-                form.style.display = "block";
-                let tbl_choice = document.getElementById('tbl-choice')
-                tbl_choice.style.display = "none";
-            }
+        function show_form_dialog() {
+            let form = document.getElementById('form-new-dialog');
+            form.style.display = "block";
+            let tbl_choice = document.getElementById('tbl-choice')
+            tbl_choice.style.display = "none";
+        }
 
-            function show_form_join_chat() {
-                let a = document.getElementById("a_join_chat")
-                a.style["display"] = "none"
-                let frm = document.getElementById("form-join-chat")
-                frm.style["display"] = "block"
-            }
+        function show_form_join_chat() {
+            let a = document.getElementById("a_join_chat")
+            a.style["display"] = "none"
+            let frm = document.getElementById("form-join-chat")
+            frm.style["display"] = "block"
+        }
 
-            async function reload_div() {
-                let div = document.getElementsByClassName('need-update')[0];
-                div.outerHTML = await(await fetch('/get-dialogs-div')).text();
-            }
-            setInterval(reload_div, 10000);
-        </script>
-    {% else -%}
-        <h1>Мессенджер</h1>
-        <h2>Вы не авторизировались</h2>
-        <p><a href="{{ url_for('auth') }}">Авторизирутесь</a> или <a href="{{ url_for('signup') }}">зарегистрируйтесь</a></p>
-        <p>Также вы можете <a href="{{ url_for('download_app') }}">скачать приложение</a></p>
-    {%- endif -%}
+        async function reload_div() {
+            let div = document.getElementsByClassName('need-update')[0];
+            div.outerHTML = await(await fetch('/get-dialogs-div')).text();
+        }
+        setInterval(reload_div, 10000);
+    </script>
 
 
 {% endblock %}
