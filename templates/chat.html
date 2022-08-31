@@ -1,5 +1,8 @@
 {% extends 'base.html' %}
 
+{% block style %}
+<link href="{{ url_for('static', filename='chat.css') }}" rel="stylesheet" type="text/css">
+{% endblock %}
 
 {% block content -%}
     {% if dialog -%}
@@ -54,18 +57,18 @@
     {% if user.login == 'SYSTEM' and user.login not in chat.members %}
         <div class="message-system message">Вы не состоите в этот чате</div>
     {% endif %}
-
-    {% include 'messages-div.html' %}
-
+    <div class="holder-wrapper">
+        {% include 'messages-div.html' %}
+    </div>
 
     <form class="form-message" method="post" action="/send-message-to-chat/{{ chat.id }}" onsubmit="stop_updating()">
-        <div style="display: table; width: 100%">
+        <div style="display: table; width: 100%" class="input-bar">
             <span style="display: table-cell; width: 100%; overflow: hidden">
                 <!--suppress HtmlFormInputWithoutLabel -->
-                <input style="width: 100%;" type="text" name="message" placeholder="Сообщение..." required autocomplete="off"/>
+                <input type="text" name="message" placeholder="Сообщение..." required autocomplete="off" class="message-input"/>
             </span>
 
-            <input style="display: table-cell" type="submit" value=">" class="btn-send-message" autocomplete="off" />
+            <input type="submit" value="Отправить" autocomplete="off" class="message-send"/>
         </div>
 
     </form>

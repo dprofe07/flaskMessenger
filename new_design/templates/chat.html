@@ -7,7 +7,7 @@
 {% block content %}
 
 <div class="holder-wrapper">
-    <div class="message-holder">
+    <div class="messages-container">
         <span class="alert">Новый участник!</span>
         <div class="message">
             <span class="source">Дима Профе</span>
@@ -28,7 +28,7 @@
 </div>
 
 <script>
-    const holder = document.querySelector('.message-holder');
+    const holder = document.querySelector('.messages-container');
     const send_button = document.querySelector('.message-send');
     const message_input = document.querySelector('.message-input');
     const nickname = 'DEFAULT USER';

@@ -10,7 +10,7 @@ def handle_message(data):
     print('Message:', data)
     send(data, to=data['room'])
 
-    
+
 @io.on('join')
 def join(data):
     join_room(data['room'])
@@ -20,4 +20,4 @@ def index():
     return render_template('index.html')
 
 if __name__ == '__main__':
-    io.run(app, debug=True)
+    io.run(app, debug=True, host='192.168.0.200', port=5000)

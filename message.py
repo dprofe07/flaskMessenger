@@ -20,16 +20,22 @@ class Message(BaseUnit):
             sender = self.from_.login
             if sender == for_.login:
                 sender = 'Вы'
-            res += f'<span class="message-sender">Отправил: {sender}</span><br/>'
+            res += f'<span class="source">{sender}</span>'
 
         answered = Message.find_by_time(self.answer_to)
         if answered is not None:
             res += f'<div class="answered">{answered.get_html(for_)}</div>'
 
         if self.from_.login == 'SYSTEM':
-            res += f'''<span>{self.text.replace('""', '"')}</span>'''
+            res += f'''<p class="text">{self.text.replace('""', '"')}</p>'''
         else:
-            res += jinja2.Template('<span>{{ text | escape }}</span>').render(text=self.text.replace('""', '"'))
+            res += jinja2.Template('<p class="text">{{ text | escape }}</p>').render(text=self.text.replace('""', '"'))
+
+        if self.from_.login != 'SYSTEM':
+            def pretty(n: int):
+                return f'{"0" if n // 10 == 0 else ""}{n}'
+            t = time.localtime(self.time)
+            res += f'<span class="date">{pretty(t[2])}.{pretty(t[1])}.{pretty(t[0])}, {pretty(t[3])}:{pretty(t[4])}:{pretty(t[5])}</span>'
         return res
 
     @staticmethod
