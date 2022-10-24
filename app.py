@@ -1,3 +1,6 @@
+#!/usr/bin/python3
+
+
 import json
 import time
 
@@ -34,6 +37,7 @@ BaseUnit.db_data = db_data
 
 @io.on('join')
 def join(data):
+    print('joined!')
     join_room(data['room'])
 
 
@@ -123,6 +127,7 @@ def handle_message(data):
         new_message.write_to_db()
 
         socket_send_message(new_message, data['room'])
+        print(f'send message! message = {new_message}')
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -879,6 +884,7 @@ def api_change_token():
 
 
 if __name__ == '__main__':
+    print('Ready!')
     # io.run(app, host='127.0.0.1', port=5000, debug=True)
-    io.run(app, '192.168.0.200', port=5000, debug=True)
+    io.run(app, '0.0.0.0', port=8003, debug=True)
     # app.run('192.168.0.200', port=5000, debug=not SERVER)
