@@ -38,13 +38,13 @@ forms = {
     'login': Form([
         Option('Логин', 'login'),
         Option('Пароль', 'password', input_type='password'),
-    ], None, title='Авторизация', submit='Войти'),
+    ], None, title='Авторизация', submit='Войти',
+        hint=Hint('Забыли пароль?', '/password_recovery')),
     'register': Form([
         Option('Логин', 'login'),
         Option('Пароль', 'password'),
         Option('Повторите пароль', 'password2'),
         Option('Кодовое слово', 'keyword', required=False,
                under='Для восстановления пароля')
-    ], lambda x: x['login'], title='Регистрация', submit='Создать',
-        hint=Hint('Забыли пароль?', '#'))
+    ], lambda x: x['login'], title='Регистрация', submit='Создать')
 }

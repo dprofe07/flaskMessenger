@@ -1,10 +1,4 @@
-SERVER = False
-
-if SERVER:
-    import mysql.connector as connector
-else:
-    import sqlite3 as connector
-
+import sqlite3
 from random import choice
 
 
@@ -20,7 +14,7 @@ class BaseUnit:
 
     @staticmethod
     def create_tables():
-        db_conn = connector.connect(**BaseUnit.db_data)
+        db_conn = sqlite3.connect(**BaseUnit.db_data)
         cur = db_conn.cursor()
 
         cur.execute('''
@@ -34,7 +28,7 @@ class BaseUnit:
 
         cur.execute(f'''
             CREATE TABLE IF NOT EXISTS chats (
-                Id INTEGER PRIMARY KEY AUTO{'_' if SERVER else ''}INCREMENT NOT NULL,
+                Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                 Name NVARCHAR(100) NOT NULL,
                 Password_for_commands NVARCHAR(100) NOT NULL,
                 Token NVARCHAR(100) NOT NULL UNIQUE
@@ -78,7 +72,7 @@ class BaseUnit:
     @staticmethod
     def connect_to_db():
         BaseUnit.create_tables()
-        db_conn = connector.connect(**BaseUnit.db_data)
+        db_conn = sqlite3.connect(**BaseUnit.db_data)
         return db_conn
 
     def write_to_db(self):

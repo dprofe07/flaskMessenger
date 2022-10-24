@@ -8,7 +8,7 @@ import prettytable
 from flask import Flask, render_template, request, redirect, flash, make_response, send_file
 from flask_socketio import SocketIO, send, join_room
 
-from base_unit import SERVER, BaseUnit
+from base_unit import BaseUnit
 from message import Message
 from user import User
 from chat import Chat
@@ -19,17 +19,9 @@ from forms import forms
 app = Flask(__name__)
 io = SocketIO(app, cors_allowed_origins='*')
 
-if SERVER:
-    db_data = {
-        'host': 'messenger.mysql.pythonanywhere-services.com',
-        'user': 'messenger',
-        'password': '7845126Qq',
-        'database': 'messenger$messenger',
-    }
-else:
-    db_data = {
-        'database': 'static/users_db.db'
-    }
+db_data = {
+    'database': 'static/users_db.db'
+}
 
 app.config['SECRET_KEY'] = 'fdgdfgdfggf786hfg6hfg6h7f'
 BaseUnit.db_data = db_data
@@ -45,6 +37,7 @@ def socket_send_message(message, room):
     new_data = {
         'html_sender': message.get_html(message.from_),
         'html_any': message.get_html(None),
+        'text': message.text,
         'source': message.from_.login,
     }
 
@@ -886,5 +879,5 @@ def api_change_token():
 if __name__ == '__main__':
     print('Ready!')
     # io.run(app, host='127.0.0.1', port=5000, debug=True)
-    io.run(app, '0.0.0.0', port=8003, debug=True)
+    io.run(app, '0.0.0.0', port=8003, debug=False)
     # app.run('192.168.0.200', port=5000, debug=not SERVER)
