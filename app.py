@@ -20,7 +20,7 @@ app = Flask(__name__)
 io = SocketIO(app, cors_allowed_origins='*')
 
 db_data = {
-    'database': 'static/users_db.db'
+    'database': '/SERVER/databases/flaskMessenger/users_db.db'
 }
 
 app.config['SECRET_KEY'] = 'fdgdfgdfggf786hfg6hfg6h7f'
