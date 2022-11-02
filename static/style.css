@@ -1,57 +1,5 @@
-.flash {
-    font-size: 0.8em;
-}
-
-.flash-success {
-    color: green;
-}
-
-.flash-error {
-    color: red;
-}
-
-.flash-warning {
-    color: yellow;
-}
-
 .center {
     text-align: center;
-}
-
-.chat {
-    border: 2px solid black;
-    background-color: #efff5f;
-    min-height: 30px;
-    overflow-x: hidden;
-}
-
-.chat-a {
-    display: block;
-    padding: 10px;
-    text-decoration: none;
-    color: inherit;
-    width: 100%;
-}
-
-.chat-a:hover {
-    background-color: #efff26;
-}
-
-.chats-container {
-    width: 80%;
-    margin-left: auto;
-    margin-right: auto;
-    border: 1px solid black;
-    padding-top: 5px;
-    padding-bottom: 5px;
-    overflow-y: scroll;
-    max-height: 400px;
-}
-
-#form-new-chat, #form-new-dialog {
-    display: none;
-    margin: 10px auto;
-    width: 100%;
 }
 
 .message-sender {
@@ -60,43 +8,6 @@
     color: chocolate;
 }
 
-#tbl-choice {
-    width: 100%;
-}
-
-.tbl-choice-tr {
-    width: 100%;
-}
-
-.tbl-choice-td {
-    width: 50%;
-}
-
-.index-menu {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    overflow-x: hidden;
-    list-style-type: none;
-    background-color: #efff5f;
-}
-
-.index-menu li {
-    display: inline;
-    height: 100%;
-    vertical-align: middle;
-}
-
-.index-menu a {
-    display: inline-block;
-    padding: 10px;
-    text-decoration: none;
-    color: inherit;
-}
-
-.index-menu a:hover {
-    background-color: #efff26;
-}
 
 .answered {
     border-left: 3px black solid;

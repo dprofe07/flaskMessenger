@@ -1,3 +1,19 @@
+.flash {
+    font-size: 0.8em;
+}
+
+.flash-success {
+    color: green;
+}
+
+.flash-error {
+    color: red;
+}
+
+.flash-warning {
+    color: yellow;
+}
+
 body {
     margin:0;
     padding:0;
@@ -48,40 +64,6 @@ header nav a:hover {
 main, footer {
     margin-top:65px;
     box-sizing: border-box;
-}
-
-input {
-    outline: none;
-    background: #e3e3e3;
-    font-family: inherit;
-    border:none;
-    display:block;
-    transition:background .15s ease-in-out;
-}
-
-input[type="button"], input[type="submit"] {
-    cursor:pointer;
-    padding:7px 18px;
-    border-radius:15px;
-    font-size:16px;
-}
-
-input[type="button"]:hover, input[type="submit"]:hover {
-    background:#d7d7d7;
-}
-
-input[type="button"]:active, input[type="submit"]:active {
-    background:#c2c2c2;
-}
-
-input[type="text"], input[type="password"] {
-    font-size:17px;
-    padding:7px 14px;
-    border-radius:12px;
-}
-
-input[type="text"]:focus, input[type="password"]:focus {
-    background:#dfdfdf;
 }
 
 

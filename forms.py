@@ -28,7 +28,7 @@ class Form:
             if len(opt_values) == 0:
                 return self(*['' for _ in self.options])
             return self
-        new_form = Form(self.options, self.on_receive, self.title, self.submit, self.hint)
+        new_form = Form(self.options[:], self.on_receive, self.title, self.submit, self.hint)
         for i in range(len(opt_values)):
             new_form.options[i].value = opt_values[i]
         return new_form
@@ -40,11 +40,26 @@ forms = {
         Option('Пароль', 'password', input_type='password'),
     ], None, title='Авторизация', submit='Войти',
         hint=Hint('Забыли пароль?', '/password_recovery')),
+
     'register': Form([
         Option('Логин', 'login'),
-        Option('Пароль', 'password'),
-        Option('Повторите пароль', 'password2'),
-        Option('Кодовое слово', 'keyword', required=False,
+        Option('Пароль', 'password', input_type='password'),
+        Option('Повторите пароль', 'password2', input_type='password'),
+        Option('Кодовое слово', 'keyword',
                under='Для восстановления пароля')
-    ], lambda x: x['login'], title='Регистрация', submit='Создать')
+    ], lambda x: x['login'], title='Регистрация', submit='Создать'),
+
+    'password_recovery': Form([
+        Option('Логин', 'login'),
+        Option('Ключевое слово', 'keyword', under='То, которое вы указали при регистрации')
+    ], None, 'Восстановление пароля',
+        hint=Hint('Восстановить через сообщение', '/password_recovery_message')
+    ),
+
+    'change_password': Form([
+        Option('Старый пароль', 'old_password', input_type='password'),
+        Option('Новый пароль', 'password', input_type='password'),
+        Option('Новый пароль ещё раз', 'password2', input_type='password')
+    ], None, 'Смена пароля', 'Сменить'
+    )
 }

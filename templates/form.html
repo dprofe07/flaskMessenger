@@ -1,4 +1,6 @@
-{% extends 'base.html' %}
+{% extends 'base.html' %}{
+
+{% set title = form.title %}
 
 {% block style %}
 <link href="{{ url_for('static', filename='form.css') }}" rel="stylesheet" type="text/css">

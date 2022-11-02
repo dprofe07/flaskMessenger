@@ -1,28 +1,23 @@
 {% extends 'base.html' %}
 
-{% block content %}
-    <ul class="index-menu">
-        <li><a href="/"><img src="{{ url_for('static', filename='home.png') }}" alt="home"/></a></li>
-        <li><a href="{{ url_for('logout') }}">Выйти из аккаунта</a></li>
-        <li><a href="{{ url_for('remove_account') }}">Удалить аккаунт</a></li>
-        <li><a href="{{ url_for('change_password') }}">Сменить пароль</a></li>
-        <li><a href="{{ url_for('change_token') }}">Выйти на всех устройствах (кроме этого)</a></li>
-        <li><a href="{{ url_for('download_app') }}">Скачать приложение</a></li>
-    </ul>
+{% set title="Главная" %}
 
-    <!--suppress HtmlUnknownTarget -->
-    <h1>Мессенджер</h1>
-    <h2>Вы вошли как {{ user.login }}</h2>
+{% block style %}
+    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='index-style.css') }}"/>
+{% endblock %}
+
+{% block content %}
+
     <h3 class="center">Чаты</h3>
 
     <div class="chats-container">
         {% include 'dialogs-div.html' %}
         <div class="chat">
-            <a href="javascript:show_choice_chat_or_dialog()" style="font-size: 2em; color: #8b9536" class="center chat-a" id="plus">+</a>
-            <table style="display:none" id="tbl-choice">
-                <tr class="tbl-choice-tr">
-                    <td class="tbl-choice-td"><a href="javascript:show_form_chat()" style="font-size: 2em; color: #8b9536" class="center chat-a" id="add-chat">Чат</a></td>
-                    <td class="tbl-choice-td"><a href="javascript:show_form_dialog()" style="font-size: 2em; color: #8b9536" class="center chat-a" id="add-dialog">Диалог</a></td>
+            <a href="javascript:show_choice_chat_or_dialog()" class="chat-buttons" id="plus">+</a>
+            <table id="tbl-choice">
+                <tr>
+                    <td><a href="javascript:show_form_chat()" class="chat-buttons" id="add-chat">Чат</a></td>
+                    <td><a href="javascript:show_form_dialog()" class="chat-buttons" id="add-dialog">Диалог</a></td>
                 </tr>
             </table>
 
@@ -46,20 +41,18 @@
 
             <div id="form-new-dialog">
                 <form action="/new-dialog" method="post">
-                    <label for="login">Логин собеседника: </label>
-                    <input type="text" name="login" id="login" autocomplete="off"/>
+                    <input type="text" name="login" id="login" autocomplete="off" placeholder="Логин собеседника" required/>
 
-                    <input type="submit" value="Создать"/>
+                    <input type="submit" value="➤"/>
                 </form>
             </div>
         </div>
         <div class="chat">
-            <a href="javascript:show_form_join_chat()" style="font-size: 2em; color: #8b9536" class="center chat-a" id="a_join_chat">Присоединиться по коду</a>
+            <a href="javascript:show_form_join_chat()" class="chat-buttons" id="join_chat">Присоединиться по коду</a>
             <form action="/join-chat" id="form-join-chat" style="display: none">
-                <label for="chat-code">Код чата: </label>
-                <input type="text" name="code" id="chat-code"><br/>
+                <input type="text" name="code" id="chat-code" placeholder="Код чата">
 
-                <input type="submit" value="Присоединиться">
+                <input type="submit" value="➤">
             </form>
         </div>
     </div>
@@ -88,7 +81,7 @@
         }
 
         function show_form_join_chat() {
-            let a = document.getElementById("a_join_chat")
+            let a = document.getElementById("join_chat")
             a.style["display"] = "none"
             let frm = document.getElementById("form-join-chat")
             frm.style["display"] = "block"

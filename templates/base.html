@@ -21,7 +21,12 @@
                 <nav>
                     <!--<a href="{ url_for('form') }}">Друзья</a>-->
                     <a href="/">Сообщения</a>
-                    <a href="#">Настройки</a>
+                    <a href="/about-app">Приложение</a>
+                    {% if user %}
+                        <a href="/settings"><b>{{ user.login }} [Настройки]</b></a>
+                    {% else %}
+                        <a href="/auth"><b></b>Гость</a></a>
+                    {% endif %}
                 </nav>
             </header>
             <main>
