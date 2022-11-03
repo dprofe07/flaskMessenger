@@ -137,11 +137,6 @@ def index():
         )
 
 
-@app.route('/profile/<login>')
-def get_profile(login):
-    return render_template('in_work.html', user=User.get_from_cookies(request))
-
-
 @app.route('/settings')
 def settings():
     return render_template('settings.html', user=User.get_from_cookies(request))

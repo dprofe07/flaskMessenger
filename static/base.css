@@ -35,7 +35,6 @@ header {
     display:flex;
     justify-content: space-between;
     align-items: center;
-
 }
 
 header a {
@@ -61,9 +60,16 @@ header nav a:hover {
     text-decoration: underline;
 }
 
+main {
+    margin-top: 20px;
+}
+
 main, footer {
-    margin-top:65px;
     box-sizing: border-box;
+}
+
+footer {
+    margin-top: 40px;
 }
 
 
@@ -116,4 +122,9 @@ main h1 {
 
 main, footer {
     opacity: 0;
+}
+
+.title {
+    font-weight: bold;
+    font-size:1.5em;
 }

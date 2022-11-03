@@ -6,7 +6,7 @@
     padding-top: 5px;
     padding-bottom: 5px;
     overflow-y: scroll;
-    max-height: 400px;
+    max-height: 70vh;
 }
 
 #form-new-chat, #form-new-dialog {

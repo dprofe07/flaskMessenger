@@ -7,12 +7,6 @@
 {% endblock %}
 
 {% block content -%}
-    {% if chat.name.startswith('DIALOG_BETWEEN') -%}
-        <h3 class="center">{{ chat.show_name }}</h3>
-    {%- else -%}
-        <h3 class="center">Чат {{ chat.show_name }}</h3>
-    {%- endif -%}
-
     {% macro row(val1, val2) %}
         <tr>
             <td>{{ val1 | safe }}</td>
@@ -54,8 +48,8 @@
             <p><a href="javascript: hide_commands()">Свернуть</a></p>
         </div>
     {% else %}
-        <p>Чтобы удалить диалог введите "!!remove-chat;", чтобы очистить - "!!clear-chat;", а чтобы покинуть -
-            "!!leave"</p>
+        <span class="chat-hint">Чтобы удалить диалог введите "!!remove-chat;", чтобы очистить - "!!clear-chat;", а чтобы покинуть -
+            "!!leave"</span>
     {% endif %}
 
     {% if user.login == 'SYSTEM' and user.login not in chat.members %}
@@ -92,7 +86,7 @@
                        class="message-input"/>
             </span>
 
-        <input type="submit" value="Отправить" autocomplete="off" class="message-send"/>
+        <input type="submit" value="➤" autocomplete="off" class="message-send"/>
     </div>
 
     <!--    </form>-->
