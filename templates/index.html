@@ -41,6 +41,7 @@
 
             <div id="form-new-dialog">
                 <form action="/new-dialog" method="post">
+                    <label for="login">Создать диалог с </label>
                     <input type="text" name="login" id="login" autocomplete="off" placeholder="Логин собеседника" required/>
 
                     <input type="submit" value="➤"/>
@@ -48,8 +49,10 @@
             </div>
         </div>
         <div class="chat">
+
             <a href="javascript:show_form_join_chat()" class="chat-buttons" id="join_chat">Присоединиться по коду</a>
-            <form action="/join-chat" id="form-join-chat" style="display: none">
+            <form action="/join-chat" id="form-join-chat">
+                <label for="chat-code">Присоединиться к чату по коду:</label>
                 <input type="text" name="code" id="chat-code" placeholder="Код чата">
 
                 <input type="submit" value="➤">

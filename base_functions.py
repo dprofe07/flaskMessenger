@@ -85,7 +85,7 @@ class BaseFunctions:
                 message_callback(
                     Message(
                         curr_user,
-                        text.replace(password, '<HIDDEN>'),
+                        f'!!{command[0]};<HIDDEN>;{login}',
                         time.time(),
                         curr_chat.id
                     ).write_to_db()
@@ -128,7 +128,7 @@ class BaseFunctions:
                 message_callback(
                     Message(
                         curr_user,
-                        text.replace(password, '<HIDDEN>'),
+                        f'!!{command[0]};<HIDDEN>;{login}',
                         time.time(),
                         curr_chat.id
                     ).write_to_db()
@@ -188,7 +188,7 @@ class BaseFunctions:
                 if sys_user is None:
                     message_callback(Message(
                         curr_user,
-                        text.replace(password, '<HIDDEN>'),
+                        f'!!{command[0]};<HIDDEN>;{command[2]}',
                         time.time(),
                         curr_chat.id
                     ).write_to_db())
@@ -200,7 +200,7 @@ class BaseFunctions:
                     if password != sys_user.password:
                         message_callback(Message(
                             curr_user,
-                            text.replace(password, '<HIDDEN>'),
+                            f'!!{command[0]};<HIDDEN>;{command[2]}',
                             time.time(),
                             curr_chat.id
                         ).write_to_db())
@@ -231,7 +231,7 @@ class BaseFunctions:
                 else:
                     message_callback(Message(
                         curr_user,
-                        text.replace(password, '<HIDDEN>'),
+                        f'!!{command[0]};<HIDDEN>',
                         time.time(),
                         curr_chat.id
                     ).write_to_db())
@@ -246,7 +246,7 @@ class BaseFunctions:
                 password = command[1]
                 message_callback(Message(
                     curr_user,
-                    text.replace(password, '<HIDDEN>'),
+                    f'!!{command[0]};<HIDDEN>',
                     time.time(),
                     curr_chat.id
                 ).write_to_db())
@@ -258,7 +258,7 @@ class BaseFunctions:
                 else:
                     curr_chat.clear_messages()
                     message_callback(Message.send_system_message(
-                        f'Чат успешно очищен пользователем {curr_user.login}',
+                        f'Чат очищен пользователем {curr_user.login}',
                         curr_chat.id
                     ))
 
@@ -267,7 +267,7 @@ class BaseFunctions:
                 new_password = command[2]
                 message_callback(Message(
                     curr_user,
-                    text.replace(password, '<HIDDEN>').replace(new_password, '<HIDDEN>'),
+                    f'!!{command[0]};{password};<HIDDEN>',
                     time.time(),
                     curr_chat.id
                 ).write_to_db())
@@ -291,7 +291,7 @@ class BaseFunctions:
                 sys_user = User.find_by_login('SYSTEM')
                 message_callback(Message(
                     curr_user,
-                    text.replace(password, '<HIDDEN>').replace(new_password, '<HIDDEN>'),
+                    f'!!{command[0]};password;<HIDDEN>',
                     time.time(),
                     curr_chat.id
                 ).write_to_db())
@@ -356,7 +356,7 @@ class BaseFunctions:
                 password = command[1]
                 message_callback(Message(
                     curr_user,
-                    text.replace(password, '<HIDDEN>'),
+                    f'!!{command[0]};<HIDDEN>',
                     time.time(),
                     curr_chat.id
                 ).write_to_db())
@@ -367,7 +367,7 @@ class BaseFunctions:
                     ))
                 else:
                     import urllib.parse
-                    code = f'{curr_chat.id}&&{curr_chat.token}'
+                    code = curr_chat.token
                     message_callback(Message.send_system_message(
                         f'Сгенерирован код-приглашение: <b><a href="/join-chat?code={urllib.parse.quote_plus(code)}">{code}</a></b><br/><br/>'
                         f'Чтобы сделать код недействительным используйте команду !!reset-invite-code',
@@ -378,7 +378,7 @@ class BaseFunctions:
                 password = command[1]
                 message_callback(Message(
                     curr_user,
-                    text.replace(password, '<HIDDEN>'),
+                    f'!!{command[0]};<HIDDEN>',
                     time.time(),
                     curr_chat.id
                 ).write_to_db())

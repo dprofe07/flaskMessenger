@@ -9,7 +9,6 @@
 {% block content %}
 
 <form action="#" method="post">
-    <h1>{{ form.title }}</h1>
     {% for option in form.options %}
     <div class="input-block">
         <label for="{{ option.idx }}">{{ option.name + (' *' if option.required else '') }}</label>

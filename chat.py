@@ -128,6 +128,32 @@ class Chat(BaseUnit):
             print(e.args)
             return None
 
+    @staticmethod
+    def from_token(token):
+        if token is None:
+            return None
+
+        try:
+            db_conn = Chat.connect_to_db()
+            cur = db_conn.cursor()
+
+            cur.execute(f'''
+                SELECT * FROM chats WHERE Token = {token!r}
+            ''')
+
+            id_, ch_name, ch_pass, ch_token = cur.fetchall()[0]
+
+            cur.execute(f'''
+                SELECT * FROM chat_members WHERE ChatId = {id_}
+            ''')
+
+            ch_members = [i[1] for i in cur.fetchall()]
+
+            return Chat(id_, ch_name, ch_members, ch_pass, ch_token)
+        except BaseException as e:
+            print(e.args)
+            return None
+
     def clear_messages(self):
         db_conn = self.connect_to_db()
         cur = db_conn.cursor()

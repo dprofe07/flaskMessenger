@@ -491,23 +491,10 @@ def invite_to_chat():
     if curr_user is None:
         flash('Войдите на сайт чтобы использовать коды-приглашения', 'error')
         return redirect('/')
-    if '&&' not in code:
-        flash('Некорректный код-приглашение', 'error')
-        return redirect('/')
-    id_, code = code.split('&&')
-    try:
-        id_ = int(id_)
-    except ValueError:
-        flash('Некорректный код-приглашение', 'error')
-        return redirect('/')
 
-    curr_chat = Chat.from_id(id_)
+    curr_chat = Chat.from_token(code)
     if curr_chat is None:
         flash('Некорректный код-приглашение', 'error')
-        return redirect('/')
-
-    if curr_chat.token != code:
-        flash('Неверный код-приглашение', 'error')
         return redirect('/')
 
     if curr_user.login in curr_chat.members:
