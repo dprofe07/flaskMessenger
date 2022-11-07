@@ -618,10 +618,12 @@ def api_signup():
     user_created_previously = User.find_by_login(login)
 
     ret_code = BaseFunctions.which_is_none(
-        [login, password, keyword, user_created_previously],
-        [API_CODES.INCORRECT_SYNTAX] * 3 + [API_CODES.USER_ALREADY_EXISTS]
+        [login, password, keyword],
+        [API_CODES.INCORRECT_SYNTAX] * 3
     )
-    if ret_code is not None:
+    if user_created_previously is not None:
+        return json.dumps({'code': API_CODES.USER_ALREADY_EXISTS}, ensure_ascii=False)
+    elif ret_code is not None:
         return json.dumps({'code': ret_code}, ensure_ascii=False)
     elif ';' in login:
         return json.dumps({'code': API_CODES.FORBIDDEN_SYMBOLS_IN_LOGIN, 'symbol': ';'}, ensure_ascii=False)

@@ -1,17 +1,30 @@
+.flashes-container {
+    position: fixed;
+    right: -10vw;
+    top: 10px;
+    min-width: 100px;
+}
+
+.flash span {
+    /*opacity: 1;*/
+}
+
 .flash {
     font-size: 0.8em;
+    padding: 13px 30px;
+    border-radius: 15px;
 }
 
 .flash-success {
-    color: green;
+    background-color: rgba(0, 255, 0, 0.5);
 }
 
 .flash-error {
-    color: red;
+    background-color: rgba(255, 0, 0, 0.5);
 }
 
 .flash-warning {
-    color: yellow;
+    background-color: rgba(255, 255, 0, 0.5);
 }
 
 body {
