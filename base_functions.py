@@ -76,7 +76,7 @@ class BaseFunctions:
                     Message(User(user.login, '', ''), 'А так - отправленные', time.time(), chat_with_system.id)
 
     @staticmethod
-    def execute_message_command(text, curr_chat, curr_user, message_callback: lambda i: None):
+    def execute_message_command(text, curr_chat, curr_user, message_callback=lambda i: None):
         try:
             command = text[2:].split(';')
             if command[0] == 'add-user':
