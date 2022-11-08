@@ -18,7 +18,7 @@ from user import User
 
 try:
     with open('/SERVER/databases/flaskMessenger/demo_mode.option') as f:
-        DEMO_MODE = (f.read() == 'on')
+        DEMO_MODE = (f.readline() == 'on')
 except FileNotFoundError:
     DEMO_MODE = False
     with open('/SERVER/databases/flaskMessenger/demo_mode.option', 'w') as f:
