@@ -144,9 +144,9 @@
         });
 
         socket.on('message', data => {
-            if (data['source'] != 'SYSTEM') {
+            if (data['source'] !== 'SYSTEM') {
 
-                if (data['source'] == my_login) {
+                if (data['source'] === my_login) {
                     AddMessage(data['html_sender'], true);
                 } else {
                     new Notification("Новое сообщение - Messenger", {
