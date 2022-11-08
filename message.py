@@ -19,7 +19,7 @@ class Message(BaseUnit):
         any_ = for_ is None
         if self.from_.login != 'SYSTEM':
             sender = self.from_.login
-            if any_ or sender == for_.login:
+            if sender == for_.login:
                 sender = 'Вы'
             res += f'<span class="source">{sender}</span>'
 
