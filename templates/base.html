@@ -33,6 +33,10 @@
                 {% block content %}
                 {% endblock %}
                 <div class="flashes-container">
+                    {% if demo_mode %}
+                        <span class="flash flash-warning">Внимание! Сервер работает в тестовом режиме.
+                            Никакие данные не будут перенесены в стандартный режим. Приносим извинения за доставленные неудобства</span>
+                    {% endif %}
                     {% for cat, msg in get_flashed_messages(True) %}
                         <span class="flash flash-{{ cat }}">{{ msg }}</span>
                     {% endfor %}

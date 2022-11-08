@@ -5,26 +5,35 @@ import json
 import time
 
 import prettytable
-from flask import Flask, render_template, request, redirect, flash, make_response, send_file
+from flask import Flask, render_template, request, redirect, flash, send_file
 from flask_socketio import SocketIO, send, join_room
 
+from base_functions import BaseFunctions
 from base_unit import BaseUnit
+from chat import Chat
+from forms import forms
 from message import Message
 from user import User
-from chat import Chat
-from base_functions import BaseFunctions
-from forms import forms
+
+
+try:
+    with open('/SERVER/databases/flaskMessenger/demo_mode.option') as f:
+        DEMO_MODE = (f.read() == 'on')
+except FileNotFoundError:
+    DEMO_MODE = False
+    with open('/SERVER/databases/flaskMessenger/demo_mode.option', 'w') as f:
+        f.write('off')
 
 
 app = Flask(__name__)
 io = SocketIO(app, cors_allowed_origins='*')
 
-db_data = {
-    'database': '/SERVER/databases/flaskMessenger/users_db.db'
-}
+if DEMO_MODE:
+    BaseUnit.database = '/SERVER/databases/flaskMessenger/users_db_demo.db'
+else:
+    BaseUnit.database = '/SERVER/databases/flaskMessenger/users_db.db'
 
 app.config['SECRET_KEY'] = 'fdgdfgdfggf786hfg6hfg6h7f'
-BaseUnit.db_data = db_data
 
 
 @io.on('join')
@@ -121,11 +130,14 @@ def handle_message(data):
         socket_send_message(new_message, data['room'])
 
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/')
 def index():
     user = User.get_from_cookies(request)
     if user is None:
-        return render_template('guest.html')
+        return render_template(
+            'guest.html',
+            demo_mode=DEMO_MODE
+        )
     else:
         user.aliases = user.get_aliases()
         chats = user.get_chats()
@@ -133,13 +145,18 @@ def index():
             'index.html',
             user=user,
             hide_home_link=True,
-            chats=chats
+            chats=chats,
+            demo_mode=DEMO_MODE
         )
 
 
 @app.route('/settings')
 def settings():
-    return render_template('settings.html', user=User.get_from_cookies(request))
+    return render_template(
+        'settings.html',
+        user=User.get_from_cookies(request),
+        demo_mode=DEMO_MODE
+    )
 
 
 @app.route('/logout')
@@ -151,7 +168,11 @@ def logout():
 
 @app.route('/remove_account')
 def remove_account():
-    return render_template('remove_account.html', user=User.get_from_cookies(request))
+    return render_template(
+        'remove_account.html',
+        user=User.get_from_cookies(request),
+        demo_mode=DEMO_MODE
+    )
 
 
 @app.route('/remove_account_confirmed')
@@ -167,7 +188,12 @@ def remove_account_confirmed():
 @app.route('/change_password', methods=['GET', 'POST'])
 def change_password():
     if request.method == 'GET':
-        return render_template("form.html", form=forms['change_password'], user=User.get_from_cookies(request))
+        return render_template(
+            "form.html",
+            form=forms['change_password'],
+            user=User.get_from_cookies(request),
+            demo_mode=DEMO_MODE
+        )
     else:
         old_password = request.form['old_password']
         password = request.form['password']
@@ -178,14 +204,16 @@ def change_password():
             return render_template(
                 "form.html",
                 form=forms['change_password'](old_password, password, password2),
-                user=User.get_from_cookies(request)
+                user=User.get_from_cookies(request),
+                demo_mode=DEMO_MODE
             )
         if password != password2:
             flash('Пароли не совпадают', 'error')
             return render_template(
                 "form.html",
                 form=forms['change_password'](old_password, password),
-                user=User.get_from_cookies(request)
+                user=User.get_from_cookies(request),
+                demo_mode=DEMO_MODE
             )
 
         BaseFunctions.change_password(user, password)
@@ -197,7 +225,12 @@ def change_password():
 @app.route('/password_recovery', methods=['GET', 'POST'])
 def password_recovery():
     if request.method == 'GET':
-        return render_template('form.html', form=forms['password_recovery'], user=User.get_from_cookies(request))
+        return render_template(
+            'form.html',
+            form=forms['password_recovery'],
+            user=User.get_from_cookies(request),
+            demo_mode=DEMO_MODE
+        )
     else:
         login = request.form['login']
         keyword = request.form['keyword']
@@ -205,10 +238,20 @@ def password_recovery():
         user = User.find_by_login(login)
         if user is None:
             flash(f'Пользователь с логином "{login}" не найден', 'error')
-            return render_template('form.html', form=forms['password_recovery'](login, keyword), user=User.get_from_cookies(request))
+            return render_template(
+                'form.html',
+                form=forms['password_recovery'](login, keyword),
+                user=User.get_from_cookies(request),
+                demo_mode=DEMO_MODE
+            )
         if user.keyword != keyword:
             flash(f'Неверное ключевое слово', 'error')
-            return render_template('form.html', form=forms['password_recovery'](login, keyword), user=User.get_from_cookies(request))
+            return render_template(
+                'form.html',
+                form=forms['password_recovery'](login, keyword),
+                user=User.get_from_cookies(request),
+                demo_mode=DEMO_MODE
+            )
         password = user.password
         flash('Успешно. Посмотрите ваш пароль в чате SYSTEM', 'success')
         Message.send_system_message(
@@ -226,7 +269,12 @@ def password_recovery():
 # noinspection PyUnusedLocal
 @app.errorhandler(404)
 def err404(e):
-    return render_template('error.html', msg='Страница не найдена', user=User.get_from_cookies(request))
+    return render_template(
+        'error.html',
+        msg='Страница не найдена',
+        user=User.get_from_cookies(request),
+        demo_mode=DEMO_MODE
+    )
 
 
 # noinspection PyUnusedLocal
@@ -236,7 +284,8 @@ def err500(e):
         'error.html',
         msg='Ошибка 500. Сообщите, пожалуйста, действия, которые привели к этой ошибке,'
             ' в сообщениях пользователю SYSTEM',
-        user=User.get_from_cookies(request)
+        user=User.get_from_cookies(request),
+        demo_mode=DEMO_MODE
     )
 
 
@@ -245,7 +294,14 @@ def auth():
     if User.get_from_cookies(request) is not None:
         return redirect('/')
 
-    if request.method == 'POST':
+    if request.method == 'GET':
+        return render_template(
+            'form.html',
+            form=forms['login'],
+            user=User.get_from_cookies(request),
+            demo_mode=DEMO_MODE
+        )
+    else:
         login = request.form['login']
         password = request.form['password']
         user = User.find_by_login(login)
@@ -261,23 +317,32 @@ def auth():
                 flash(f'Неверный пароль для пользователя "{login}"', 'error')
                 return render_template(
                     'form.html',
-                    form=forms['login'](login, password), user=User.get_from_cookies(request)
+                    form=forms['login'](login, password),
+                    user=User.get_from_cookies(request),
+                    demo_mode=DEMO_MODE
                 )
         else:
             flash(f'Пользователь с именем "{login}" не найден.', 'error')
             return render_template(
                 'form.html',
-                form=forms['login'](login, password), user=User.get_from_cookies(request)
+                form=forms['login'](login, password),
+                user=User.get_from_cookies(request),
+                demo_mode=DEMO_MODE
             )
-    else:
-        return render_template('form.html', form=forms['login'], user=User.get_from_cookies(request))
 
 
 @app.route('/signup', methods=['POST', 'GET'])
 def signup():
     if User.get_from_cookies(request) is not None:
         return redirect('/')
-    if request.method == 'POST':
+    if request.method == 'GET':
+        return render_template(
+            'form.html',
+            form=forms['register'],
+            user=User.get_from_cookies(request),
+            demo_mode=DEMO_MODE
+        )
+    else:
         login = request.form['login']
 
         password = request.form['password']
@@ -287,19 +352,25 @@ def signup():
             flash('Нельзя использовать ";" в логине')
             return render_template(
                 'form.html',
-                form=forms['register'](login, password, password2, keyword), user=User.get_from_cookies(request)
+                form=forms['register'](login, password, password2, keyword),
+                user=User.get_from_cookies(request),
+                demo_mode=DEMO_MODE
             )
         elif password != password2:
             flash(f'Пароли не совпадают', 'error')
             return render_template(
                 'form.html',
-                form=forms['register'](login, password, '', keyword), user=User.get_from_cookies(request)
+                form=forms['register'](login, password, '', keyword),
+                user=User.get_from_cookies(request),
+                demo_mode=DEMO_MODE
             )
         elif User.find_by_login(login) is not None:
             flash(f'Пользователь с именем "{login}" уже существует.', 'error')
             return render_template(
                 'form.html',
-                form=forms['register'](login, password, password2, keyword), user=User.get_from_cookies(request)
+                form=forms['register'](login, password, password2, keyword),
+                user=User.get_from_cookies(request),
+                demo_mode=DEMO_MODE
             )
         else:
             user = User(login, password, keyword)
@@ -310,8 +381,6 @@ def signup():
             resp = redirect('/')
             user.save_to_cookies(resp)
             return resp
-    else:
-        return render_template('form.html', form=forms['register'], user=User.get_from_cookies(request))
 
 
 # noinspection DuplicatedCode
@@ -334,18 +403,19 @@ def chat(id_):
     dialog = 'DIALOG_BETWEEN' in curr_chat.name
     if dialog:
         new_name = curr_chat.name.replace('DIALOG_BETWEEN/', '', 1)
-        dialoged = new_name.split(';')
-        if curr_user.login in dialoged:
-            dialoged.remove(curr_user.login)
-            other = dialoged[0]
+        logins = new_name.split(';')
+        if curr_user.login in logins:
+            logins.remove(curr_user.login)
+            other = logins[0]
             curr_chat.show_name = f'Диалог с {other}'
         else:
-            curr_chat.show_name = f'Диалог между {dialoged[0]} и {dialoged[1]}'
+            curr_chat.show_name = f'Диалог между {logins[0]} и {logins[1]}'
     return render_template(
         'chat.html',
         user=curr_user,
         messages=messages,
-        chat=curr_chat
+        chat=curr_chat,
+        demo_mode=DEMO_MODE
     )
 
 
@@ -387,7 +457,7 @@ def send_message_to(chat_id):
             password = command[1]
             Message(
                 curr_user,
-                text.replace(password, '<HIDDEN>'),
+                f'{command[0]};<HIDDEN>;{command[2]}',
                 time.time(),
                 curr_chat.id
             ).write_to_db()
@@ -517,7 +587,11 @@ def download_app():
 
 @app.route('/about-app')
 def about_app():
-    return render_template('about-app.html', user=User.get_from_cookies(request))
+    return render_template(
+        'about-app.html',
+        user=User.get_from_cookies(request),
+        demo_mode=DEMO_MODE
+    )
 
 
 @app.route('/get-messages-div/<chat_id>')
@@ -563,7 +637,8 @@ class API_CODES:
 def api():
     return render_template(
         'api.html',
-        user=User.get_from_cookies(request)
+        user=User.get_from_cookies(request),
+        demo_mode=DEMO_MODE
     )
 
 
@@ -805,13 +880,13 @@ def send_message():
             return json.dumps({'code': API_CODES.NOT_A_CHAT_MEMBER}, ensure_ascii=False)
 
         if text.startswith('!!'):
-            BaseFunctions.execute_message_command(text, curr_chat, user)
+            BaseFunctions.execute_message_command(text, curr_chat, user, lambda msg: socket_send_message(msg, curr_chat.id))
         else:
             if text.startswith('`!!'):
                 text = text[1:]
             msg = Message(user, text, time.time(), chat_id)
             msg.write_to_db()
-
+            socket_send_message(msg, curr_chat.id)
     return json.dumps({'code': ret_code}, ensure_ascii=False)
 
 

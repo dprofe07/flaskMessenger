@@ -10,11 +10,11 @@ def generate_rnd_password(length: int) -> str:
 
 
 class BaseUnit:
-    db_data = {}
+    database = 'users.db'
 
     @staticmethod
     def create_tables():
-        db_conn = sqlite3.connect(**BaseUnit.db_data)
+        db_conn = sqlite3.connect(BaseUnit.database)
         cur = db_conn.cursor()
 
         cur.execute('''
@@ -72,7 +72,7 @@ class BaseUnit:
     @staticmethod
     def connect_to_db():
         BaseUnit.create_tables()
-        db_conn = sqlite3.connect(**BaseUnit.db_data)
+        db_conn = sqlite3.connect(BaseUnit.database)
         return db_conn
 
     def write_to_db(self):
