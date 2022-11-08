@@ -616,6 +616,8 @@ def get_messages_div(chat_id):
 @app.route('/get-dialogs-div')
 def get_dialogs_div():
     user = User.get_from_cookies(request)
+    if user is None:
+        return '<div class="need-update"></div>'
     chats = user.get_chats()
     return render_template('dialogs-div.html', chats=chats, user=user)
 

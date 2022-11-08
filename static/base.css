@@ -1,18 +1,18 @@
 .flashes-container {
     position: fixed;
-    right: -10vw;
-    top: 10px;
+    right: 10px;
+    top: 50px;
     min-width: 100px;
-}
-
-.flash span {
-    /*opacity: 1;*/
+    max-width: 50vh;
+    text-align: right;
 }
 
 .flash {
     font-size: 0.8em;
-    padding: 13px 30px;
+    padding: 13px 20px;
     border-radius: 15px;
+    display: inline-block;
+    margin-bottom: 10px;
 }
 
 .flash-success {
