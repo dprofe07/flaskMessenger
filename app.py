@@ -763,6 +763,32 @@ def api_create_chat():
     return json.dumps({'code': API_CODES.SUCCESS, 'chat-id': curr_chat.id}, ensure_ascii=False)
 
 
+@app.route('/api/create-dialog')
+def api_create_dialog():
+    token = request.args.get('token')
+    companion_login = request.args.get('companion-login')
+
+    user = User.find_by_token(token)
+    companion_user = User.find_by_login(companion_login)
+
+    ret_code = BaseFunctions.which_is_none(
+        [token, companion_login, user, companion_user],
+        [API_CODES.INCORRECT_SYNTAX] * 2 + [API_CODES.USER_NOT_FOUND] * 2
+    )
+
+    if ret_code is not None:
+        return json.dumps({'code': ret_code}, ensure_ascii=False)
+
+    curr_chat = Chat(-1, f'DIALOG_BETWEEN/{companion_login};{user.login}', [user.login, companion_login], '')
+    curr_chat.write_to_db()
+    Message.send_system_message(
+        f'Пользователь {user.login} создал диалог с пользователем {companion_login}',
+        curr_chat.id
+    )
+
+    return json.dumps({'code': API_CODES.SUCCESS, 'chat-id': curr_chat.id}, ensure_ascii=False)
+
+
 @app.route('/api/recover-password')
 def api_recover_password():
     login = request.args.get('login')
