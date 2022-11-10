@@ -49,7 +49,7 @@ def socket_send_message(message, room):
         'source': message.from_.login,
     }
 
-    send(new_data, to=room)
+    io.send(new_data, to=room)
 
 
 @io.on('message')
