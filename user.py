@@ -47,7 +47,7 @@ class User(BaseUnit):
         res.sort(key=lambda i: i[0])
         res.reverse()
 
-        res = [Chat.from_id(i[1]) for i in res]
+        res = [Chat.from_id(i[1]) for i in res if Chat.from_id(i[1])]
         for i in res:
             if 'DIALOG_BETWEEN' in i.name:
                 new_name = i.name.replace('DIALOG_BETWEEN/', '')
