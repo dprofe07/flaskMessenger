@@ -6,7 +6,7 @@ import time
 
 import prettytable
 from flask import Flask, render_template, request, redirect, flash, send_file
-from flask_socketio import SocketIO, send, join_room
+from flask_socketio import SocketIO, join_room
 
 from base_functions import BaseFunctions
 from base_unit import BaseUnit
@@ -14,7 +14,6 @@ from chat import Chat
 from forms import forms
 from message import Message
 from user import User
-
 
 try:
     with open('/SERVER/databases/flaskMessenger/demo_mode.option') as f:
@@ -78,6 +77,7 @@ def handle_message(data):
             command = res['command']
             password = command[1]
             msg = Message(
+                -1,
                 user,
                 text.replace(password, '<HIDDEN>'),
                 time.time(),
@@ -117,14 +117,14 @@ def handle_message(data):
 
                     except BaseException as e:
                         msg = Message.send_system_message(
-                            f'Произошла ошибка: {e.args}',
+                            f'Произошла ошибка {e.__class__.__name__}: {e.args}',
                             curr_chat.id
                         )
                         socket_send_message(msg, data['room'])
     else:
         if text.startswith('`!!'):
             text = text[1:]
-        new_message = Message(user, text, time.time(), curr_chat.id)
+        new_message = Message(-1, user, text, time.time(), curr_chat.id)
         new_message.write_to_db()
 
         socket_send_message(new_message, data['room'])
@@ -456,8 +456,9 @@ def send_message_to(chat_id):
             command = res['command']
             password = command[1]
             Message(
+                -1,
                 curr_user,
-                f'{command[0]};<HIDDEN>;{command[2]}',
+                text,
                 time.time(),
                 curr_chat.id
             ).write_to_db()
@@ -500,7 +501,7 @@ def send_message_to(chat_id):
     else:
         if text.startswith('`!!'):
             text = text[1:]
-        new_message = Message(curr_user, text, time.time(), curr_chat.id)
+        new_message = Message(-1, curr_user, text, time.time(), curr_chat.id)
         new_message.write_to_db()
     return redirect(f'/chat/{chat_id}')
 
@@ -520,9 +521,8 @@ def new_chat():
         if i not in users and i != curr_user.login:
             if User.find_by_login(i):
                 users.append(i)
-    password = request.form['password']
 
-    curr_chat = BaseFunctions.create_chat(curr_user, chat_name, users, password)
+    curr_chat = BaseFunctions.create_chat(curr_user, chat_name, users)
 
     return redirect(f'/chat/{curr_chat.id}')
 
@@ -538,12 +538,17 @@ def new_dialog():
     if login == curr_user.login:
         flash('Нельзя создать диалог с самим собой. Используйте чат.', 'error')
         return redirect('/')
-    if User.find_by_login(login) is None:
+    companion_user = User.find_by_login(login)
+    if companion_user is None:
         flash('Пользователь не найден', 'error')
         return redirect('/')
 
-    curr_chat = Chat(-1, f'DIALOG_BETWEEN/{login};{curr_user.login}', [curr_user.login, login], '')
+    curr_chat = Chat(-1, f'DIALOG_BETWEEN/{login};{curr_user.login}', [curr_user.login, login])
     curr_chat.write_to_db()
+
+    curr_user.become_admin(curr_chat.id)
+    companion_user.become_admin(curr_chat.id)
+
     Message.send_system_message(
         f'Пользователь {curr_user.login} создал диалог с пользователем {login}',
         curr_chat.id
@@ -912,7 +917,7 @@ def send_message():
         else:
             if text.startswith('`!!'):
                 text = text[1:]
-            msg = Message(user, text, time.time(), chat_id)
+            msg = Message(-1, user, text, time.time(), chat_id)
             msg.write_to_db()
             socket_send_message(msg, curr_chat.id)
     return json.dumps({'code': ret_code}, ensure_ascii=False)
@@ -941,6 +946,5 @@ def api_change_token():
 
 if __name__ == '__main__':
     print('Ready!')
-    # io.run(app, host='127.0.0.1', port=5000, debug=True)
-    io.run(app, '0.0.0.0', port=8003, debug=False)
+    io.run(app, '0.0.0.0', port=8003, log_output=True, debug=True)
     # app.run('192.168.0.200', port=5000, debug=not SERVER)

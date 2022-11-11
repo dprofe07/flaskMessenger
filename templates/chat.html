@@ -30,19 +30,18 @@
             <p>Некоторые команды:</p>
 
             <table>
-                {{ row("!!<i>add-user</i>;<b>&lt;password&gt;</b>;<b>&lt;login&gt;</b>", "- добавить пользователя <b>&lt;login&gt;</b> в чат. Требуется пароль чата") }}
-                {{ row("!!<i>remove-user</i>;<b>&lt;password&gt;</b>;<b>&lt;login&gt;</b>", "- удалить пользователя <b>&lt;login&gt;</b> из чата. Требуется пароль чата") }}
+                {{ row("!!<i>add-user</i>;<b>&lt;login&gt;</b>", "– добавить пользователя <b>&lt;login&gt;</b> в чат. Требуются права администратора") }}
+                {{ row("!!<i>remove-user</i>;<b>&lt;login&gt;</b>", "- удалить пользователя <b>&lt;login&gt;</b> из чата. Требуются права администратора") }}
                 {{ row("!!<i>leave</i>", "- Покинуть чат. Внимание, если все покинут чат, он будет удалён!") }}
                 {{ row("!!<i>send-system-message</i>;<b>&lt;system-password&gt;</b>", "- Отправить системное сообщение в чат. Требуется пароль системного пользователя") }}
-                {{ row("!!<i>remove-chat</i>;<b>&lt;password&gt;</b>", "- Удалить чат. Требуется пароль чата") }}
-                {{ row("!!<i>clear-chat</i>;<b>&lt;password&gt;</b>", "- Очистить чат. Требуется пароль чата") }}
-                {{ row("!!<i>change-chat-password</i>;<b>&lt;old_password&gt;</b>;<b>&lt;new_password&gt;</b>", "- Сменить пароль чата. Требуется пароль чата") }}
-                {{ row("!!<i>reset-chat-password</i>;<b>&lt;system-password&gt;</b>;<b>&lt;new_password&gt;</b>", "- Сбросить пароль чата. Требуется пароль системного пользователя") }}
+                {{ row("!!<i>remove-chat</i>", "- Удалить чат. Требуются права администратора") }}
+                {{ row("!!<i>clear-chat</i>", "- Очистить чат. Требуются права администратора") }}
                 {{ row("!!<i>call-sys-user</i>", "- Добавить в чат системного пользователя") }}
                 {{ row("!!<i>chat-members</i>", "- Показать список членов чата") }}
+                {{ row("!!<i>chat-admins</i>", "- Показать список администраторов чата") }}
                 {{ row("!!<i>do-sql-request</i>;<b>&lt;system_password&gt;</b>;<b>&lt;sql-request&gt;</b>", "- Делает SQL запрос. Требуется пароль системного пользователя") }}
-                {{ row("!!<i>make-invite-code</i>;<b>&lt;password&gt;</b>", "- Создаёт код-приглашение") }}
-                {{ row("!!<i>reset-invite-code</i>;<b>&lt;password&gt;</b>", "- Делает код-приглашение недействительной") }}
+                {{ row("!!<i>make-invite-code</i>", "- Создаёт код-приглашение. Требуются права администратора") }}
+                {{ row("!!<i>reset-invite-code</i>", "- Делает код-приглашение недействительной. Требуются права администратора") }}
             </table>
 
             <p><a href="javascript: hide_commands()">Свернуть</a></p>
@@ -62,7 +61,7 @@
                 {% if i.from_.login == 'SYSTEM' %}
                     <span class="alert">{{ i.get_html(user) | safe }}</span>
                 {% else %}
-                    <div class="message {{ 'my' if i.from_ == user else '' }}">
+                    <div class="message {{ 'my' if i.from_.login == user.login else '' }}">
                         {{ i.get_html(user) | safe }}
                     </div>
                 {% endif %}

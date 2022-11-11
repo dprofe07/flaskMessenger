@@ -1,17 +1,16 @@
 import time
 
-from user import User
 from chat import Chat
 from message import Message
-
-from flask import request
+from user import User
 
 
 class BaseFunctions:
     @staticmethod
-    def create_chat(creator, name, members, password):
-        curr_chat = Chat(-1, name, [creator.login] + members, password)
+    def create_chat(creator, name, members):
+        curr_chat = Chat(-1, name, [creator.login] + members)
         curr_chat.write_to_db()
+        creator.become_admin(curr_chat.id)
         Message.send_system_message(
             f'Пользователь {creator.login} создал чат "{curr_chat.name}"',
             curr_chat.id
@@ -43,6 +42,7 @@ class BaseFunctions:
                     sys_messages = i
             if sys_messages is not None:
                 message = Message(
+                    -1,
                     system_user,
                     f'Вы сменили пароль. Новый пароль - "{user.password}"',
                     time.time(), sys_messages.id
@@ -68,36 +68,38 @@ class BaseFunctions:
             chat_with_system = Chat(-1, 'DIALOG_BETWEEN/SYSTEM;' + user.login, ['SYSTEM', user.login], 'password')
             chat_with_system.write_to_db()
             for i, m in enumerate(messages):
-                mess = Message(system_user, m, time.time(), chat_with_system.id)
+                mess = Message(-1, system_user, m, time.time(), chat_with_system.id)
                 mess.write_to_db()
                 if i == 2:
-                    Message(User('other', '', ''), 'Так выглядят входящие сообщения', time.time(),
+                    Message(-1, User('other', '', ''), 'Так выглядят входящие сообщения', time.time(),
                             chat_with_system.id)
-                    Message(User(user.login, '', ''), 'А так - отправленные', time.time(), chat_with_system.id)
+                    Message(-1, User(user.login, '', ''), 'А так - отправленные', time.time(), chat_with_system.id)
 
     @staticmethod
     def execute_message_command(text, curr_chat, curr_user, message_callback=lambda i: None):
+        if not text.startswith('!!send-system-message') and not text.startswith('!!do-sql-request'):
+            message_callback(
+                Message(
+                    -1,
+                    curr_user,
+                    text,
+                    time.time(),
+                    curr_chat.id
+                ).write_to_db()
+            )
+
         try:
             command = text[2:].split(';')
+
             if command[0] == 'add-user':
-                password = command[1]
-                login = command[2]
-                message_callback(
-                    Message(
-                        curr_user,
-                        f'!!{command[0]};<HIDDEN>;{login}',
-                        time.time(),
-                        curr_chat.id
-                    ).write_to_db()
-                )
+                login = command[1]
                 usr = User.find_by_login(login)
-                if password != curr_chat.password_for_commands:
-                    message_callback(
-                        Message.send_system_message(
-                            f'Неверный пароль',
-                            curr_chat.id
-                        )
-                    )
+
+                if not curr_user.is_admin(curr_chat.id):
+                    message_callback(Message.send_system_message(
+                        'Нужны права администратора',
+                        curr_chat.id
+                    ))
                 elif usr is None:
                     message_callback(
                         Message.send_system_message(
@@ -123,25 +125,14 @@ class BaseFunctions:
                     )
 
             elif command[0] == 'remove-user':
-                password = command[1]
-                login = command[2]
-                message_callback(
-                    Message(
-                        curr_user,
-                        f'!!{command[0]};<HIDDEN>;{login}',
-                        time.time(),
-                        curr_chat.id
-                    ).write_to_db()
-                )
+                login = command[1]
                 usr = User.find_by_login(login)
 
-                if password != curr_chat.password_for_commands:
-                    message_callback(
-                        Message.send_system_message(
-                            f'Неверный пароль',
-                            curr_chat.id
-                        )
-                    )
+                if not curr_user.is_admin(curr_chat.id):
+                    message_callback(Message.send_system_message(
+                        'Нужны права администратора',
+                        curr_chat.id
+                    ))
                 elif usr is None:
                     message_callback(
                         Message.send_system_message(
@@ -167,13 +158,6 @@ class BaseFunctions:
                     )
 
             elif command[0] == 'leave':
-                message_callback(Message(
-                    curr_user,
-                    text,
-                    time.time(),
-                    curr_chat.id
-                ).write_to_db()
-                                 )
                 Message.send_system_message(
                     f'Пользователь {curr_user.login} покинул чат',
                     curr_chat.id
@@ -187,6 +171,7 @@ class BaseFunctions:
                 sys_user = User.find_by_login('SYSTEM')
                 if sys_user is None:
                     message_callback(Message(
+                        -1,
                         curr_user,
                         f'!!{command[0]};<HIDDEN>;{command[2]}',
                         time.time(),
@@ -199,6 +184,7 @@ class BaseFunctions:
                 else:
                     if password != sys_user.password:
                         message_callback(Message(
+                            -1,
                             curr_user,
                             f'!!{command[0]};<HIDDEN>;{command[2]}',
                             time.time(),
@@ -215,26 +201,12 @@ class BaseFunctions:
                         ))
 
             elif command[0] == 'remove-chat':
-                password = command[1]
-
-                if password != curr_chat.password_for_commands:
-                    message_callback(Message(
-                        curr_user,
-                        text,
-                        time.time(),
-                        curr_chat.id
-                    ).write_to_db())
+                if not curr_user.is_admin(curr_chat.id):
                     message_callback(Message.send_system_message(
-                        f'Неверный пароль',
+                        'Нужны права администратора',
                         curr_chat.id
                     ))
                 else:
-                    message_callback(Message(
-                        curr_user,
-                        f'!!{command[0]};<HIDDEN>',
-                        time.time(),
-                        curr_chat.id
-                    ).write_to_db())
                     message_callback(Message.send_system_message(
                         f'Чат будет удалён',
                         curr_chat.id
@@ -243,16 +215,9 @@ class BaseFunctions:
                     return {'flash': ('Чат успешно удалён', 'success'), 'redirect': '/'}
 
             elif command[0] == 'clear-chat':
-                password = command[1]
-                message_callback(Message(
-                    curr_user,
-                    f'!!{command[0]};<HIDDEN>',
-                    time.time(),
-                    curr_chat.id
-                ).write_to_db())
-                if password != curr_chat.password_for_commands:
+                if not curr_user.is_admin(curr_chat.id):
                     message_callback(Message.send_system_message(
-                        f'',
+                        'Нужны права администратора',
                         curr_chat.id
                     ))
                 else:
@@ -262,67 +227,9 @@ class BaseFunctions:
                         curr_chat.id
                     ))
 
-            elif command[0] == 'change-chat-password':
-                password = command[1]
-                new_password = command[2]
-                message_callback(Message(
-                    curr_user,
-                    f'!!{command[0]};{password};<HIDDEN>',
-                    time.time(),
-                    curr_chat.id
-                ).write_to_db())
-                if password != curr_chat.password_for_commands:
-                    message_callback(Message.send_system_message(
-                        f'Неверный пароль',
-                        curr_chat.id
-                    ))
-                else:
-                    curr_chat.password_for_commands = new_password
-                    curr_chat.write_to_db()
-                    message_callback(Message.send_system_message(
-                        f'Пароль чата изменён',
-                        curr_chat.id
-                    ))
-                    return {'flash': (f'Пароль чата изменён на "{new_password}"', 'success')}
-
-            elif command[0] == 'reset-chat-password':
-                password = command[1]
-                new_password = command[2]
-                sys_user = User.find_by_login('SYSTEM')
-                message_callback(Message(
-                    curr_user,
-                    f'!!{command[0]};password;<HIDDEN>',
-                    time.time(),
-                    curr_chat.id
-                ).write_to_db())
-                if sys_user is None:
-                    message_callback(Message.send_system_message(
-                        'Системный пользователь не создан',
-                        curr_chat.id
-                    ))
-                else:
-                    if password != sys_user.password:
-                        message_callback(Message.send_system_message(
-                            f'Пароль неверен',
-                            curr_chat.id
-                        ))
-                    else:
-                        curr_chat.password_for_commands = new_password
-                        curr_chat.write_to_db()
-                        message_callback(Message.send_system_message(
-                            f'Пароль чата сброшен',
-                            curr_chat.id
-                        ))
-                        return {'flash': (f'Пароль чата изменён на "{new_password}"', 'success')}
-
             elif command[0] == 'call-sys-user':
                 sys_user = User.find_by_login('SYSTEM')
-                message_callback(Message(
-                    curr_user,
-                    text,
-                    time.time(),
-                    curr_chat.id
-                ).write_to_db())
+
                 if sys_user is None:
                     message_callback(Message.send_system_message(
                         'Системный пользователь не создан',
@@ -336,13 +243,7 @@ class BaseFunctions:
                         curr_chat.id
                     ))
 
-            elif command[0] == 'chat-members':
-                message_callback(Message(
-                    curr_user,
-                    text,
-                    time.time(),
-                    curr_chat.id
-                ).write_to_db())
+            elif command[0] == 'chat-members' or command[0] == 'members':
 
                 message_callback(Message.send_system_message(
                     f'В чат входят пользователи: {"; ".join(curr_chat.members)}',
@@ -353,16 +254,9 @@ class BaseFunctions:
                 return {'NEED': 'sql-request', 'command': command}
 
             elif command[0] == 'make-invite-code':
-                password = command[1]
-                message_callback(Message(
-                    curr_user,
-                    f'!!{command[0]};<HIDDEN>',
-                    time.time(),
-                    curr_chat.id
-                ).write_to_db())
-                if password != curr_chat.password_for_commands:
+                if not curr_user.is_admin(curr_chat.id):
                     message_callback(Message.send_system_message(
-                        'Неверный пароль',
+                        'Нужны права администратора',
                         curr_chat.id
                     ))
                 else:
@@ -375,16 +269,9 @@ class BaseFunctions:
                     ))
 
             elif command[0] == 'reset-invite-code':
-                password = command[1]
-                message_callback(Message(
-                    curr_user,
-                    f'!!{command[0]};<HIDDEN>',
-                    time.time(),
-                    curr_chat.id
-                ).write_to_db())
-                if password != curr_chat.password_for_commands:
+                if not curr_user.is_admin(curr_chat.id):
                     message_callback(Message.send_system_message(
-                        'Неверный пароль',
+                        'Нужны права администратора',
                         curr_chat.id
                     ))
                 else:
@@ -394,6 +281,64 @@ class BaseFunctions:
                         curr_chat.id
                     ))
 
+            elif command[0] == 'make-admin':
+                login_who = command[1]
+                user = User.find_by_login(login_who)
+
+                if not curr_user.is_admin(curr_chat.id):
+                    message_callback(Message.send_system_message(
+                        'Нужны права администратора',
+                        curr_chat.id
+                    ))
+                elif login_who not in curr_chat.members or user is None:
+                    message_callback(Message.send_system_message(
+                        f'Пользователь {login_who} не является членом чата',
+                        curr_chat.id
+                    ))
+                elif user.is_admin(curr_chat.id):
+                    message_callback(Message.send_system_message(
+                        f'Пользователь {login_who} уже администратор',
+                        curr_chat.id
+                    ))
+                else:
+                    message_callback(Message.send_system_message(
+                        f'Пользователь {curr_user.login} назначил администратором пользователя {login_who}',
+                        curr_chat.id
+                    ))
+                    user.become_admin(curr_chat.id)
+
+            elif command[0] == 'remove-admin':
+                login_who = command[1]
+                user = User.find_by_login(login_who)
+
+                if not curr_user.is_admin(curr_chat.id):
+                    message_callback(Message.send_system_message(
+                        'Нужны права администратора',
+                        curr_chat.id
+                    ))
+                elif login_who not in curr_chat.members or user is None:
+                    message_callback(Message.send_system_message(
+                        f'Пользователь {login_who} не является членом чата',
+                        curr_chat.id
+                    ))
+                elif not user.is_admin(curr_chat.id):
+                    message_callback(Message.send_system_message(
+                        f'Пользователь {login_who} и так не администратор',
+                        curr_chat.id
+                    ))
+                else:
+                    message_callback(Message.send_system_message(
+                        f'Пользователь {curr_user.login} удалил из администраторов пользователя {login_who}',
+                        curr_chat.id
+                    ))
+                    user.stop_being_admin(curr_chat.id)
+
+            elif command[0] == 'admins' or command[0] == 'chat-admins':
+                message_callback(Message.send_system_message(
+                    f'Администарторы чата: {"; ".join(curr_chat.get_admins())}',
+                    curr_chat.id
+                ))
+
             else:
                 message_callback(Message.send_system_message(
                     'Команда не найдена',
@@ -401,9 +346,6 @@ class BaseFunctions:
                 ))
 
         except IndexError:
-            message_callback(Message(
-                curr_user, text, time.time(), curr_chat.id
-            ).write_to_db())
             message_callback(Message.send_system_message(
                 f'Ошибка в аргументах команды',
                 curr_chat.id

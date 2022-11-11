@@ -30,7 +30,6 @@ class BaseUnit:
             CREATE TABLE IF NOT EXISTS chats (
                 Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                 Name NVARCHAR(100) NOT NULL,
-                Password_for_commands NVARCHAR(100) NOT NULL,
                 Token NVARCHAR(100) NOT NULL UNIQUE
             )
         ''')
@@ -45,13 +44,23 @@ class BaseUnit:
         ''')
 
         cur.execute('''
+            CREATE TABLE IF NOT EXISTS chat_admins (
+                ChatId INTEGER NOT NULL,
+                AdminLogin NVARCHAR (100) NOT NULL,
+                FOREIGN KEY (ChatId) REFERENCES chats (Id) ON DELETE CASCADE,
+                FOREIGN KEY (AdminLogin) REFERENCES users (Login) ON DELETE CASCADE
+            )
+        ''')
+
+        cur.execute('''
             CREATE TABLE IF NOT EXISTS messages (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                 Login_from NVARCHAR(100) NOT NULL,
                 Message NVARCHAR(100000),
-                Time REAL NOT NULL UNIQUE PRIMARY KEY,
+                Time REAL NOT NULL UNIQUE,
                 Chat_id INTEGER NOT NULL,
-                Answer_to REAL NULL,
-                FOREIGN KEY (Answer_to) REFERENCES messages (Time),
+                Answer_to INTEGER NULL,
+                FOREIGN KEY (Answer_to) REFERENCES messages (Id),
                 FOREIGN KEY (Login_from) REFERENCES users (Login) ON DELETE CASCADE ON UPDATE CASCADE,
                 FOREIGN KEY (Chat_id) REFERENCES chats (Id) ON DELETE CASCADE ON UPDATE CASCADE
             )

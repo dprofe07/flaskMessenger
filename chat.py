@@ -2,11 +2,10 @@ from base_unit import BaseUnit, generate_rnd_password
 
 
 class Chat(BaseUnit):
-    def __init__(self, id_, name, members, password_for_commands, token=None):
+    def __init__(self, id_, name, members, token=None):
         self.id = id_
         self.members = members
         self.name = name
-        self.password_for_commands = password_for_commands
         self.token = token or generate_rnd_password(30)
         self.show_name = None
 
@@ -54,11 +53,12 @@ class Chat(BaseUnit):
         cur.execute(f'DELETE FROM chats WHERE Id = {self.id}')
         cur.execute(f'DELETE FROM chat_members WHERE ChatId = {self.id}')
         cur.execute(f'DELETE FROM messages WHERE Chat_id = {self.id}')
+        cur.execute(f'DELETE FROM chat_admins WHERE ChatId = {self.id}')
 
         db_conn.commit()
 
     def __repr__(self):
-        return f'''Chat({self.id}, {self.name!r}, {self.members!r}, {self.password_for_commands!r}, {self.token!r})'''
+        return f'''Chat({self.id}, {self.name!r}, {self.members!r}, {self.token!r})'''
 
     def write_to_db(self):
         db_conn = self.connect_to_db()
@@ -73,18 +73,16 @@ class Chat(BaseUnit):
             cur.execute(f'''
                 UPDATE chats SET
                 Name = '{self.name.replace("'", "''").replace('"', '""')}',
-                Password_for_commands = '{self.password_for_commands.replace("'", "''").replace('"', '""')}',
                 Token = {self.token!r}
                 WHERE Id = {self.id}
             ''')
         else:
             cur.execute(f'''
                 INSERT INTO chats 
-                (Name, Password_for_commands, Token)
+                (Name, Token)
                 VALUES 
                 (
-                    '{self.name.replace("'", "''").replace('"', '""')}', 
-                    '{self.password_for_commands.replace("'", "''").replace('"', '""')}', 
+                    '{self.name.replace("'", "''")}', 
                     {self.token!r}
                 )
             ''')
@@ -115,17 +113,26 @@ class Chat(BaseUnit):
                 SELECT * FROM chats WHERE Id = {id_}
             ''')
 
-            ch_name, ch_pass, ch_token = cur.fetchall()[0][1:]
+            res = cur.fetchall()
+
+            if not res:
+                return None
+
+            ch_name, ch_token = res[0][1:]
 
             cur.execute(f'''
                 SELECT * FROM chat_members WHERE ChatId = {id_}
             ''')
 
             ch_members = [i[1] for i in cur.fetchall()]
+            chat = Chat(id_, ch_name, ch_members, ch_token)
+            if not ch_members:
+                chat.remove_from_db()
+                chat = None
 
-            return Chat(id_, ch_name, ch_members, ch_pass, ch_token)
-        except BaseException as e:
-            print(e.args)
+            return chat
+        except TypeError as e:
+            print('A', e.args)
             return None
 
     @staticmethod
@@ -141,17 +148,21 @@ class Chat(BaseUnit):
                 SELECT * FROM chats WHERE Token = {token!r}
             ''')
 
-            id_, ch_name, ch_pass, ch_token = cur.fetchall()[0]
+            id_, ch_name, ch_token = cur.fetchall()[0]
 
             cur.execute(f'''
                 SELECT * FROM chat_members WHERE ChatId = {id_}
             ''')
 
             ch_members = [i[1] for i in cur.fetchall()]
+            chat = Chat(id_, ch_name, ch_members, ch_token)
+            if not ch_members:
+                chat.remove_from_db()
+                chat = None
 
-            return Chat(id_, ch_name, ch_members, ch_pass, ch_token)
+            return chat
         except BaseException as e:
-            print(e.args)
+            print('B', e.args)
             return None
 
     def clear_messages(self):
@@ -161,3 +172,13 @@ class Chat(BaseUnit):
         cur.execute(f'DELETE FROM messages WHERE Chat_id = {self.id}')
 
         db_conn.commit()
+
+    def get_admins(self):
+        db_conn = self.connect_to_db()
+        cur = db_conn.cursor()
+
+        cur.execute(f'SELECT AdminLogin FROM chat_admins WHERE ChatId = {self.id}')
+
+        res = [i[0] for i in cur.fetchall()]
+
+        return res
