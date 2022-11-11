@@ -23,7 +23,7 @@ class Message(BaseUnit):
                 sender = 'Вы'
             res += f'<span class="source">{sender}</span>'
 
-        answered = Message.find_by_time(self.answer_to)
+        answered = Message.find_by_id(self.answer_to)
         if answered is not None:
             res += f'<div class="answered">{answered.get_html(for_)}</div>'
 
@@ -40,22 +40,25 @@ class Message(BaseUnit):
         return res
 
     @staticmethod
-    def find_by_time(time_: float):
+    def find_by_id(id_):
         db_conn = Message.connect_to_db()
         cur = db_conn.cursor()
-        cur.execute(f"SELECT * FROM messages WHERE Time = {time_!r}")
+        cur.execute(f"SELECT * FROM messages WHERE Id = {id_}")
         res = None
         for i in cur.fetchall():
-            res = Message(User.find_by_login(i[0]), *i[1:])
+            res = Message(i[0], User.find_by_login(i[1]), *i[2:])
         return res
 
     def __repr__(self):
-        return f'Message({self.from_}, {self.text!r}, {self.time}, {self.chat_id})'
+        return f'Message({self.id}, {self.from_}, {self.text!r}, {self.time}, {self.chat_id})'
 
     def __eq__(self, other):
         return self.time == other.time
 
-    def __init__(self, from_, text, time_, chat_id, answer_to=0):
+    def __init__(self, id_, from_, text, time_, chat_id, answer_to=0):
+        if isinstance(from_, str):
+            from_ = User(from_, '', '')
+        self.id = id_
         self.from_ = from_
         self.text = text
         self.time = time_
@@ -68,6 +71,7 @@ class Message(BaseUnit):
         if system_user is None:
             return False
         msg = Message(
+            -1,
             system_user,
             text,
             time.time(),
@@ -75,10 +79,6 @@ class Message(BaseUnit):
             0
         )
         msg.write_to_db()
-        data = {
-            'html_sender': msg.get_html(msg.from_),
-            'html_any': msg.get_html(None)
-        }
         return msg
 
     def write_to_db(self):
@@ -86,7 +86,7 @@ class Message(BaseUnit):
         cur = db_conn.cursor()
 
         cur.execute(f'''
-                SELECT * FROM messages WHERE Time = {self.time!r}
+                SELECT * FROM messages WHERE Id = {self.id}
         ''')
 
         if cur.fetchall():
@@ -96,11 +96,11 @@ class Message(BaseUnit):
                 Message = '{self.text.replace("'", "''").replace('"', '""')}',
                 Chat_id = {self.chat_id},
                 Answer_to = {self.answer_to!r},
-                WHERE Time = {self.time!r}
+                WHERE Id = {self.id}
             ''')
         else:
             cur.execute(
-                f"""INSERT INTO messages VALUES (
+                f"""INSERT INTO messages (Login_from, Message, Time, Chat_id, Answer_to) VALUES (
                     '{self.from_.login.replace("'", "''").replace('"', '""')}',
                     '{self.text.replace("'", "''").replace('"', '""')}',
                     {self.time!r},
@@ -108,6 +108,10 @@ class Message(BaseUnit):
                     {self.answer_to!r}
                 )"""
             )
+
+            cur.execute('SELECT MAX(Id) FROM messages')
+            self.id = cur.fetchall()[0][0]
+
         db_conn.commit()
         return self
 
@@ -121,6 +125,9 @@ class Message(BaseUnit):
         res = []
 
         for i in cur.fetchall():
-            res.append(Message(User.find_by_login(i[0]), i[1], i[2], i[3], i[4]))
+            user = User.find_by_login(i[1])
+            if user is None:
+                user = i[1]
+            res.append(Message(i[0], user, *i[2:]))
 
         return res

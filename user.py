@@ -42,7 +42,7 @@ class User(BaseUnit):
         for chat in res:
             cur.execute(f"SELECT * FROM messages WHERE Chat_id = {chat[1]}")
             for message in cur.fetchall():
-                chat[0] = max(chat[0], message[2])
+                chat[0] = max(chat[0], message[3])
 
         res.sort(key=lambda i: i[0])
         res.reverse()
@@ -153,3 +153,32 @@ class User(BaseUnit):
     @staticmethod
     def generate_new_token():
         return generate_rnd_password(30)
+
+    def become_admin(self, chat_id):
+        if self.is_admin(chat_id):
+            return
+        db_conn = self.connect_to_db()
+        cur = db_conn.cursor()
+
+        cur.execute(f'''INSERT INTO chat_admins VALUES ({chat_id}, '{self.login.replace("'", "''")}')''')
+
+        db_conn.commit()
+
+    def stop_being_admin(self, chat_id):
+        if not self.is_admin(chat_id):
+            return
+
+        db_conn = self.connect_to_db()
+        cur = db_conn.cursor()
+
+        cur.execute(f'''DELETE FROM chat_admins WHERE AdminLogin = '{self.login.replace("'", "''")}' ''')
+
+        db_conn.commit()
+
+    def is_admin(self, chat_id):
+        db_conn = self.connect_to_db()
+        cur = db_conn.cursor()
+
+        cur.execute(f'''SELECT AdminLogin FROM chat_admins WHERE ChatId={chat_id} AND AdminLogin = '{self.login.replace("'", "''")}' ''')
+
+        return bool(cur.fetchall()) or (self.login == 'SYSTEM')

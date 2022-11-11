@@ -104,7 +104,7 @@ main span {
 }
 
 main p {
-    text-indent: 50px;
+    /*text-indent: 50px;*/
     justify-content: center;
     margin-bottom:30px;
 }
