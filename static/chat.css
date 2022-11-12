@@ -72,11 +72,22 @@
     font-size:17px;
     margin-bottom:8px;
     font-weight: bold;
+    display: inline;
+}
+
+.message img {
+    max-width:100%;
 }
 
 .message .text {
     margin:0;
     text-indent: 0;
+}
+
+.message-header {
+    display: block;
+    margin-top: 10px;
+    margin-bottom: 5px;
 }
 
 .message .date {
