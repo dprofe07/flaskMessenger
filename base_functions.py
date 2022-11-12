@@ -77,7 +77,7 @@ class BaseFunctions:
 
     @staticmethod
     def execute_message_command(text, curr_chat, curr_user, message_callback=lambda i: None):
-        if not text.startswith('!!send-system-message') and not text.startswith('!!do-sql-request'):
+        if not text.startswith('!!send-system-message') and not text.startswith('!!do-sql-request') and not text.startswith('!!answer-to'):
             message_callback(
                 Message(
                     -1,
@@ -338,6 +338,65 @@ class BaseFunctions:
                     f'Администарторы чата: {"; ".join(curr_chat.get_admins())}',
                     curr_chat.id
                 ))
+            elif command[0] == 'answer-to':
+                try:
+                    msg_id = int(command[1])
+                except ValueError:
+                    message_callback(
+                        Message(
+                            -1,
+                            curr_user,
+                            text,
+                            time.time(),
+                            curr_chat.id
+                        ).write_to_db()
+                    )
+                    message_callback(Message.send_system_message(
+                        'Некорректный ID сообщения',
+                        curr_chat.id
+                    ))
+                else:
+                    text = ';'.join(command[2:])
+                    answered_msg = Message.find_by_id(msg_id)
+                    if answered_msg is None:
+                        message_callback(
+                            Message(
+                                -1,
+                                curr_user,
+                                text,
+                                time.time(),
+                                curr_chat.id
+                            ).write_to_db()
+                        )
+                        message_callback(Message.send_system_message(
+                            'Неверный ID сообщения',
+                            curr_chat.id
+                        ))
+                    elif answered_msg.chat_id != curr_chat.id:
+                        message_callback(
+                            Message(
+                                -1,
+                                curr_user,
+                                text,
+                                time.time(),
+                                curr_chat.id
+                            ).write_to_db()
+                        )
+                        message_callback(Message.send_system_message(
+                            'Сообщение не из этого чата',
+                            curr_chat.id
+                        ))
+                    else:
+                        message_callback(
+                            Message(
+                                -1,
+                                curr_user,
+                                text,
+                                time.time(),
+                                curr_chat.id,
+                                msg_id
+                            ).write_to_db()
+                        )
 
             else:
                 message_callback(Message.send_system_message(

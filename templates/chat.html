@@ -216,5 +216,15 @@
                     sendSubscriptionToBackEnd(pushSubscription);
                 });
         }
+
+        function on_message_click(id) {
+            let inp = document.getElementsByClassName('message-input')[0];
+            if (inp.value.startsWith("!!answer-to;")) {
+                let val = inp.value.split(';');
+                inp.value = '!!answer-to;' + id + ';' + val.slice(2).join(';');
+            } else {
+                inp.value = '!!answer-to;' + id + ';' + inp.value;
+            }
+        }
     </script>
 {% endblock %}
