@@ -3,29 +3,29 @@
 {% set title = form.title %}
 
 {% block style %}
-<link href="{{ url_for('static', filename='form.css') }}" rel="stylesheet" type="text/css">
+    <link href="{{ url_for('static', filename='form.css') }}" rel="stylesheet" type="text/css">
 {% endblock %}
 
 {% block content %}
 
-<form action="#" method="post">
-    {% for option in form.options %}
-    <div class="input-block">
-        <label for="{{ option.idx }}">{{ option.name + (' *' if option.required else '') }}</label>
-        <input type="{{ option.input_type }}" id="{{ option.idx }}" name="{{ option.idx }}"
-            placeholder="{{ option.placeholder}}" {{'' if not option.required else 'required' }}
-            value="{{ option.value }}">
-        {% if option.under %}
-        <span class="under">{{option.under}}</span>
+    <form action="#" method="post">
+        {% for option in form.options %}
+            <div class="input-block">
+                <label for="{{ option.idx }}">{{ option.name + (' *' if option.required else '') }}</label>
+                <input type="{{ option.input_type }}" id="{{ option.idx }}" name="{{ option.idx }}"
+                       placeholder="{{ option.placeholder }}" {{ '' if not option.required else 'required' }}
+                       value="{{ option.value }}">
+                {% if option.under %}
+                    <span class="under">{{ option.under }}</span>
+                {% endif %}
+            </div>
+        {% endfor %}
+        <span class="message error" style="display:none"></span>
+        <input type="submit" value="{{ form.submit }}">
+        {% if form.hint %}
+            <a class="hint" href="{{ form.hint.href }}">{{ form.hint.text }}</a>
         {% endif %}
-    </div>
-    {% endfor %}
-    <span class="message error" style="display:none"></span>
-    <input type="submit" value="{{ form.submit }}">
-    {% if form.hint %}
-        <a class="hint" href="{{ form.hint.href }}">{{ form.hint.text }}</a>
-    {% endif %}
-</form>
+    </form>
 
 
 {% endblock %}

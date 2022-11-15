@@ -23,14 +23,6 @@ class BaseFunctions:
         return curr_chat
 
     @staticmethod
-    def remove_account(user):
-        user.remove_from_db()
-
-    @staticmethod
-    def remove_chat(chat):
-        chat.remove_from_db()
-
-    @staticmethod
     def change_password(user, new_password, send_message=True):
         user.password = new_password
         user.write_to_db()
@@ -91,82 +83,7 @@ class BaseFunctions:
         try:
             command = text[2:].split(';')
 
-            if command[0] == 'add-user':
-                login = command[1]
-                usr = User.find_by_login(login)
-
-                if not curr_user.is_admin(curr_chat.id):
-                    message_callback(Message.send_system_message(
-                        'Нужны права администратора',
-                        curr_chat.id
-                    ))
-                elif usr is None:
-                    message_callback(
-                        Message.send_system_message(
-                            f'Пользователь не найден',
-                            curr_chat.id
-                        )
-                    )
-                elif usr.login in curr_chat.members:
-                    message_callback(
-                        Message.send_system_message(
-                            f'Пользователь уже добавлен',
-                            curr_chat.id
-                        )
-                    )
-                else:
-                    curr_chat.members.append(usr.login)
-                    curr_chat.write_to_db()
-                    message_callback(
-                        Message.send_system_message(
-                            f'Пользователь {curr_user.login} добавил пользователя {login}',
-                            curr_chat.id
-                        )
-                    )
-
-            elif command[0] == 'remove-user':
-                login = command[1]
-                usr = User.find_by_login(login)
-
-                if not curr_user.is_admin(curr_chat.id):
-                    message_callback(Message.send_system_message(
-                        'Нужны права администратора',
-                        curr_chat.id
-                    ))
-                elif usr is None:
-                    message_callback(
-                        Message.send_system_message(
-                            f'Пользователь {login} не найден',
-                            curr_chat.id
-                        )
-                    )
-                elif usr.login not in curr_chat.members:
-                    message_callback(
-                        Message.send_system_message(
-                            f'Пользователь не состоит в чате',
-                            curr_chat.id
-                        )
-                    )
-                else:
-                    curr_chat.members.remove(login)
-                    curr_chat.write_to_db()
-                    message_callback(
-                        Message.send_system_message(
-                            f'Пользователь {usr.login} удалён из чата',
-                            curr_chat.id
-                        )
-                    )
-
-            elif command[0] == 'leave':
-                Message.send_system_message(
-                    f'Пользователь {curr_user.login} покинул чат',
-                    curr_chat.id
-                )
-                curr_chat.members.remove(curr_user.login)
-                curr_chat.write_to_db()
-                return {'flash': ('Вы покинули чат', 'success'), 'redirect': '/'}
-
-            elif command[0] == 'send-system-message':
+            if command[0] == 'send-system-message':
                 password = command[1]
                 sys_user = User.find_by_login('SYSTEM')
                 if sys_user is None:
@@ -200,33 +117,6 @@ class BaseFunctions:
                             curr_chat.id
                         ))
 
-            elif command[0] == 'remove-chat':
-                if not curr_user.is_admin(curr_chat.id):
-                    message_callback(Message.send_system_message(
-                        'Нужны права администратора',
-                        curr_chat.id
-                    ))
-                else:
-                    message_callback(Message.send_system_message(
-                        f'Чат будет удалён',
-                        curr_chat.id
-                    ))
-                    curr_chat.remove_from_db()
-                    return {'flash': ('Чат успешно удалён', 'success'), 'redirect': '/'}
-
-            elif command[0] == 'clear-chat':
-                if not curr_user.is_admin(curr_chat.id):
-                    message_callback(Message.send_system_message(
-                        'Нужны права администратора',
-                        curr_chat.id
-                    ))
-                else:
-                    curr_chat.clear_messages()
-                    message_callback(Message.send_system_message(
-                        f'Чат очищен пользователем {curr_user.login}',
-                        curr_chat.id
-                    ))
-
             elif command[0] == 'call-sys-user':
                 sys_user = User.find_by_login('SYSTEM')
 
@@ -244,7 +134,6 @@ class BaseFunctions:
                     ))
 
             elif command[0] == 'chat-members' or command[0] == 'members':
-
                 message_callback(Message.send_system_message(
                     f'В чат входят пользователи: {"; ".join(curr_chat.members)}',
                     curr_chat.id
@@ -252,86 +141,6 @@ class BaseFunctions:
 
             elif command[0] == 'do-sql-request':
                 return {'NEED': 'sql-request', 'command': command}
-
-            elif command[0] == 'make-invite-code':
-                if not curr_user.is_admin(curr_chat.id):
-                    message_callback(Message.send_system_message(
-                        'Нужны права администратора',
-                        curr_chat.id
-                    ))
-                else:
-                    import urllib.parse
-                    code = curr_chat.token
-                    message_callback(Message.send_system_message(
-                        f'Сгенерирован код-приглашение: <b><a href="/join-chat?code={urllib.parse.quote_plus(code)}">{code}</a></b><br/><br/>'
-                        f'Чтобы сделать код недействительным используйте команду !!reset-invite-code',
-                        curr_chat.id
-                    ))
-
-            elif command[0] == 'reset-invite-code':
-                if not curr_user.is_admin(curr_chat.id):
-                    message_callback(Message.send_system_message(
-                        'Нужны права администратора',
-                        curr_chat.id
-                    ))
-                else:
-                    curr_chat.change_token()
-                    message_callback(Message.send_system_message(
-                        'Предыдущие коды приглашения больше недействительны',
-                        curr_chat.id
-                    ))
-
-            elif command[0] == 'make-admin':
-                login_who = command[1]
-                user = User.find_by_login(login_who)
-
-                if not curr_user.is_admin(curr_chat.id):
-                    message_callback(Message.send_system_message(
-                        'Нужны права администратора',
-                        curr_chat.id
-                    ))
-                elif login_who not in curr_chat.members or user is None:
-                    message_callback(Message.send_system_message(
-                        f'Пользователь {login_who} не является членом чата',
-                        curr_chat.id
-                    ))
-                elif user.is_admin(curr_chat.id):
-                    message_callback(Message.send_system_message(
-                        f'Пользователь {login_who} уже администратор',
-                        curr_chat.id
-                    ))
-                else:
-                    message_callback(Message.send_system_message(
-                        f'Пользователь {curr_user.login} назначил администратором пользователя {login_who}',
-                        curr_chat.id
-                    ))
-                    user.become_admin(curr_chat.id)
-
-            elif command[0] == 'remove-admin':
-                login_who = command[1]
-                user = User.find_by_login(login_who)
-
-                if not curr_user.is_admin(curr_chat.id):
-                    message_callback(Message.send_system_message(
-                        'Нужны права администратора',
-                        curr_chat.id
-                    ))
-                elif login_who not in curr_chat.members or user is None:
-                    message_callback(Message.send_system_message(
-                        f'Пользователь {login_who} не является членом чата',
-                        curr_chat.id
-                    ))
-                elif not user.is_admin(curr_chat.id):
-                    message_callback(Message.send_system_message(
-                        f'Пользователь {login_who} и так не администратор',
-                        curr_chat.id
-                    ))
-                else:
-                    message_callback(Message.send_system_message(
-                        f'Пользователь {curr_user.login} удалил из администраторов пользователя {login_who}',
-                        curr_chat.id
-                    ))
-                    user.stop_being_admin(curr_chat.id)
 
             elif command[0] == 'admins' or command[0] == 'chat-admins':
                 message_callback(Message.send_system_message(
@@ -437,3 +246,33 @@ class BaseFunctions:
         for i in range(len(values_to_check)):
             if values_to_check[i] is None:
                 return values_to_return[i]
+
+    @staticmethod
+    def make_invite_code(curr_user, curr_chat, message_callback=lambda msg: None):
+        if not curr_user.is_admin(curr_chat.id):
+            message_callback(Message.send_system_message(
+                'Нужны права администратора',
+                curr_chat.id
+            ))
+        else:
+            import urllib.parse
+            code = curr_chat.token
+            message_callback(Message.send_system_message(
+                f'Сгенерирован код-приглашение: <b><a href="/join-chat?code={urllib.parse.quote_plus(code)}">{code}</a></b><br/><br/>'
+                f'Чтобы сделать код недействительным используйте команду !!reset-invite-code',
+                curr_chat.id
+            ))
+
+    @staticmethod
+    def clear_chat(curr_user, curr_chat, message_callback=lambda msg: None):
+        if not curr_user.is_admin(curr_chat.id):
+            message_callback(Message.send_system_message(
+                'Нужны права администратора',
+                curr_chat.id
+            ))
+        else:
+            curr_chat.clear_messages()
+            message_callback(Message.send_system_message(
+                f'Чат очищен пользователем {curr_user.login}',
+                curr_chat.id
+            ))

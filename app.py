@@ -5,7 +5,7 @@ import json
 import time
 
 import prettytable
-from flask import Flask, render_template, request, redirect, flash, send_file
+from flask import Flask, render_template, request, redirect, flash, send_file, url_for
 from flask_socketio import SocketIO, join_room
 
 from base_functions import BaseFunctions
@@ -23,7 +23,6 @@ except FileNotFoundError:
     with open('/SERVER/databases/flaskMessenger/demo_mode.option', 'w') as f:
         f.write('off')
 
-
 app = Flask(__name__)
 io = SocketIO(app, cors_allowed_origins='*')
 
@@ -36,19 +35,18 @@ app.config['SECRET_KEY'] = 'fdgdfgdfggf786hfg6hfg6h7f'
 
 
 @io.on('join')
-def join(data):
+def handle_join(data):
     join_room(data['room'])
 
 
-def socket_send_message(message, room):
+def socket_send_message(message):
     new_data = {
         'html_sender': message.get_html(message.from_),
         'html_any': message.get_html(None),
         'text': message.text,
         'source': message.from_.login,
     }
-
-    io.send(new_data, to=room)
+    io.send(new_data, to=str(message.chat_id))
 
 
 @io.on('message')
@@ -70,7 +68,7 @@ def handle_message(data):
             text,
             curr_chat,
             user,
-            lambda message: socket_send_message(message, data['room'])
+            lambda message: socket_send_message(message)
         )
 
         if 'NEED' in res:
@@ -83,7 +81,7 @@ def handle_message(data):
                 time.time(),
                 curr_chat.id
             ).write_to_db()
-            socket_send_message(msg, data['room'])
+            socket_send_message(msg)
 
             sys_user = User.find_by_login('SYSTEM')
             if sys_user is None:
@@ -91,7 +89,7 @@ def handle_message(data):
                     'Системный пользователь не создан',
                     curr_chat.id
                 )
-                socket_send_message(msg, data['room'])
+                socket_send_message(msg)
             else:
                 if password != sys_user.password:
                     msg = Message.send_system_message(
@@ -99,7 +97,7 @@ def handle_message(data):
                         curr_chat.id
                     )
 
-                    socket_send_message(msg, data['room'])
+                    socket_send_message(msg)
                 else:
                     req = command[2]
                     try:
@@ -113,25 +111,25 @@ def handle_message(data):
                             curr_chat.id
                         )
 
-                        socket_send_message(msg, data['room'])
+                        socket_send_message(msg)
 
                     except BaseException as e:
                         msg = Message.send_system_message(
                             f'Произошла ошибка {e.__class__.__name__}: {e.args}',
                             curr_chat.id
                         )
-                        socket_send_message(msg, data['room'])
+                        socket_send_message(msg)
     else:
         if text.startswith('`!!'):
             text = text[1:]
         new_message = Message(-1, user, text, time.time(), curr_chat.id)
         new_message.write_to_db()
 
-        socket_send_message(new_message, data['room'])
+        socket_send_message(new_message)
 
 
 @app.route('/')
-def index():
+def page_index():
     user = User.get_from_cookies(request)
     if user is None:
         return render_template(
@@ -151,7 +149,7 @@ def index():
 
 
 @app.route('/settings')
-def settings():
+def page_settings():
     return render_template(
         'settings.html',
         user=User.get_from_cookies(request),
@@ -160,14 +158,14 @@ def settings():
 
 
 @app.route('/logout')
-def logout():
+def page_logout():
     resp = redirect('/')
     User.remove_from_cookies(resp)
     return resp
 
 
 @app.route('/remove_account')
-def remove_account():
+def page_remove_account():
     return render_template(
         'remove_account.html',
         user=User.get_from_cookies(request),
@@ -176,17 +174,17 @@ def remove_account():
 
 
 @app.route('/remove_account_confirmed')
-def remove_account_confirmed():
+def page_remove_account_confirmed():
     user = User.get_from_cookies(request)
     resp = redirect('/')
     if user is not None:
         user.remove_from_cookies(resp)
-        BaseFunctions.remove_account(user)
+        user.remove_from_db()
     return resp
 
 
 @app.route('/change_password', methods=['GET', 'POST'])
-def change_password():
+def page_change_password():
     if request.method == 'GET':
         return render_template(
             "form.html",
@@ -223,7 +221,7 @@ def change_password():
 
 
 @app.route('/password_recovery', methods=['GET', 'POST'])
-def password_recovery():
+def page_password_recovery():
     if request.method == 'GET':
         return render_template(
             'form.html',
@@ -268,7 +266,7 @@ def password_recovery():
 
 # noinspection PyUnusedLocal
 @app.errorhandler(404)
-def err404(e):
+def page_err404(e):
     return render_template(
         'error.html',
         msg='Страница не найдена',
@@ -279,7 +277,7 @@ def err404(e):
 
 # noinspection PyUnusedLocal
 @app.errorhandler(500)
-def err500(e):
+def page_err500(e):
     return render_template(
         'error.html',
         msg='Ошибка 500. Сообщите, пожалуйста, действия, которые привели к этой ошибке,'
@@ -290,7 +288,7 @@ def err500(e):
 
 
 @app.route('/auth', methods=['POST', 'GET'])
-def auth():
+def page_auth():
     if User.get_from_cookies(request) is not None:
         return redirect('/')
 
@@ -332,7 +330,7 @@ def auth():
 
 
 @app.route('/signup', methods=['POST', 'GET'])
-def signup():
+def page_signup():
     if User.get_from_cookies(request) is not None:
         return redirect('/')
     if request.method == 'GET':
@@ -383,9 +381,8 @@ def signup():
             return resp
 
 
-# noinspection DuplicatedCode
 @app.route('/chat/<id_>')
-def chat(id_):
+def page_chat(id_):
     curr_user = User.get_from_cookies(request)
     if curr_user is None:
         flash('Войдите в аккаунт, чтобы общаться', 'error')
@@ -420,7 +417,7 @@ def chat(id_):
 
 
 @app.route('/change-token')
-def change_token():
+def page_change_token():
     curr_user = User.get_from_cookies(request)
     if curr_user is None:
         return redirect('/')
@@ -432,82 +429,8 @@ def change_token():
     return resp
 
 
-# noinspection DuplicatedCode
-@app.route('/send-message-to-chat/<chat_id>', methods=['POST'])
-def send_message_to(chat_id):
-    curr_user = User.get_from_cookies(request)
-    if curr_user is None:
-        flash('Войдите в аккаунт, чтобы общаться', 'error')
-        return redirect('/')
-    curr_chat = Chat.from_id(chat_id)
-    if curr_chat is None:
-        flash('Чат не найден в базе данных', 'error')
-        return redirect('/')
-    if curr_user.login not in curr_chat.members:
-        if curr_user.login != 'SYSTEM':
-            flash('Чтобы отправлять сообщения, вступите в чат', 'error')
-            return redirect('/')
-    text = request.form['message']
-
-    if text.startswith('!!'):
-        res = BaseFunctions.execute_message_command(text, curr_chat, curr_user)
-
-        if 'NEED' in res:
-            command = res['command']
-            password = command[1]
-            Message(
-                -1,
-                curr_user,
-                text,
-                time.time(),
-                curr_chat.id
-            ).write_to_db()
-            sys_user = User.find_by_login('SYSTEM')
-            if sys_user is None:
-                Message.send_system_message(
-                    'Системный пользователь не создан',
-                    curr_chat.id
-                )
-            else:
-                if password != sys_user.password:
-                    Message.send_system_message(
-                        'Неверный пароль',
-                        curr_chat.id
-                    )
-                else:
-                    req = command[2]
-                    try:
-                        db_conn = BaseUnit.connect_to_db()
-                        cur = db_conn.cursor()
-                        cur.execute(req)
-
-                        tbl = prettytable.from_db_cursor(cur)
-                        Message.send_system_message(
-                            '<code>' + str(tbl).replace('\n', '<br/>').replace(' ', '&nbsp;') + '</code>',
-                            curr_chat.id
-                        )
-
-                    except BaseException as e:
-                        Message.send_system_message(
-                            f'Произошла ошибка: {e.args}',
-                            curr_chat.id
-                        )
-
-        if res.get('flash') is not None:
-            flash(*res['flash'])
-
-        if res.get('redirect') is not None:
-            return redirect(res['redirect'])
-    else:
-        if text.startswith('`!!'):
-            text = text[1:]
-        new_message = Message(-1, curr_user, text, time.time(), curr_chat.id)
-        new_message.write_to_db()
-    return redirect(f'/chat/{chat_id}')
-
-
 @app.route('/new-chat', methods=['POST'])
-def new_chat():
+def page_new_chat():
     curr_user = User.get_from_cookies(request)
 
     if curr_user is None:
@@ -528,7 +451,7 @@ def new_chat():
 
 
 @app.route('/new-dialog', methods=['POST'])
-def new_dialog():
+def page_new_dialog():
     curr_user = User.get_from_cookies(request)
 
     if curr_user is None:
@@ -558,8 +481,10 @@ def new_dialog():
 
 
 @app.route('/join-chat')
-def invite_to_chat():
+def page_join_chat():
     code = request.args.get('code')
+    if code.startswith('http'):
+        return redirect(code)
 
     curr_user = User.get_from_cookies(request)
 
@@ -586,12 +511,12 @@ def invite_to_chat():
 
 
 @app.route('/download-app')
-def download_app():
+def page_download_app():
     return send_file('static/messenger_app.apk', as_attachment=True)
 
 
 @app.route('/about-app')
-def about_app():
+def page_about_app():
     return render_template(
         'about-app.html',
         user=User.get_from_cookies(request),
@@ -599,8 +524,261 @@ def about_app():
     )
 
 
-@app.route('/get-messages-div/<chat_id>')
-def get_messages_div(chat_id):
+@app.route('/make-chat-invite-code/<chat_id>')
+def chat_command_make_invite_code(chat_id):
+    user = User.get_from_cookies(request)
+    curr_chat = Chat.from_id(chat_id)
+
+    if user is None or curr_chat is None:
+        return redirect(f'/chat/{chat_id}')
+
+    if not user.is_admin(curr_chat.id):
+        flash('Нужны права администратора', 'error')
+        return redirect(f'/chat/{chat_id}')
+
+    import urllib.parse
+    code = curr_chat.token
+    socket_send_message(
+        Message.send_system_message(
+            f'Сгенерирован код-приглашение: <b><a href="/join-chat?code={urllib.parse.quote_plus(code)}">{code}</a></b><br/><br/>',
+            curr_chat.id
+        )
+    )
+
+    return redirect(f'/chat/{chat_id}')
+
+
+@app.route('/reset-chat-invite-code/<chat_id>')
+def chat_command_reset_invite_code(chat_id):
+    user = User.get_from_cookies(request)
+    curr_chat = Chat.from_id(chat_id)
+
+    if user is None or curr_chat is None:
+        return redirect(f'/chat/{chat_id}')
+
+    if not user.is_admin(curr_chat.id):
+        flash('Нужны права администратора', 'error')
+        return redirect(f'/chat/{chat_id}')
+
+    curr_chat.change_token()
+    socket_send_message(
+        Message.send_system_message(
+            'Предыдущие коды приглашения больше недействительны',
+            curr_chat.id
+        )
+    )
+
+    return redirect(f'/chat/{chat_id}')
+
+
+@app.route('/add-user-to-chat/<chat_id>')
+def chat_command_add_user(chat_id):
+    user = User.get_from_cookies(request)
+    curr_chat = Chat.from_id(chat_id)
+
+    login = request.args.get('login')
+    adding_user = User.find_by_login(login)
+
+    if adding_user is None:
+        flash(f'Пользователь с логином {login} не найден', 'error')
+
+    if user is None or curr_chat is None or adding_user is None:
+        return redirect(f'/chat/{chat_id}')
+
+    if not user.is_admin(curr_chat.id):
+        flash('Нужны права администратора', 'error')
+        return redirect(f'/chat/{chat_id}')
+
+    if adding_user.login in curr_chat.members:
+        flash('Пользователь уже добавлен', 'warning')
+
+    else:
+        curr_chat.members.append(adding_user.login)
+        curr_chat.write_to_db()
+        socket_send_message(
+            Message.send_system_message(
+                f'Пользователь {user.login} добавил пользователя {login}',
+                curr_chat.id
+            )
+        )
+
+    return redirect(f'/chat/{chat_id}')
+
+
+@app.route('/make-user-admin/<chat_id>')
+def chat_command_make_admin(chat_id):
+    user = User.get_from_cookies(request)
+    curr_chat = Chat.from_id(chat_id)
+
+    login = request.args.get('login')
+    new_admin = User.find_by_login(login)
+
+    if new_admin is None:
+        flash(f'Пользователь с логином {login} не найден', 'error')
+
+    if user is None or curr_chat is None or new_admin is None:
+        return redirect(f'/chat/{chat_id}')
+
+    if not user.is_admin(curr_chat.id):
+        flash('Нужны права администратора', 'error')
+        return redirect(f'/chat/{chat_id}')
+
+    if new_admin.login in curr_chat.get_admins():
+        flash('Пользователь уже администратор', 'warning')
+
+    else:
+        new_admin.become_admin(curr_chat.id)
+
+        socket_send_message(
+            Message.send_system_message(
+                f'Пользователь {user.login} назначил пользователя {login} администратором',
+                curr_chat.id
+            )
+        )
+
+    return redirect(f'/chat/{chat_id}')
+
+
+@app.route('/remove-user-from-chat/<chat_id>')
+def chat_command_remove_user(chat_id):
+    user = User.get_from_cookies(request)
+    curr_chat = Chat.from_id(chat_id)
+
+    login = request.args.get('login')
+    deleting_user = User.find_by_login(login)
+
+    if deleting_user is None:
+        flash(f'Пользователь с логином {login} не найден', 'error')
+
+    if user is None or curr_chat is None or deleting_user is None:
+        return redirect(f'/chat/{chat_id}')
+
+    if not user.is_admin(curr_chat.id):
+        flash('Нужны права администратора', 'error')
+        return redirect(f'/chat/{chat_id}')
+
+    if deleting_user.login not in curr_chat.members:
+        flash('Пользователь не состоит в чате', 'warning')
+        return redirect(f'/chat/{chat_id}')
+
+    curr_chat.members.remove(login)
+    curr_chat.write_to_db()
+
+    socket_send_message(
+        Message.send_system_message(
+            f'Пользователь {user.login} удалил из чата пользователя {login}',
+            curr_chat.id
+        )
+    )
+
+    return redirect(f'/chat/{chat_id}')
+
+
+@app.route('/remove-admin/<chat_id>')
+def chat_command_remove_admin(chat_id):
+    user = User.get_from_cookies(request)
+    curr_chat = Chat.from_id(chat_id)
+
+    login = request.args.get('login')
+    old_admin = User.find_by_login(login)
+
+    if old_admin is None:
+        flash(f'Пользователь с логином {login} не найден', 'error')
+
+    if user is None or curr_chat is None or old_admin is None:
+        return redirect(f'/chat/{chat_id}')
+
+    elif not user.is_admin(curr_chat.id):
+        flash('Нужны права администратора', 'error')
+        return redirect(f'/chat/{chat_id}')
+
+    elif old_admin.login not in curr_chat.get_admins():
+        flash('Пользователь не администратор, или не состоит в этом чате', 'warning')
+
+    else:
+        socket_send_message(
+            Message.send_system_message(
+                f'Пользователь {user.login} удалил из администраторов пользователя {login}',
+                curr_chat.id
+            )
+        )
+
+        old_admin.stop_being_admin(curr_chat.id)
+
+    return redirect(f'/chat/{chat_id}')
+
+
+@app.route('/clear-chat/<chat_id>')
+def chat_command_clear_chat(chat_id):
+    user = User.get_from_cookies(request)
+    curr_chat = Chat.from_id(chat_id)
+
+    if user is None or curr_chat is None:
+        return redirect(f'/chat/{chat_id}')
+    if not user.is_admin(curr_chat.id):
+        flash('Нужны права администратора', 'error')
+        return redirect(f'/chat/{chat_id}')
+
+    curr_chat.clear_messages()
+    socket_send_message(
+        Message.send_system_message(
+            f'Чат очищен пользователем {user.login}',
+            curr_chat.id
+        )
+    )
+
+    return redirect(f'/chat/{chat_id}')
+
+
+@app.route('/remove-chat/<chat_id>')
+def chat_command_remove_chat(chat_id):
+    user = User.get_from_cookies(request)
+    curr_chat = Chat.from_id(chat_id)
+
+    if user is None or curr_chat is None:
+        return redirect(f'/chat/{chat_id}')
+    if not user.is_admin(curr_chat.id):
+        flash('Нужны права администратора', 'error')
+        return redirect(f'/chat/{chat_id}')
+
+    socket_send_message(
+        Message.send_system_message(
+            f'Чат удалён пользователем {user.login}',
+            curr_chat.id
+        )
+    )
+    curr_chat.remove_from_db()
+
+    flash('Чат успешно удалён', 'success')
+
+    return redirect(url_for('page_index'))
+
+
+@app.route('/leave-chat/<chat_id>')
+def chat_command_leave_chat(chat_id):
+    user = User.get_from_cookies(request)
+    curr_chat = Chat.from_id(chat_id)
+
+    if user is None or curr_chat is None:
+        return redirect(f'/chat/{chat_id}')
+
+    socket_send_message(
+        Message.send_system_message(
+            f'Пользователь {user.login} покинул чат',
+            curr_chat.id
+        )
+    )
+
+    curr_chat.members.remove(user.login)
+    curr_chat.write_to_db()
+
+    flash('Вы покинули чат', 'success')
+
+    return redirect(url_for('page_index'))
+
+
+@app.route('/get-messages-div-deprecated/<chat_id>')
+def get_messages_div_deprecated(chat_id):
     curr_user = User.get_from_cookies(request)
     curr_chat = Chat.from_id(chat_id)
     if curr_chat is None:
@@ -737,7 +915,7 @@ def api_get_chats():
             'members': ';'.join(i.members),
             'name': i.name,
             'time_last_message': i.last_message_time
-         } for i in user.get_chats()
+        } for i in user.get_chats()
     ]
 
     if str(chats[-1]['time_last_message']) == last_time:
@@ -764,7 +942,7 @@ def api_create_chat():
 
     members = members.split(';')
 
-    curr_chat = BaseFunctions.create_chat(user, name, members, password)
+    curr_chat = BaseFunctions.create_chat(user, name, members)
     return json.dumps({'code': API_CODES.SUCCESS, 'chat-id': curr_chat.id}, ensure_ascii=False)
 
 
@@ -825,7 +1003,7 @@ def api_remove_account():
     ) or API_CODES.SUCCESS
 
     if ret_code == API_CODES.SUCCESS:
-        BaseFunctions.remove_account(user)
+        user.remove_from_db()
 
     return json.dumps({'code': ret_code}, ensure_ascii=False)
 
@@ -895,7 +1073,7 @@ def api_chat():
 
 
 @app.route('/api/send-message')
-def send_message():
+def api_send_message():
     token = request.args.get('token')
     chat_id = request.args.get('chat-id')
     text = request.args.get('text')
@@ -913,13 +1091,14 @@ def send_message():
             return json.dumps({'code': API_CODES.NOT_A_CHAT_MEMBER}, ensure_ascii=False)
 
         if text.startswith('!!'):
-            BaseFunctions.execute_message_command(text, curr_chat, user, lambda msg: socket_send_message(msg, curr_chat.id))
+            BaseFunctions.execute_message_command(text, curr_chat, user,
+                                                  lambda msg: socket_send_message(msg))
         else:
             if text.startswith('`!!'):
                 text = text[1:]
             msg = Message(-1, user, text, time.time(), chat_id)
             msg.write_to_db()
-            socket_send_message(msg, curr_chat.id)
+            socket_send_message(msg)
     return json.dumps({'code': ret_code}, ensure_ascii=False)
 
 

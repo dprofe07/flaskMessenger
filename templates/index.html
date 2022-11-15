@@ -22,7 +22,7 @@
             </table>
 
             <div id="form-new-chat">
-                <form action="/new-chat" method="post">
+                <form action="{{ url_for('page_new_chat') }}" method="post">
                     <span>Вы можете сразу добавить некоторых пользователей, но вы можете добавить их и позже</span><br/>
                     <span>Для совершения некоторых действий (добавление пользователей и пр.) нужен пароль</span><br/><br/>
 
@@ -37,7 +37,7 @@
             </div>
 
             <div id="form-new-dialog">
-                <form action="/new-dialog" method="post">
+                <form action="{{ url_for('page_new_dialog') }}" method="post">
                     <label for="login">Создать диалог с </label>
                     <input type="text" name="login" id="login" autocomplete="off" placeholder="Логин собеседника" required/>
 
@@ -48,7 +48,7 @@
         <div class="chat">
 
             <a href="javascript:show_form_join_chat()" class="chat-buttons" id="join_chat">Присоединиться по коду</a>
-            <form action="/join-chat" id="form-join-chat">
+            <form action="{{ url_for('page_join_chat') }}" id="form-join-chat">
                 <label for="chat-code">Присоединиться к чату по коду:</label>
                 <input type="text" name="code" id="chat-code" placeholder="Код чата">
 
@@ -89,7 +89,7 @@
 
         async function reload_div() {
             let div = document.getElementsByClassName('need-update')[0];
-            div.outerHTML = await(await fetch('/get-dialogs-div')).text();
+            div.outerHTML = await(await fetch('{{ url_for('get_dialogs_div') }}')).text();
         }
         setInterval(reload_div, 10000);
     </script>

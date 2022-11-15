@@ -3,7 +3,7 @@
 {% set title="API" %}
 
 {% block content %}
-    <p>Система API для мессенджера на <a href="/">dprofe.ddns.net</a>
+    <p>Система API для мессенджера на <a href="{{ url_for('page_index') }}">dprofe.ddns.net</a>
 
     <p>В этой программе для системы API используются GET-запросы. В запрос надо передать некоторые параметры, сервер возвращает JSON-словарь с кодом возврата и некоторыми дополнительными данными</p>
 
@@ -30,22 +30,22 @@
             <td>Возвращаемые значения</td>
         </tr>
         <tr>
-            <td><a href="/api/get-token">/api/get-token</a></td>
+            <td><a href="{{ url_for('api_get_token') }}">{{ url_for('api_get_token') }}</a></td>
             <td>login - логин<br/>password - пароль</td>
             <td>code - код<br/>token - токен</td>
         </tr>
         <tr>
-            <td><a href="/api/get-login-password">/api/get-login-password</a></td>
+            <td><a href="{{ url_for('api_get_login_password') }}">{{ url_for('api_get_login_password') }}</a></td>
             <td>token - ваш токен</td>
             <td>code - код<br/>login - логин<br/>password - пароль</td>
         </tr>
         <tr>
-            <td><a href="/api/signup">/api/signup</a></td>
+            <td><a href="{{ url_for('api_signup') }}">{{ url_for('api_signup') }}</a></td>
             <td>login - логин<br/>password - пароль<br/>keyword - ключевое слово для восстановления пароля</td>
             <td>code - код<br/>token - токен</td>
         </tr>
         <tr>
-            <td><a href="/api/get-chats">/api/get-chats</a></td>
+            <td><a href="{{ url_for('api_get_chats') }}">{{ url_for('api_get_chats') }}</a></td>
             <td>token - токен</td>
             <td>code - код<br/>chats - список чатов - словарей с полями: <br/>
                 &nbsp;&nbsp;&nbsp;&nbsp;id - идентификатор чата<br/>
@@ -55,32 +55,32 @@
             </td>
         </tr>
         <tr>
-            <td><a href="/api/create-chat">/api/create-chat</a></td>
+            <td><a href="{{ url_for('api_create_chat') }}">{{ url_for('api_create_chat') }}</a></td>
             <td>token - токен<br/>name - название чата<br/>members - участники чата<br/>password - пароль чата</td>
             <td>code - код<br/>chat-id - идентификатор чата</td>
         </tr>
         <tr>
-            <td><a href="/api/create-dialog">/api/create-dialog</a></td>
+            <td><a href="{{ url_for('api_create_dialog') }}">{{ url_for('api_create_dialog') }}</a></td>
             <td>token - токен<br/>companion-login - логин собеседника</td>
             <td>code - код<br/>chat-id - идентификатор чата</td>
         </tr>
         <tr>
-            <td><a href="/api/recover-password">/api/recover-password</a></td>
+            <td><a href="{{ url_for('api_recover_password') }}">{{ url_for('api_recover_password') }}</a></td>
             <td>login - логин<br/>keyword - ключавое слово</td>
             <td>code - код<br/>password - пароль<br/>token - токен</td>
         </tr>
         <tr>
-            <td><a href="/api/remove-account">/api/remove-account</a></td>
+            <td><a href="{{ url_for('api_remove_account') }}">{{ url_for('api_remove_account') }}</a></td>
             <td>token - токен</td>
             <td>code - код</td>
         </tr>
         <tr>
-            <td><a href="/api/change-password">/api/change-password</a></td>
+            <td><a href="{{ url_for('api_change_password') }}">{{ url_for('api_change_password') }}</a></td>
             <td>token - токен<br/>password - новый пароль</td>
             <td>code - код</td>
         </tr>
         <tr>
-            <td><a href="/api/chat">/api/chat</a></td>
+            <td><a href="{{ url_for('api_chat') }}">{{ url_for('api_chat') }}</a></td>
             <td>token - токен<br/>chat-id - идентификатор чата</td>
             <td>code - код<br/>messages - список сообщений - словарей с полями:<br/>
                 &nbsp;&nbsp;&nbsp;&nbsp;sender_login - логин отправителя<br/>
@@ -89,12 +89,12 @@
             </td>
         </tr>
         <tr>
-            <td><a href="/api/send-message">/api/send-message</a></td>
+            <td><a href="{{ url_for('api_send_message') }}">{{ url_for('api_send_message') }}</a></td>
             <td>token - токен<br/>chat-id - идентификатор чата<br/>text - текст сообщения</td>
             <td>code - код</td>
         </tr>
         <tr>
-            <td><a href="/api/change-token">/api/change-token</a></td>
+            <td><a href="{{ url_for('api_change_token') }}">{{ url_for('api_change_token') }}</a></td>
             <td>token - токен</td>
             <td>code - код<br/>token - новый токен</td>
         </tr>

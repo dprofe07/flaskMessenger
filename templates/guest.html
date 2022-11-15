@@ -5,8 +5,8 @@
 {% block content %}
 
 <h1>Вы не авторизовались</h1>
-<span><a class="local" href="{{ url_for('auth') }}">Авторизирутесь</a>
-    или <a class="local" href="{{ url_for('signup') }}">зарегистрируйтесь</a></span>
-<span>Также вы можете <a href="{{ url_for('download_app') }}">скачать приложение</a></span>
+<span><a class="local" href="{{ url_for('page_auth') }}">Авторизирутесь</a>
+    или <a class="local" href="{{ url_for('page_signup') }}">зарегистрируйтесь</a></span>
+<span>Также вы можете <a href="{{ url_for('page_download_app') }}">скачать приложение</a></span>
 
 {% endblock %}

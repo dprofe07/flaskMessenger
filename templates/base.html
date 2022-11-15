@@ -17,16 +17,16 @@
     <body>
         <div class="page">
             <header>
-                <!--<a href="{{ url_for('index') }}" class="logo local">LOGO</a>-->
-                <a href="/" class="title">{{ title }}</a>
+                <!--<a href="{{ url_for('page_index') }}" class="logo local">LOGO</a>-->
+                <a href="{{ url_for('page_index') }}" class="title">{{ title }}</a>
                 <nav>
                     <!--<a href="{ url_for('form') }}">Друзья</a>-->
-                    <a href="/">Сообщения</a>
-                    <a href="/about-app">Приложение</a>
+                    <a href="{{ url_for('page_index') }}">Сообщения</a>
+                    <a href="{{ url_for('page_about_app') }}">Приложение</a>
                     {% if user %}
-                        <a href="/settings"><b>{{ user.login }} [Настройки]</b></a>
+                        <a href="{{ url_for('page_settings') }}"><b>{{ user.login }} [Настройки]</b></a>
                     {% else %}
-                        <a href="/auth"><b></b>Гость</a></a>
+                        <a href="{{ url_for('page_auth') }}"><b></b>Гость</a></a>
                     {% endif %}
                 </nav>
             </header>

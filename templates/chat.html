@@ -25,6 +25,35 @@
                 document.getElementById('hidden-p').style.display = "inline";
             }
         </script>
+
+        <nav class="menu">
+            <ul>
+                <li><a>Чат</a>
+                    <ul>
+                        <li><a href="{{ url_for('chat_command_remove_chat', chat_id=chat.id) }}">Переименовать</a></li>
+                        <li><a href="{{ url_for('chat_command_remove_chat', chat_id=chat.id) }}">Удалить</a></li>
+                        <li><a href="{{ url_for('chat_command_clear_chat', chat_id=chat.id) }}">Очистить</a></li>
+                        <li><a href="{{ url_for('chat_command_leave_chat', chat_id=chat.id) }}">Покинуть</a></li>
+                    </ul>
+                </li>
+
+                <li><a href="#2">Приглашение</a>
+                    <ul>
+                        <li><a href="{{ url_for('chat_command_make_invite_code', chat_id=chat.id) }}">Сгенерировать</a></li>
+                        <li><a href="{{ url_for('chat_command_reset_invite_code', chat_id=chat.id) }}">Сбросить</a></li>
+                    </ul>
+                </li>
+
+                <li><a href="#4">Пользователи</a>
+                    <ul>
+                        <li><a href="javascript:command_add_user()">Добавить</a></li>
+                        <li><a href="javascript:command_remove_user()">Удалить</a></li>
+                        <li><a href="javascript:command_make_user_admin()">Сделать администратором</a></li>
+                        <li><a href="javascript:command_remove_admin()">Убрать администратора</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
         <p id="hidden-p"><a href="javascript:show_commands()">Показать комманды чата</a></p>
         <div style="display:none" id="hidden-div">
             <p>Некоторые команды:</p>
@@ -229,6 +258,34 @@
                 inp.value = '!!answer-to;' + id + ';' + inp.value;
             }
             inp.focus();
+        }
+
+        function command_add_user() {
+            let username = prompt('Введите логин добавляемого пользователя');
+            if (username === null) return;
+
+            redirectTo("{{ url_for('chat_command_add_user', chat_id=chat.id) }}?login=" + username);
+        }
+
+        function command_make_user_admin() {
+            let username = prompt('Введите логин нового администратора');
+            if (username === null) return;
+
+            redirectTo("{{ url_for('chat_command_make_admin', chat_id=chat.id) }}?login=" + username);
+        }
+
+        function command_remove_admin() {
+            let username = prompt('Введите логин удаляемого администратора');
+            if (username === null) return;
+
+            redirectTo("{{ url_for('chat_command_remove_admin', chat_id=chat.id) }}?login=" + username);
+        }
+
+        function command_remove_user() {
+            let username = prompt('Введите логин удаляемого пользователя');
+            if (username === null) return;
+
+            redirectTo("{{ url_for('chat_command_remove_user', chat_id=chat.id) }}?login=" + username);
         }
     </script>
 {% endblock %}
