@@ -30,7 +30,7 @@
             <ul>
                 <li><a>Чат</a>
                     <ul>
-                        <li><a href="{{ url_for('chat_command_remove_chat', chat_id=chat.id) }}">Переименовать</a></li>
+                        <li><a href="javascript:rename_chat()">Переименовать</a></li>
                         <li><a href="{{ url_for('chat_command_remove_chat', chat_id=chat.id) }}">Удалить</a></li>
                         <li><a href="{{ url_for('chat_command_clear_chat', chat_id=chat.id) }}">Очистить</a></li>
                         <li><a href="{{ url_for('chat_command_leave_chat', chat_id=chat.id) }}">Покинуть</a></li>
@@ -54,6 +54,7 @@
                 </li>
             </ul>
         </nav>
+        <!--
         <p id="hidden-p"><a href="javascript:show_commands()">Показать комманды чата</a></p>
         <div style="display:none" id="hidden-div">
             <p>Некоторые команды:</p>
@@ -78,9 +79,23 @@
 
             <p><a href="javascript: hide_commands()">Свернуть</a></p>
         </div>
+        -->
     {% else %}
+        <!--
         <span class="chat-hint">Чтобы удалить диалог введите "!!remove-chat;", чтобы очистить - "!!clear-chat;", а чтобы покинуть -
             "!!leave"</span>
+        -->
+        <nav class="menu">
+            <ul>
+                <li><a>Диалог</a>
+                    <ul>
+                        <li><a href="{{ url_for('chat_command_remove_chat', chat_id=chat.id) }}">Удалить</a></li>
+                        <li><a href="{{ url_for('chat_command_clear_chat', chat_id=chat.id) }}">Очистить</a></li>
+                        <li><a href="{{ url_for('chat_command_leave_chat', chat_id=chat.id) }}">Покинуть</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
     {% endif %}
 
     {% if user.login == 'SYSTEM' and user.login not in chat.members %}
@@ -286,6 +301,13 @@
             if (username === null) return;
 
             redirectTo("{{ url_for('chat_command_remove_user', chat_id=chat.id) }}?login=" + username);
+        }
+
+        function rename_chat() {
+            let new_name = prompt('Новое имя чата');
+            if (new_name === null) return;
+
+            redirectTo("{{ url_for('chat_command_rename_chat', chat_id=chat.id) }}?new-name=" + new_name)
         }
     </script>
 {% endblock %}
