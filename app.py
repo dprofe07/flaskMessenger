@@ -674,6 +674,21 @@ def chat_command_remove_user(chat_id):
     return redirect(f'/chat/{chat_id}')
 
 
+@app.route('/rename-chat/<chat_id>')
+def chat_command_rename_chat(chat_id):
+    name = request.args.get('new-name')
+
+    user = User.get_from_cookies(request)
+    chat = Chat.from_id(chat_id)
+    if name is None:
+        flash('Новое имя не указано', 'error')
+    if user is None or chat is None or name is None:
+        return redirect(f'/chat/{chat_id}')
+
+    chat.name = name
+    chat.write_to_db()
+    return redirect(f'/chat/{chat_id}')
+
 @app.route('/remove-admin/<chat_id>')
 def chat_command_remove_admin(chat_id):
     user = User.get_from_cookies(request)
