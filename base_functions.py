@@ -57,7 +57,7 @@ class BaseFunctions:
                 f'Ваши учётные данные: Логин - "{user.login}", пароль - "{user.password}",'
                 f' ключевое слово - "{user.keyword}"'
             ]
-            chat_with_system = Chat(-1, 'DIALOG_BETWEEN/SYSTEM;' + user.login, ['SYSTEM', user.login], 'password')
+            chat_with_system = Chat(-1, 'DIALOG_BETWEEN/SYSTEM;' + user.login, ['SYSTEM', user.login])
             chat_with_system.write_to_db()
             for i, m in enumerate(messages):
                 mess = Message(-1, system_user, m, time.time(), chat_with_system.id)
