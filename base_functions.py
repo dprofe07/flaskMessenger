@@ -60,12 +60,33 @@ class BaseFunctions:
             chat_with_system = Chat(-1, 'DIALOG_BETWEEN/SYSTEM;' + user.login, ['SYSTEM', user.login])
             chat_with_system.write_to_db()
             for i, m in enumerate(messages):
-                mess = Message(-1, system_user, m, time.time(), chat_with_system.id)
-                mess.write_to_db()
+                mess = Message(
+                    -1,
+                    system_user,
+                    m,
+                    time.time(),
+                    chat_with_system.id
+                ).write_to_db()
+
                 if i == 2:
-                    Message(-1, User('other', '', ''), 'Так выглядят входящие сообщения', time.time(),
-                            chat_with_system.id)
-                    Message(-1, User(user.login, '', ''), 'А так - отправленные', time.time(), chat_with_system.id)
+                    Message(
+                        -1,
+                        User(
+                            'Другой пользователь' if user.login != 'Другой пользователь' else 'Другой пользователь.',
+                            '', ''
+                        ),
+                        'Так выглядят входящие сообщения',
+                        time.time(),
+                        chat_with_system.id
+                    ).write_to_db()
+
+                    Message(
+                        -1,
+                        User(user.login, '', ''),
+                        'А так - отправленные',
+                        time.time(),
+                        chat_with_system.id
+                    ).write_to_db()
 
     @staticmethod
     def execute_message_command(text, curr_chat, curr_user, message_callback=lambda i: None):

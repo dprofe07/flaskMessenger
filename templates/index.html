@@ -3,7 +3,7 @@
 {% set title="Главная" %}
 
 {% block style %}
-    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='index-style.css') }}"/>
+    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='index.css') }}"/>
 {% endblock %}
 
 {% block content %}
@@ -11,6 +11,7 @@
     <h3 class="center">Чаты</h3>
 
     <div class="chats-container">
+        <input type="text" id="chat-search" placeholder="Поиск чатов"/>
         {% include 'dialogs-div.html' %}
         <div class="chat">
             <a href="javascript:show_choice_chat_or_dialog()" class="chat-buttons" id="plus">+</a>
@@ -90,8 +91,44 @@
         async function reload_div() {
             let div = document.getElementsByClassName('need-update')[0];
             div.outerHTML = await(await fetch('{{ url_for('get_dialogs_div') }}')).text();
+            search(null);
         }
         setInterval(reload_div, 10000);
+
+        function search(ev) {
+                let coll = document.getElementsByClassName("chat");
+                let text = document.getElementById("chat-search").value;
+
+                for (let i = 0; i < coll.length; ++i) {
+                    let chat = coll[i];
+                    let a_in_chat = chat.children[0];
+                    if (a_in_chat.id === "join_chat" ||a_in_chat.id === "plus")
+                        continue;
+
+                    a_in_chat.innerHTML = a_in_chat.innerHTML.replace('<span style="color:red; display: initial;">', "").replace("</span>", "");
+
+                    if (text === "") {
+                        chat.style["display"] = "inherit";
+                    } else if (a_in_chat.innerText.includes(text)) {
+                        chat.style["display"] = "inherit";
+                        a_in_chat.innerHTML = a_in_chat.innerHTML.replace(text, `<span style="color:red; display: initial;">${text}</span>`);
+                    } else {
+                        chat.style["display"] = "none";
+                    }
+                }
+
+        }
+
+        document.getElementById('chat-search').addEventListener(
+            "input",
+            search
+        )
+
+        document.getElementById('chat-search').addEventListener(
+            "keydown",
+            search
+        )
+        search(null);
     </script>
 
 
