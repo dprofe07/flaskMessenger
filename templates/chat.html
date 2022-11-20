@@ -15,7 +15,7 @@
     {% endmacro %}
     {% if not chat.name.startswith('DIALOG_BETWEEN') %}
         <script>
-            function show_commands() {
+            /*function show_commands() {
                 document.getElementById('hidden-div').style.display = "table";
                 document.getElementById('hidden-p').style.display = "none";
             }
@@ -23,7 +23,7 @@
             function hide_commands() {
                 document.getElementById('hidden-div').style.display = "none";
                 document.getElementById('hidden-p').style.display = "inline";
-            }
+            }*/
         </script>
 
         <nav class="menu">
@@ -37,14 +37,14 @@
                     </ul>
                 </li>
 
-                <li><a href="#2">Приглашение</a>
+                <li><a href="#2">Приглашение</a><!--TODO add invite-->
                     <ul>
                         <li><a href="{{ url_for('chat_command_make_invite_code', chat_id=chat.id) }}">Сгенерировать</a></li>
                         <li><a href="{{ url_for('chat_command_reset_invite_code', chat_id=chat.id) }}">Сбросить</a></li>
                     </ul>
                 </li>
 
-                <li><a href="#4">Пользователи</a>
+                <li><a href="#4">Пользователи</a><!--TODO add members-->
                     <ul>
                         <li><a href="javascript:command_add_user()">Добавить</a></li>
                         <li><a href="javascript:command_remove_user()">Удалить</a></li>
@@ -108,7 +108,7 @@
                 {% if i.from_.login == 'SYSTEM' %}
                     <span class="alert">{{ i.get_html(user) | safe }}</span>
                 {% else %}
-                    <div class="message {{ 'my' if i.from_.login == user.login else '' }}">
+                    <div class="message {{ 'my' if i.from_ == user else '' }}">
                         {{ i.get_html(user) | safe }}
                     </div>
                 {% endif %}
@@ -144,8 +144,8 @@
         const holder = document.querySelector('.messages-container');
         const send_button = document.querySelector('.message-send');
         const message_input = document.querySelector('.message-input');
-        const my_login = "{{ user.login }}";
-        const room_id = "{{ chat.id }}";
+        const my_id = {{ user.id }};
+        const room_id = {{ chat.id }};
 
         function UpdateHolder() {
             holder.scroll({
@@ -168,7 +168,7 @@
 
         function strweight(s) {
             for (let i = 0; i < s.length; i += 1)
-                if (s[i] != '\n' && s[i] != ' ') return true;
+                if (s[i] !== '\n' && s[i] !== ' ') return true;
             return false;
         }
 
@@ -177,7 +177,7 @@
             if (!strweight(msg)) return;
             socket.send({
                 text: message_input.value,
-                source: my_login,
+                source: my_id,
                 room: room_id
             });
             message_input.value = '';
@@ -192,7 +192,7 @@
         socket.on('message', data => {
             if (data['source'] !== 'SYSTEM') {
 
-                if (data['source'] === my_login) {
+                if (data['source'] === my_id) {
                     AddMessage(data['html_sender'], true);
                 } else {
                     new Notification("Новое сообщение - Messenger", {
@@ -208,7 +208,7 @@
 
         send_button.addEventListener('click', send);
         message_input.addEventListener('keydown', ev => {
-            if (ev.key == 'Enter') send();
+            if (ev.key === 'Enter') send();
         });
 
 
@@ -243,7 +243,7 @@
         function urlBase64ToUint8Array(base64String) {
             const padding = '='.repeat((4 - base64String.length % 4) % 4);
             const base64 = (base64String + padding)
-                .replace(/\-/g, '+')
+                .replace(/-/g, '+')
                 .replace(/_/g, '/')
             ;
             const rawData = window.atob(base64);

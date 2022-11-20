@@ -87,7 +87,7 @@ class Chat(BaseUnit):
                 )
             ''')
             cur.execute('SELECT MAX(Id) FROM chats')
-            self.id = cur.fetchall()[0][0]
+            self.id = cur.fetchone()[0]
 
         cur.execute(f'DELETE FROM chat_members WHERE ChatId = {self.id}')
 
@@ -95,7 +95,7 @@ class Chat(BaseUnit):
             cur.execute(f'''
                 INSERT INTO chat_members VALUES (
                     {self.id},
-                    '{i.replace("'", "''").replace('"', '""')}'
+                    {i}
                 )
             ''')
 
@@ -177,7 +177,7 @@ class Chat(BaseUnit):
         db_conn = self.connect_to_db()
         cur = db_conn.cursor()
 
-        cur.execute(f'SELECT AdminLogin FROM chat_admins WHERE ChatId = {self.id}')
+        cur.execute(f'SELECT AdminId FROM chat_admins WHERE ChatId = {self.id}')
 
         res = [i[0] for i in cur.fetchall()]
 

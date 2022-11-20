@@ -18,7 +18,7 @@ function TransitionTo(link) {
 }
 
 document.addEventListener('click', event => {
-    if (event.target.href == undefined) return;
+    if (event.target.href === undefined) return;
     if (!event.target.classList.contains('local')) return;
     event.preventDefault();
     TransitionTo(event.target.href);

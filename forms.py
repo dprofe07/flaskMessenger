@@ -28,7 +28,16 @@ class Form:
             if len(opt_values) == 0:
                 return self(*['' for _ in self.options])
             return self
-        new_form = Form([Option(i.name, i.idx, i.required, i.placeholder, i.under, i.input_type, i.value) for i in self.options], self.on_receive, self.title, self.submit, self.hint)
+        new_form = Form(
+            [
+                Option(i.name, i.idx, i.required, i.placeholder, i.under, i.input_type, i.value)
+                for i in self.options
+            ],
+            self.on_receive,
+            self.title,
+            self.submit,
+            self.hint
+        )
         for i in range(len(opt_values)):
             new_form.options[i].value = opt_values[i]
         return new_form

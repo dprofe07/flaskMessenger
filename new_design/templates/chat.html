@@ -27,14 +27,13 @@
     <input type="button" class="message-send" value="Отправить">
 </div>
 
-<script src="https://cdn.socket.io/4.5.1/socket.io.min.js" type="text/javascript"></script>
+<script src="{{ url_for('static', filename="socket.io.min.js") }}" type="text/javascript"></script>
 
 <script>
     const socket = io.connect('/');
     const holder = document.querySelector('.messages-container');
     const send_button = document.querySelector('.message-send');
     const message_input = document.querySelector('.message-input');
-    const nickname = 'DEFAULT USER';
     const room_id = "{{ room }}";
 
     function UpdateHolder() {
@@ -42,11 +41,6 @@
             top: holder.scrollHeight,
             behavior: 'smooth'
         });
-    }
-
-    function AddAlert(text) {
-        holder.innerHTML += `<span class="alert">${text}</span>`;
-        UpdateHolder();
     }
 
     function AddMessage(data) {
@@ -60,7 +54,7 @@
 
     function strweight(s) {
         for (let i = 0; i < s.length; i += 1)
-            if (s[i] != '\n' && s[i] != ' ') return true;
+            if (s[i] !== '\n' && s[i] !== ' ') return true;
         return false;
     }
 
@@ -91,7 +85,7 @@
 
     send_button.addEventListener('click', send);
     message_input.addEventListener('keydown', ev => {
-        if (ev.key == 'Enter') send();
+        if (ev.key === 'Enter') send();
     });
 
 </script>

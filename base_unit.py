@@ -19,7 +19,8 @@ class BaseUnit:
 
         cur.execute('''
             CREATE TABLE IF NOT EXISTS users (
-                Login NVARCHAR(100) PRIMARY KEY NOT NULL,
+                Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                Login NVARCHAR(100) NOT NULL UNIQUE,
                 Password NVARCHAR(100) NOT NULL,
                 Keyword NVARCHAR(100) NOT NULL,
                 Token NVARCHAR(100) NOT NULL UNIQUE
@@ -37,42 +38,42 @@ class BaseUnit:
         cur.execute('''
             CREATE TABLE IF NOT EXISTS chat_members (
                 ChatId INTEGER NOT NULL,
-                UserLogin NVARCHAR(100) NOT NULL,
+                UserId INTEGER NOT NULL,
                 FOREIGN KEY (ChatId) REFERENCES chats (Id) ON DELETE CASCADE ON UPDATE CASCADE,
-                FOREIGN KEY (UserLogin) REFERENCES users (Login) ON DELETE CASCADE ON UPDATE CASCADE
+                FOREIGN KEY (UserId) REFERENCES users (Id) ON DELETE CASCADE ON UPDATE CASCADE
             )
         ''')
 
         cur.execute('''
             CREATE TABLE IF NOT EXISTS chat_admins (
                 ChatId INTEGER NOT NULL,
-                AdminLogin NVARCHAR (100) NOT NULL,
+                AdminId INTEGER NOT NULL,
                 FOREIGN KEY (ChatId) REFERENCES chats (Id) ON DELETE CASCADE,
-                FOREIGN KEY (AdminLogin) REFERENCES users (Login) ON DELETE CASCADE
+                FOREIGN KEY (AdminId) REFERENCES users (Id) ON DELETE CASCADE
             )
         ''')
 
         cur.execute('''
             CREATE TABLE IF NOT EXISTS messages (
                 Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                Login_from NVARCHAR(100) NOT NULL,
+                SenderId INTEGER NOT NULL,
                 Message NVARCHAR(100000),
                 Time REAL NOT NULL UNIQUE,
                 Chat_id INTEGER NOT NULL,
                 Answer_to INTEGER NULL,
                 FOREIGN KEY (Answer_to) REFERENCES messages (Id),
-                FOREIGN KEY (Login_from) REFERENCES users (Login) ON DELETE CASCADE ON UPDATE CASCADE,
+                FOREIGN KEY (SenderId) REFERENCES users (Id) ON DELETE CASCADE ON UPDATE CASCADE,
                 FOREIGN KEY (Chat_id) REFERENCES chats (Id) ON DELETE CASCADE ON UPDATE CASCADE
             )
         ''')
 
         cur.execute('''
             CREATE TABLE IF NOT EXISTS aliases (
-                Login_aliased NVARCHAR(100) NOT NULL,
-                Login_for_who NVARCHAR(100) NOT NULL,
+                Id_aliased INTEGER NOT NULL,
+                Id_for_who INTEGER NOT NULL,
                 Alias NVARCHAR(100) NOT NULL,
-                FOREIGN KEY (Login_aliased) REFERENCES users(Login) ON UPDATE CASCADE ON DELETE CASCADE,
-                FOREIGN KEY (Login_for_who) REFERENCES users(Login) ON UPDATE CASCADE ON DELETE CASCADE 
+                FOREIGN KEY (Id_aliased) REFERENCES users(Id) ON UPDATE CASCADE ON DELETE CASCADE,
+                FOREIGN KEY (Id_for_who) REFERENCES users(Id) ON UPDATE CASCADE ON DELETE CASCADE 
             )
         ''')
 

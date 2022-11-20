@@ -3,7 +3,8 @@ from chat import Chat
 
 
 class User(BaseUnit):
-    def __init__(self, login, password, keyword, token=None, aliases=None):
+    def __init__(self, id_, login, password, keyword, token=None, aliases=None):
+        self.id = id_
         self.login = login
         self.password = password
         self.keyword = keyword
@@ -16,7 +17,7 @@ class User(BaseUnit):
 
         res = {}
 
-        cur.execute(f"SELECT * FROM aliases WHERE Login_for_who = {self.login!r}")
+        cur.execute(f"SELECT * FROM aliases WHERE Id_for_who = {self.id}")
         for row in cur.fetchall():
             res[row[0]] = row[2]
 
@@ -28,7 +29,7 @@ class User(BaseUnit):
 
         res = []
         if self.login != 'SYSTEM':
-            cur.execute(f"SELECT * FROM chat_members WHERE UserLogin = {self.login!r}")
+            cur.execute(f"SELECT * FROM chat_members WHERE UserId = {self.id}")
             for i in cur.fetchall():
                 if i[0] not in res:
                     res.append(i[0])
@@ -64,10 +65,10 @@ class User(BaseUnit):
         db_conn = self.connect_to_db()
         cur = db_conn.cursor()
 
-        if User.find_by_login(self.login) is None:
+        if User.find_by_id(self.id) is None:
             cur.execute(
                 f"""
-                    insert into users values (
+                    insert into users (Login, Password, Keyword, Token) values (
                         '{self.login.replace("'", "''").replace('"', '""')}', 
                         '{self.password.replace("'", "''").replace('"', '""')}', 
                         '{self.keyword.replace("'", "''").replace('"', '""')}', 
@@ -75,14 +76,18 @@ class User(BaseUnit):
                     )
                 """
             )
+
+            cur.execute('SELECT MAX(Id) FROM users')
+            self.id = cur.fetchone()[0]
         else:
             cur.execute(
-                f"""update users 
-                set 
-                Password = '{self.password.replace("'", "''").replace('"', '""')}',
-                Keyword = '{self.keyword.replace("'", "''").replace('"', '""')}', 
-                Token={self.token!r}
-                where Login = '{self.login.replace("'", "''").replace('"', '""')}'"""
+                f"""UPDATE users 
+                SET 
+                Login = '{self.login.replace("'", "''")}'
+                Password = '{self.password.replace("'", "''")}',
+                Keyword = '{self.keyword.replace("'", "''")}', 
+                Token = {self.token!r}
+                where Id = {self.id}"""
             )
         db_conn.commit()
 
@@ -110,12 +115,24 @@ class User(BaseUnit):
         return User(*res[0])
 
     @staticmethod
-    def find_by_login(login: str):
+    def find_by_login_(login: str):
         db_conn = User.connect_to_db()
         cur = db_conn.cursor()
         if not isinstance(login, str):
             return None
-        cur.execute(f'''SELECT * FROM users WHERE Login = '{login.replace("'", "''").replace('"', '""')}' ''')
+        cur.execute(f'''SELECT * FROM users WHERE Login = '{login.replace("'", "''")}' ''')
+        res = cur.fetchall()
+        if len(res) == 0:
+            return None
+        return User(*res[0])
+
+    @staticmethod
+    def find_by_id(id_: str):
+        db_conn = User.connect_to_db()
+        cur = db_conn.cursor()
+        if not isinstance(id_, int):
+            return None
+        cur.execute(f'''SELECT * FROM users WHERE Id = '{id_}' ''')
         res = cur.fetchall()
         if len(res) == 0:
             return None
@@ -137,15 +154,15 @@ class User(BaseUnit):
     def remove_from_db(self):
         db_conn = self.connect_to_db()
         cur = db_conn.cursor()
-        cur.execute(f"""DELETE FROM users WHERE Login = '{self.login.replace("'", "''").replace('"', '""')}'""")
-        cur.execute(f"""DELETE FROM chat_members WHERE UserLogin = '{self.login.replace("'", "''").replace('"', '""')}'""")
+        cur.execute(f"""DELETE FROM users WHERE Id = '{self.id}'""")
+        cur.execute(f"""DELETE FROM chat_members WHERE UserId = '{self.id}'""")
         db_conn.commit()
 
     def __repr__(self):
-        return f'User({self.login!r}, {self.password!r}, {self.keyword!r}, {self.token!r})'
+        return f'User({self.id}, {self.login!r}, {self.password!r}, {self.keyword!r}, {self.token!r})'
 
     def __eq__(self, other):
-        return self.login == other.login
+        return self.id == other.id
 
     def __ne__(self, other):
         return not self == other
@@ -160,7 +177,7 @@ class User(BaseUnit):
         db_conn = self.connect_to_db()
         cur = db_conn.cursor()
 
-        cur.execute(f'''INSERT INTO chat_admins VALUES ({chat_id}, '{self.login.replace("'", "''")}')''')
+        cur.execute(f'''INSERT INTO chat_admins VALUES ({chat_id}, {self.id})''')
 
         db_conn.commit()
 
@@ -171,7 +188,7 @@ class User(BaseUnit):
         db_conn = self.connect_to_db()
         cur = db_conn.cursor()
 
-        cur.execute(f'''DELETE FROM chat_admins WHERE AdminLogin = '{self.login.replace("'", "''")}' ''')
+        cur.execute(f'''DELETE FROM chat_admins WHERE AdminId = {self.id}''')
 
         db_conn.commit()
 
@@ -179,6 +196,9 @@ class User(BaseUnit):
         db_conn = self.connect_to_db()
         cur = db_conn.cursor()
 
-        cur.execute(f'''SELECT AdminLogin FROM chat_admins WHERE ChatId={chat_id} AND AdminLogin = '{self.login.replace("'", "''")}' ''')
+        cur.execute(f'''
+            SELECT AdminId FROM chat_admins 
+            WHERE ChatId = {chat_id} AND
+             AdminId = {self.id}''')
 
         return bool(cur.fetchall()) or (self.login == 'SYSTEM')

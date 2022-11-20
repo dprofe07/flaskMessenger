@@ -44,22 +44,22 @@ def socket_send_message(message):
         'html_sender': message.get_html(message.from_),
         'html_any': message.get_html(None),
         'text': message.text,
-        'source': message.from_.login,
+        'source': message.from_.id,
     }
-    io.send(new_data, to=str(message.chat_id))
+    io.send(new_data, to=message.chat_id)
 
 
 @io.on('message')
 def handle_message(data):
-    user = User.find_by_login(data['source'])
+    user = User.find_by_id(data['source'])
 
     if user is None:
         return
-    curr_chat = Chat.from_id(int(data['room']))
+    curr_chat = Chat.from_id(data['room'])
     if curr_chat is None:
         return
 
-    if user.login not in curr_chat.members and user.login != 'SYSTEM':
+    if user.id not in curr_chat.members and user.login != 'SYSTEM':
         return
     text = data['text']
 
@@ -83,7 +83,7 @@ def handle_message(data):
             ).write_to_db()
             socket_send_message(msg)
 
-            sys_user = User.find_by_login('SYSTEM')
+            sys_user = User.find_by_login_('SYSTEM')
             if sys_user is None:
                 msg = Message.send_system_message(
                     'Системный пользователь не создан',
@@ -139,6 +139,8 @@ def page_index():
     else:
         user.aliases = user.get_aliases()
         chats = user.get_chats()
+        for chat in chats:
+            chat.members = [User.find_by_id(i).login for i in chat.members]
         return render_template(
             'index.html',
             user=user,
@@ -233,7 +235,7 @@ def page_password_recovery():
         login = request.form['login']
         keyword = request.form['keyword']
 
-        user = User.find_by_login(login)
+        user = User.find_by_login_(login)
         if user is None:
             flash(f'Пользователь с логином "{login}" не найден', 'error')
             return render_template(
@@ -302,7 +304,7 @@ def page_auth():
     else:
         login = request.form['login']
         password = request.form['password']
-        user = User.find_by_login(login)
+        user = User.find_by_login_(login)
         if user is not None:
             if password == user.password:
                 flash('Вы успешно вошли', 'success')
@@ -362,7 +364,7 @@ def page_signup():
                 user=User.get_from_cookies(request),
                 demo_mode=DEMO_MODE
             )
-        elif User.find_by_login(login) is not None:
+        elif User.find_by_login_(login) is not None:
             flash(f'Пользователь с именем "{login}" уже существует.', 'error')
             return render_template(
                 'form.html',
@@ -371,7 +373,7 @@ def page_signup():
                 demo_mode=DEMO_MODE
             )
         else:
-            user = User(login, password, keyword)
+            user = User(-1, login, password, keyword)
             BaseFunctions.sign_up(user)
 
             flash('Вы успешно зарегистрированы', 'success')
@@ -391,7 +393,7 @@ def page_chat(id_):
     if curr_chat is None:
         flash('Чат не найден в базе данных', 'error')
         return redirect('/')
-    if curr_user.login not in curr_chat.members and curr_user.login != 'SYSTEM':
+    if curr_user.id not in curr_chat.members and curr_user.login != 'SYSTEM':
         flash('Вступите в чат, чтобы просмотреть его', 'error')
         return redirect('/')
     messages = Message.get_messages_from_chat(curr_chat.id)
@@ -439,13 +441,8 @@ def page_new_chat():
     chat_name = request.form['chat-name']
     if 'DIALOG_BETWEEN' in chat_name:
         flash(f'Недопустимое название чата: "{chat_name}"', 'error')
-    users = []
-    for i in request.form['users'].split(';'):
-        if i not in users and i != curr_user.login:
-            if User.find_by_login(i):
-                users.append(i)
 
-    curr_chat = BaseFunctions.create_chat(curr_user, chat_name, users)
+    curr_chat = BaseFunctions.create_chat(curr_user, chat_name, [])
 
     return redirect(f'/chat/{curr_chat.id}')
 
@@ -461,12 +458,12 @@ def page_new_dialog():
     if login == curr_user.login:
         flash('Нельзя создать диалог с самим собой. Используйте чат.', 'error')
         return redirect('/')
-    companion_user = User.find_by_login(login)
+    companion_user = User.find_by_login_(login)
     if companion_user is None:
         flash('Пользователь не найден', 'error')
         return redirect('/')
 
-    curr_chat = Chat(-1, f'DIALOG_BETWEEN/{login};{curr_user.login}', [curr_user.login, login])
+    curr_chat = Chat(-1, f'DIALOG_BETWEEN/{login};{curr_user.login}', [curr_user.id, login])
     curr_chat.write_to_db()
 
     curr_user.become_admin(curr_chat.id)
@@ -497,10 +494,10 @@ def page_join_chat():
         flash('Некорректный код-приглашение', 'error')
         return redirect('/')
 
-    if curr_user.login in curr_chat.members:
+    if curr_user.id in curr_chat.members:
         flash('Вы уже состоите в этом чате')
     else:
-        curr_chat.members.append(curr_user.login)
+        curr_chat.members.append(curr_user.id)
         curr_chat.write_to_db()
 
         Message.send_system_message(
@@ -540,7 +537,8 @@ def chat_command_make_invite_code(chat_id):
     code = curr_chat.token
     socket_send_message(
         Message.send_system_message(
-            f'Сгенерирован код-приглашение: <b><a href="/join-chat?code={urllib.parse.quote_plus(code)}">{code}</a></b><br/><br/>',
+            f'Сгенерирован код-приглашение: '
+            f'<b><a href="/join-chat?code={urllib.parse.quote_plus(code)}">{code}</a></b><br/><br/>',
             curr_chat.id
         )
     )
@@ -577,7 +575,7 @@ def chat_command_add_user(chat_id):
     curr_chat = Chat.from_id(chat_id)
 
     login = request.args.get('login')
-    adding_user = User.find_by_login(login)
+    adding_user = User.find_by_login_(login)
 
     if adding_user is None:
         flash(f'Пользователь с логином {login} не найден', 'error')
@@ -589,11 +587,11 @@ def chat_command_add_user(chat_id):
         flash('Нужны права администратора', 'error')
         return redirect(f'/chat/{chat_id}')
 
-    if adding_user.login in curr_chat.members:
+    if adding_user.id in curr_chat.members:
         flash('Пользователь уже добавлен', 'warning')
 
     else:
-        curr_chat.members.append(adding_user.login)
+        curr_chat.members.append(adding_user.id)
         curr_chat.write_to_db()
         socket_send_message(
             Message.send_system_message(
@@ -611,7 +609,7 @@ def chat_command_make_admin(chat_id):
     curr_chat = Chat.from_id(chat_id)
 
     login = request.args.get('login')
-    new_admin = User.find_by_login(login)
+    new_admin = User.find_by_login_(login)
 
     if new_admin is None:
         flash(f'Пользователь с логином {login} не найден', 'error')
@@ -623,7 +621,7 @@ def chat_command_make_admin(chat_id):
         flash('Нужны права администратора', 'error')
         return redirect(f'/chat/{chat_id}')
 
-    if new_admin.login in curr_chat.get_admins():
+    if new_admin.id in curr_chat.get_admins():
         flash('Пользователь уже администратор', 'warning')
 
     else:
@@ -645,7 +643,7 @@ def chat_command_remove_user(chat_id):
     curr_chat = Chat.from_id(chat_id)
 
     login = request.args.get('login')
-    deleting_user = User.find_by_login(login)
+    deleting_user = User.find_by_login_(login)
 
     if deleting_user is None:
         flash(f'Пользователь с логином {login} не найден', 'error')
@@ -657,11 +655,12 @@ def chat_command_remove_user(chat_id):
         flash('Нужны права администратора', 'error')
         return redirect(f'/chat/{chat_id}')
 
-    if deleting_user.login not in curr_chat.members:
+    if deleting_user.id not in curr_chat.members:
         flash('Пользователь не состоит в чате', 'warning')
         return redirect(f'/chat/{chat_id}')
 
-    curr_chat.members.remove(login)
+    curr_chat.members.remove(deleting_user.id)
+    deleting_user.stop_being_admin(curr_chat.id)
     curr_chat.write_to_db()
 
     socket_send_message(
@@ -697,13 +696,14 @@ def chat_command_rename_chat(chat_id):
 
     return redirect(f'/chat/{chat_id}')
 
+
 @app.route('/remove-admin/<chat_id>')
 def chat_command_remove_admin(chat_id):
     user = User.get_from_cookies(request)
     curr_chat = Chat.from_id(chat_id)
 
     login = request.args.get('login')
-    old_admin = User.find_by_login(login)
+    old_admin = User.find_by_login_(login)
 
     if old_admin is None:
         flash(f'Пользователь с логином {login} не найден', 'error')
@@ -715,7 +715,7 @@ def chat_command_remove_admin(chat_id):
         flash('Нужны права администратора', 'error')
         return redirect(f'/chat/{chat_id}')
 
-    elif old_admin.login not in curr_chat.get_admins():
+    elif old_admin.id not in curr_chat.get_admins():
         flash('Пользователь не администратор, или не состоит в этом чате', 'warning')
 
     else:
@@ -792,7 +792,8 @@ def chat_command_leave_chat(chat_id):
         )
     )
 
-    curr_chat.members.remove(user.login)
+    curr_chat.members.remove(user.id)
+    user.stop_being_admin(curr_chat.id)
     curr_chat.write_to_db()
 
     flash('Вы покинули чат', 'success')
@@ -825,6 +826,8 @@ def get_dialogs_div():
     if user is None:
         return '<div class="need-update"></div>'
     chats = user.get_chats()
+    for chat in chats:
+        chat.members = [User.find_by_id(i).login for i in chat.members]
     return render_template('dialogs-div.html', chats=chats, user=user)
 
 
@@ -855,7 +858,7 @@ def api_get_token():
     login = request.args.get('login')
     password = request.args.get('password')
 
-    user = User.find_by_login(login)
+    user = User.find_by_login_(login)
 
     ret_code = BaseFunctions.which_is_none(
         [login, password, user],
@@ -898,7 +901,7 @@ def api_signup():
     password = request.args.get('password')
     keyword = request.args.get('keyword')
 
-    user_created_previously = User.find_by_login(login)
+    user_created_previously = User.find_by_login_(login)
 
     ret_code = BaseFunctions.which_is_none(
         [login, password, keyword],
@@ -911,7 +914,7 @@ def api_signup():
     elif ';' in login:
         return json.dumps({'code': API_CODES.FORBIDDEN_SYMBOLS_IN_LOGIN, 'symbol': ';'}, ensure_ascii=False)
 
-    user = User(login, password, keyword)
+    user = User(-1, login, password, keyword)
     BaseFunctions.sign_up(user)
 
     return json.dumps({'code': API_CODES.SUCCESS, 'token': user.token}, ensure_ascii=False)
@@ -975,7 +978,7 @@ def api_create_dialog():
     companion_login = request.args.get('companion-login')
 
     user = User.find_by_token(token)
-    companion_user = User.find_by_login(companion_login)
+    companion_user = User.find_by_login_(companion_login)
 
     ret_code = BaseFunctions.which_is_none(
         [token, companion_login, user, companion_user],
@@ -985,7 +988,7 @@ def api_create_dialog():
     if ret_code is not None:
         return json.dumps({'code': ret_code}, ensure_ascii=False)
 
-    curr_chat = Chat(-1, f'DIALOG_BETWEEN/{companion_login};{user.login}', [user.login, companion_login], '')
+    curr_chat = Chat(-1, f'DIALOG_BETWEEN/{companion_login};{user.login}', [user.id, companion_user.id], '')
     curr_chat.write_to_db()
     Message.send_system_message(
         f'Пользователь {user.login} создал диалог с пользователем {companion_login}',
@@ -1000,7 +1003,7 @@ def api_recover_password():
     login = request.args.get('login')
     keyword = request.args.get('keyword')
 
-    user = User.find_by_login(login)
+    user = User.find_by_login_(login)
 
     ret_code = BaseFunctions.which_is_none(
         [login, keyword, user],
@@ -1110,7 +1113,7 @@ def api_send_message():
     ) or API_CODES.SUCCESS
 
     if ret_code == API_CODES.SUCCESS:
-        if user.login not in curr_chat.members and user.login != "SYSTEM":
+        if user.id not in curr_chat.members and user.login != "SYSTEM":
             return json.dumps({'code': API_CODES.NOT_A_CHAT_MEMBER}, ensure_ascii=False)
 
         if text.startswith('!!'):

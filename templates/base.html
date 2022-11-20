@@ -26,7 +26,7 @@
                     {% if user %}
                         <a href="{{ url_for('page_settings') }}"><b>{{ user.login }} [Настройки]</b></a>
                     {% else %}
-                        <a href="{{ url_for('page_auth') }}"><b></b>Гость</a></a>
+                        <a href="{{ url_for('page_auth') }}"><b></b>Гость</a>
                     {% endif %}
                 </nav>
             </header>

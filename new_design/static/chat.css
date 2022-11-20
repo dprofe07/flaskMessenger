@@ -23,7 +23,7 @@
 .messages-container::-webkit-scrollbar {
     width:10px;
     box-sizing: border-box;
-    padding:0px 1px;
+    padding:0 1px;
     border-radius:10px;
     background:#d5d5d5;
 }

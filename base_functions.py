@@ -8,7 +8,7 @@ from user import User
 class BaseFunctions:
     @staticmethod
     def create_chat(creator, name, members):
-        curr_chat = Chat(-1, name, [creator.login] + members)
+        curr_chat = Chat(-1, name, [creator.id] + members)
         curr_chat.write_to_db()
         creator.become_admin(curr_chat.id)
         Message.send_system_message(
@@ -26,7 +26,7 @@ class BaseFunctions:
     def change_password(user, new_password, send_message=True):
         user.password = new_password
         user.write_to_db()
-        system_user = User.find_by_login('SYSTEM')
+        system_user = User.find_by_login_('SYSTEM')
         if system_user is not None and send_message and user.login != 'SYSTEM':
             sys_messages = None
             for i in user.get_chats():
@@ -45,7 +45,7 @@ class BaseFunctions:
     def sign_up(user):
         user.write_to_db()
 
-        system_user = User.find_by_login('SYSTEM')
+        system_user = User.find_by_login_('SYSTEM')
         if system_user is not None and user.login != 'SYSTEM':
             messages = [
                 'Добро пожаловать в мессенджер',
@@ -57,10 +57,10 @@ class BaseFunctions:
                 f'Ваши учётные данные: Логин - "{user.login}", пароль - "{user.password}",'
                 f' ключевое слово - "{user.keyword}"'
             ]
-            chat_with_system = Chat(-1, 'DIALOG_BETWEEN/SYSTEM;' + user.login, ['SYSTEM', user.login])
+            chat_with_system = Chat(-1, 'DIALOG_BETWEEN/SYSTEM;' + user.login, [system_user.id, user.id])
             chat_with_system.write_to_db()
             for i, m in enumerate(messages):
-                mess = Message(
+                Message(
                     -1,
                     system_user,
                     m,
@@ -72,7 +72,8 @@ class BaseFunctions:
                     Message(
                         -1,
                         User(
-                            'Другой пользователь' if user.login != 'Другой пользователь' else 'Другой пользователь.',
+                            -1,
+                            'Другой пользователь',
                             '', ''
                         ),
                         'Так выглядят входящие сообщения',
@@ -82,7 +83,7 @@ class BaseFunctions:
 
                     Message(
                         -1,
-                        User(user.login, '', ''),
+                        User(-1, user.login, '', ''),
                         'А так - отправленные',
                         time.time(),
                         chat_with_system.id
@@ -90,7 +91,11 @@ class BaseFunctions:
 
     @staticmethod
     def execute_message_command(text, curr_chat, curr_user, message_callback=lambda i: None):
-        if not text.startswith('!!send-system-message') and not text.startswith('!!do-sql-request') and not text.startswith('!!answer-to'):
+        if (
+                not text.startswith('!!send-system-message') and
+                not text.startswith('!!do-sql-request') and
+                not text.startswith('!!answer-to')
+        ):
             message_callback(
                 Message(
                     -1,
@@ -106,7 +111,7 @@ class BaseFunctions:
 
             if command[0] == 'send-system-message':
                 password = command[1]
-                sys_user = User.find_by_login('SYSTEM')
+                sys_user = User.find_by_login_('SYSTEM')
                 if sys_user is None:
                     message_callback(Message(
                         -1,
@@ -139,7 +144,7 @@ class BaseFunctions:
                         ))
 
             elif command[0] == 'call-sys-user':
-                sys_user = User.find_by_login('SYSTEM')
+                sys_user = User.find_by_login_('SYSTEM')
 
                 if sys_user is None:
                     message_callback(Message.send_system_message(
@@ -165,7 +170,7 @@ class BaseFunctions:
 
             elif command[0] == 'admins' or command[0] == 'chat-admins':
                 message_callback(Message.send_system_message(
-                    f'Администарторы чата: {"; ".join(curr_chat.get_admins())}',
+                    f'Администарторы чата: {"; ".join(User.find_by_id(i).login for i in curr_chat.get_admins())}',
                     curr_chat.id
                 ))
             elif command[0] == 'answer-to':
@@ -279,7 +284,8 @@ class BaseFunctions:
             import urllib.parse
             code = curr_chat.token
             message_callback(Message.send_system_message(
-                f'Сгенерирован код-приглашение: <b><a href="/join-chat?code={urllib.parse.quote_plus(code)}">{code}</a></b><br/><br/>'
+                f'Сгенерирован код-приглашение: '
+                f'<b><a href="/join-chat?code={urllib.parse.quote_plus(code)}">{code}</a></b><br/><br/>'
                 f'Чтобы сделать код недействительным используйте команду !!reset-invite-code',
                 curr_chat.id
             ))
