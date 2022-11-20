@@ -98,7 +98,7 @@
         </nav>
     {% endif %}
 
-    {% if user.login == 'SYSTEM' and user.login not in chat.members %}
+    {% if user.login == 'SYSTEM' and user.id not in chat.members %}
         <span class="alert">Вы не состоите в этот чате</span>
     {% endif %}
 
