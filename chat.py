@@ -5,6 +5,7 @@ class Chat(BaseUnit):
     def __init__(self, id_, name, members, token=None):
         self.id = id_
         self.members = members
+        self.members_logins = members
         self.name = name
         self.token = token or generate_rnd_password(30)
         self.show_name = None
@@ -72,7 +73,7 @@ class Chat(BaseUnit):
         if cur.fetchall():
             cur.execute(f'''
                 UPDATE chats SET
-                Name = '{self.name.replace("'", "''").replace('"', '""')}',
+                Name = '{self.name.replace("'", "''")}',
                 Token = {self.token!r}
                 WHERE Id = {self.id}
             ''')
@@ -132,7 +133,6 @@ class Chat(BaseUnit):
 
             return chat
         except TypeError as e:
-            print('A', e.args)
             return None
 
     @staticmethod

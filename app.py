@@ -140,7 +140,7 @@ def page_index():
         user.aliases = user.get_aliases()
         chats = user.get_chats()
         for chat in chats:
-            chat.members = [User.find_by_id(i).login for i in chat.members]
+            chat.members_logins = [User.find_by_id(i).login for i in chat.members]
         return render_template(
             'index.html',
             user=user,
@@ -827,7 +827,7 @@ def get_dialogs_div():
         return '<div class="need-update"></div>'
     chats = user.get_chats()
     for chat in chats:
-        chat.members = [User.find_by_id(i).login for i in chat.members]
+        chat.members_logins = [User.find_by_id(i).login for i in chat.members]
     return render_template('dialogs-div.html', chats=chats, user=user)
 
 
