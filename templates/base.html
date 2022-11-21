@@ -21,13 +21,32 @@
                 <a href="{{ url_for('page_index') }}" class="title">{{ title }}</a>
                 <nav>
                     <!--<a href="{ url_for('form') }}">Друзья</a>-->
-                    <a href="{{ url_for('page_index') }}">Сообщения</a>
-                    <a href="{{ url_for('page_about_app') }}">Приложение</a>
-                    {% if user %}
-                        <a href="{{ url_for('page_settings') }}"><b>{{ user.login }} [Настройки]</b></a>
-                    {% else %}
-                        <a href="{{ url_for('page_auth') }}"><b></b>Гость</a>
-                    {% endif %}
+                    <nav class="menu">
+                        <ul>
+                            <li><a href="{{ url_for('page_index') }}">Сообщения</a></li>
+                            <li><a href="{{ url_for('page_about_app') }}">Приложение</a></li>
+                            {% if user %}
+                                <li><a href="{{ url_for('page_index') }}"><b>{{ user.login }}<!-- [Настройки]--></b></a>
+                                    <ul>
+                                        <li><a href="{{ url_for('page_change_password') }}">Сменить пароль</a></li>
+                                        <li><a href="{{ url_for('page_change_login') }}">Сменить логин</a></li>
+                                        <li><a href="{{ url_for('page_change_keyword') }}">Сменить кодовое слово</a></li>
+                                        <li><a href="{{ url_for('page_change_token') }}">Выйти на всех устройствах</a></li>
+                                        <li><a href="{{ url_for('page_remove_account') }}">Удалить аккаунт</a></li>
+                                        <li><a href="{{ url_for('page_logout') }}">Выйти из аккаунта</a></li>
+                                    </ul>
+                                </li>
+                            {% else %}
+                                <li><a href="{{ url_for('page_auth') }}"><b>Гость</b></a>
+                                    <ul>
+                                        <li><a href="{{ url_for('page_auth') }}">Авторизация</a></li>
+                                        <li><a href="{{ url_for('page_password_recovery') }}">Восстановить пароль</a></li>
+                                        <li><a href="{{ url_for('page_signup') }}">Регистрация</a></li>
+                                    </ul>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
                 </nav>
             </header>
             <main>

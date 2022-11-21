@@ -150,15 +150,6 @@ def page_index():
         )
 
 
-@app.route('/settings')
-def page_settings():
-    return render_template(
-        'settings.html',
-        user=User.get_from_cookies(request),
-        demo_mode=DEMO_MODE
-    )
-
-
 @app.route('/logout')
 def page_logout():
     resp = redirect('/')
@@ -222,6 +213,73 @@ def page_change_password():
         return redirect('/')
 
 
+@app.route('/change-login', methods=['GET', 'POST'])
+def page_change_login():
+    if request.method == 'GET':
+        return render_template(
+            "form.html",
+            form=forms['change_login'],
+            user=User.get_from_cookies(request),
+            demo_mode=DEMO_MODE
+        )
+    else:
+        password = request.form['password']
+        new_login = request.form['new_login']
+
+        user = User.get_from_cookies(request)
+        if user.password != password:
+            flash('Пароль не верен', 'error')
+            return render_template(
+                "form.html",
+                form=forms['change_login'](password, new_login),
+                user=user,
+                demo_mode=DEMO_MODE
+            )
+        if ';' in new_login:
+            flash('Точка с запятой не должна присутствовать в логине', 'error')
+            return render_template(
+                "form.html",
+                form=forms['change_login'](password, new_login),
+                user=user,
+                demo_mode=DEMO_MODE
+            )
+        user.login = new_login
+        user.write_to_db()
+
+        flash('Логин успешно изменён', 'success')
+        return redirect('/')
+
+
+@app.route('/change-keyword', methods=['GET', 'POST'])
+def page_change_keyword():
+    if request.method == 'GET':
+        return render_template(
+            "form.html",
+            form=forms['change_keyword'],
+            user=User.get_from_cookies(request),
+            demo_mode=DEMO_MODE
+        )
+    else:
+        password = request.form['password']
+        new_keyword = request.form['new_keyword']
+
+        user = User.get_from_cookies(request)
+        if user.password != password:
+            flash('Пароль не верен', 'error')
+            return render_template(
+                "form.html",
+                form=forms['change_keyword'](password, new_keyword),
+                user=user,
+                demo_mode=DEMO_MODE
+            )
+
+        user.keyword = new_keyword
+        user.write_to_db()
+
+        flash('Логин успешно изменён', 'success')
+        return redirect('/')
+
+
 @app.route('/password_recovery', methods=['GET', 'POST'])
 def page_password_recovery():
     if request.method == 'GET':
@@ -265,6 +323,11 @@ def page_password_recovery():
         user.save_to_cookies(resp)
         return resp
 
+
+@app.route('/password-recovery-message')
+def page_recover_password_message():
+    return 'IN_WORK'
+    # TODO
 
 # noinspection PyUnusedLocal
 @app.errorhandler(404)

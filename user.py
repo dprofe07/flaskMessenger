@@ -83,7 +83,7 @@ class User(BaseUnit):
             cur.execute(
                 f"""UPDATE users 
                 SET 
-                Login = '{self.login.replace("'", "''")}'
+                Login = '{self.login.replace("'", "''")}',
                 Password = '{self.password.replace("'", "''")}',
                 Keyword = '{self.keyword.replace("'", "''")}', 
                 Token = {self.token!r}

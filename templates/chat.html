@@ -37,19 +37,21 @@
                     </ul>
                 </li>
 
-                <li><a href="#2">Приглашение</a><!--TODO add invite-->
+                <li><a href="#">Приглашение</a>
                     <ul>
                         <li><a href="{{ url_for('chat_command_make_invite_code', chat_id=chat.id) }}">Сгенерировать</a></li>
                         <li><a href="{{ url_for('chat_command_reset_invite_code', chat_id=chat.id) }}">Сбросить</a></li>
                     </ul>
                 </li>
 
-                <li><a href="#4">Пользователи</a><!--TODO add members-->
+                <li><a href="#">Пользователи</a>
                     <ul>
                         <li><a href="javascript:command_add_user()">Добавить</a></li>
                         <li><a href="javascript:command_remove_user()">Удалить</a></li>
                         <li><a href="javascript:command_make_user_admin()">Сделать администратором</a></li>
                         <li><a href="javascript:command_remove_admin()">Убрать администратора</a></li>
+                        <li><a href="#">Список администаторов</a></li> <!--TODO-->
+                        <li><a href="#">Список пользователей</a></li><!--TODO-->
                     </ul>
                 </li>
             </ul>

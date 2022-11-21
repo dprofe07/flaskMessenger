@@ -70,5 +70,13 @@ forms = {
         Option('Новый пароль', 'password', input_type='password'),
         Option('Новый пароль ещё раз', 'password2', input_type='password')
     ], None, 'Смена пароля', 'Сменить'
-    )
+    ),
+    'change_login': Form([
+        Option('Пароль', 'password', input_type='password'),
+        Option('Новый логин', 'new_login')
+    ], None, 'Смена логина', 'Сменить'),
+    'change_keyword': Form([
+        Option('Пароль', 'password', input_type='password'),
+        Option('Новое ключевое слово', 'new_keyword')
+    ], None, 'Смена ключевого слова', 'Сменить')
 }
