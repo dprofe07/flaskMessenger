@@ -132,7 +132,7 @@ class Chat(BaseUnit):
                 chat = None
 
             return chat
-        except TypeError as e:
+        except TypeError:
             return None
 
     @staticmethod

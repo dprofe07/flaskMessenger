@@ -2,7 +2,11 @@
 
 {% set title = "Приложение" %}
 
+{% block content_mobile %}
 {% block content %}
-    <p>Здесь вы можете скачать приложение для своего android-устройства</p>
-    <p><a href="{{ url_for('page_download_app') }}">Скачать</a></p>
+    <p style="color: red; font-size: 2em;">В данный момент приложение НЕ РАБОТАЕТ. Приносим извинения за доставленные неудобства</p>
+    <!--<p>Здесь вы можете скачать приложение для своего android-устройства</p>
+    <p><a href="{{ url_for('page_download_app') }}">Скачать</a></p>-->
+    <!--TODO-->
+{% endblock %}
 {% endblock %}

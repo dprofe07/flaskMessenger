@@ -146,13 +146,13 @@ main, footer {
     text-align: center;
 }
 
-nav.menu {
+nav.menu-left, nav.menu-right {
     position: relative;
     display: inline-block;
     padding: 0;
 }
 
-nav.menu li {
+nav.menu-left li, nav.menu-right li {
     background-color: #e3e3e3;
     display: inline-block;
     margin: 0;
@@ -160,37 +160,49 @@ nav.menu li {
     border-radius: 15px;
 }
 
-nav.menu ul {
+nav.menu-left ul, nav.menu-right ul {
     list-style: none;
     padding: 0;
     margin: 0;
 }
 
-nav.menu ul ul {
+nav.menu-left ul ul {
+    display: none;
+    position: absolute;
+    margin: 0;
+    z-index: 1;
+    right: 0;
+}
+
+nav.menu-right ul ul {
     display: none;
     position: absolute;
     margin: 0;
     z-index: 1;
 }
 
-nav.menu ul ul li {
+nav.menu-left ul ul li, nav.menu-right ul ul li {
     display: list-item;
     position: relative;
     float: none;
 }
 
-nav.menu ul ul ul {
+nav.menu-left ul ul ul {
     top: 0;
-    left: 100%;
+    right: 100%;
 }
 
+nav.menu-right ul ul ul {
+    top: 0;
+    right: 100%;
+}
 
-nav.menu ul ul ul li {
+nav.menu-left ul ul ul li, nav.menu-right ul ul ul li {
     top: 100%;
 }
 
 
-nav.menu a {
+nav.menu-left a, nav.menu-right a {
     display: block;
     padding: 10px 15px;
     color: black;
@@ -199,21 +211,44 @@ nav.menu a {
     border: #999898 solid 2px;
 }
 
-nav.menu ul ul a {
+nav.menu-left ul ul a, nav.menu-right ul ul a {
     border-top: none;
 }
 
-nav.menu a:hover {
+nav.menu-left a:hover, nav.menu-right a:hover {
     text-decoration: none;
     color: black;
     background-color: #d7d7d7;
 }
 
-nav.menu a:active {
+nav.menu-left a:active, nav.menu-right a:active {
     background-color: #c2c2c2;
 }
 
 
-nav.menu ul li:hover > ul {
+nav.menu-left ul li:hover > ul, nav.menu-right ul li:hover > ul {
     display: inherit;
+}
+
+.btn-menu img {
+    width: 50px;
+    height: 50px;
+}
+
+
+@media (max-width: 700px) {
+    .desktop {
+        display: none;
+    }
+
+    header {
+        height: fit-content;
+        margin: 5px;
+    }
+}
+
+@media (min-width: 700px) {
+    .mobile {
+        display: none;
+    }
 }

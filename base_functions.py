@@ -303,3 +303,4 @@ class BaseFunctions:
                 f'Чат очищен пользователем {curr_user.login}',
                 curr_chat.id
             ))
+

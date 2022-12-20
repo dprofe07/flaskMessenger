@@ -1,6 +1,8 @@
 import sqlite3
 from random import choice
 
+from runtime_storage import storage
+
 
 def generate_rnd_password(length: int) -> str:
     return ''.join(
@@ -10,11 +12,9 @@ def generate_rnd_password(length: int) -> str:
 
 
 class BaseUnit:
-    database = 'users.db'
-
     @staticmethod
     def create_tables():
-        db_conn = sqlite3.connect(BaseUnit.database)
+        db_conn = sqlite3.connect(storage.database)
         cur = db_conn.cursor()
 
         cur.execute('''
@@ -82,7 +82,7 @@ class BaseUnit:
     @staticmethod
     def connect_to_db():
         BaseUnit.create_tables()
-        db_conn = sqlite3.connect(BaseUnit.database)
+        db_conn = sqlite3.connect(storage.database)
         return db_conn
 
     def write_to_db(self):

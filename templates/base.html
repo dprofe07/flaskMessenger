@@ -15,49 +15,51 @@
     </head>
 
     <body>
-        <div class="page">
-            <header>
-                <!--<a href="{{ url_for('page_index') }}" class="logo local">LOGO</a>-->
-                <a href="{{ url_for('page_index') }}" class="title">{{ title }}</a>
-                <nav>
-                    <!--<a href="{ url_for('form') }}">Друзья</a>-->
-                    <nav class="menu">
-                        <ul>
-                            <li><a href="{{ url_for('page_index') }}">Сообщения</a></li>
-                            <li><a href="{{ url_for('page_about_app') }}">Приложение</a></li>
-                            {% if user %}
-                                <li><a href="{{ url_for('page_index') }}"><b>{{ user.login }}<!-- [Настройки]--></b></a>
-                                    <ul>
-                                        <li><a href="{{ url_for('page_change_password') }}">Сменить пароль</a></li>
-                                        <li><a href="{{ url_for('page_change_login') }}">Сменить логин</a></li>
-                                        <li><a href="{{ url_for('page_change_keyword') }}">Сменить кодовое слово</a></li>
-                                        <li><a href="{{ url_for('page_change_token') }}">Выйти на всех устройствах</a></li>
-                                        <li><a href="{{ url_for('page_remove_account') }}">Удалить аккаунт</a></li>
-                                        <li><a href="{{ url_for('page_logout') }}">Выйти из аккаунта</a></li>
-                                    </ul>
-                                </li>
-                            {% else %}
-                                <li><a href="{{ url_for('page_auth') }}"><b>Гость</b></a>
-                                    <ul>
-                                        <li><a href="{{ url_for('page_auth') }}">Авторизация</a></li>
-                                        <li><a href="{{ url_for('page_password_recovery') }}">Восстановить пароль</a></li>
-                                        <li><a href="{{ url_for('page_signup') }}">Регистрация</a></li>
-                                    </ul>
-                                </li>
-                            {% endif %}
-                        </ul>
+        <div class="desktop">
+            <div class="page">
+                <header>
+                    <!--<a href="{{ url_for('page_index') }}" class="logo local">LOGO</a>-->
+                    <a href="{{ url_for('page_index') }}" class="title">{{ title }}</a>
+                    <nav>
+                        <!--<a href="{ url_for('form') }}">Друзья</a>-->
+                        <nav class="menu-left">
+                            <ul>
+                                <li><a href="{{ url_for('page_index') }}">Сообщения</a></li>
+                                <li><a href="{{ url_for('page_about_app') }}">Приложение</a></li>
+                                {% if user %}
+                                    <li><a href="{{ url_for('page_index') }}"><b>{{ user.login }}<!-- [Настройки]--></b></a>
+                                        <ul>
+                                            <li><a href="{{ url_for('page_change_password') }}">Сменить пароль</a></li>
+                                            <li><a href="{{ url_for('page_change_login') }}">Сменить логин</a></li>
+                                            <li><a href="{{ url_for('page_change_keyword') }}">Сменить кодовое слово</a></li>
+                                            <li><a href="{{ url_for('page_change_token') }}">Выйти на всех устройствах</a></li>
+                                            <li><a href="{{ url_for('page_remove_account') }}">Удалить аккаунт</a></li>
+                                            <li><a href="{{ url_for('page_logout') }}">Выйти из аккаунта</a></li>
+                                        </ul>
+                                    </li>
+                                {% else %}
+                                    <li><a href="{{ url_for('page_auth') }}"><b>Гость</b></a>
+                                        <ul>
+                                            <li><a href="{{ url_for('page_auth') }}">Авторизация</a></li>
+                                            <li><a href="{{ url_for('page_password_recovery') }}">Восстановить пароль</a></li>
+                                            <li><a href="{{ url_for('page_signup') }}">Регистрация</a></li>
+                                        </ul>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
                     </nav>
-                </nav>
-            </header>
-            <main>
-                {% block content %}
-                {% endblock %}
+                </header>
+                <main>
+                    {% block content %}
+                    {% endblock %}
 
-            </main>
-            <footer>
-                <span>Dmitry Profe. All rights reserved.</span>
-            </footer>
-        </div>
+                </main>
+                <footer>
+                    <span>Dmitry Profe. All rights reserved.</span>
+                </footer>
+            </div>
+
             <div class="flashes-container">
                 {% if demo_mode %}
                     <span class="flash flash-warning">Внимание! Сервер работает в тестовом режиме.
@@ -67,6 +69,69 @@
                     <span class="flash flash-{{ cat }}">{{ msg }}</span>
                 {% endfor %}
             </div>
+        </div>
+
+        <div class="mobile">
+            <div class="page">
+                <header>
+                    <!--<a href="{{ url_for('page_index') }}" class="logo local">LOGO</a>-->
+                    <a href="{{ url_for('page_index') }}" class="title">{{ title }}</a>
+                    <nav>
+                        <!--<a href="{ url_for('form') }}">Друзья</a>-->
+                        <nav class="menu-left" style="margin-right: 10px;">
+                            <ul>
+                                <li style="min-width: 0;">
+                                    <a href="#" class="btn-menu"><img src="{{ url_for('static', filename='menu.png') }}" alt="Меню"/></a>
+                                    <ul>
+                                        <li><a href="{{ url_for('page_index') }}">Сообщения</a></li>
+                                        <li><a href="{{ url_for('page_about_app') }}">Приложение</a></li>
+                                        {% if user %}
+                                            <li><a href="#"><b>{{ user.login }}<!-- [Настройки]--></b></a>
+                                                <ul>
+                                                    <li><a href="{{ url_for('page_change_password') }}">Сменить пароль</a></li>
+                                                    <li><a href="{{ url_for('page_change_login') }}">Сменить логин</a></li>
+                                                    <li><a href="{{ url_for('page_change_keyword') }}">Сменить кодовое слово</a></li>
+                                                    <li><a href="{{ url_for('page_change_token') }}">Выйти на всех устройствах</a></li>
+                                                    <li><a href="{{ url_for('page_remove_account') }}">Удалить аккаунт</a></li>
+                                                    <li><a href="{{ url_for('page_logout') }}">Выйти из аккаунта</a></li>
+                                                </ul>
+                                            </li>
+                                        {% else %}
+                                            <li><a href="#"><b>Гость</b></a>
+                                                <ul>
+                                                    <li><a href="{{ url_for('page_auth') }}">Авторизация</a></li>
+                                                    <li><a href="{{ url_for('page_password_recovery') }}">Восстановить пароль</a></li>
+                                                    <li><a href="{{ url_for('page_signup') }}">Регистрация</a></li>
+                                                </ul>
+                                            </li>
+                                        {% endif %}
+                                    </ul>
+                                </li>
+                            </ul>
+                        </nav>
+                    </nav>
+                </header>
+                <main>
+                    {% block content_mobile %}
+                    {% endblock %}
+
+                </main>
+                <footer>
+                    <span>Dmitry Profe. All rights reserved.</span>
+                </footer>
+            </div>
+
+            <div class="flashes-container">
+                {% if demo_mode %}
+                    <span class="flash flash-warning">Внимание! Сервер работает в тестовом режиме.
+                        Никакие данные не будут перенесены в стандартный режим. Приносим извинения за доставленные неудобства</span>
+                {% endif %}
+                {% for cat, msg in get_flashed_messages(True) %}
+                    <span class="flash flash-{{ cat }}">{{ msg }}</span>
+                {% endfor %}
+            </div>
+        </div>
+
         <script src="{{ url_for('static', filename='script.js') }}"></script>
 
 

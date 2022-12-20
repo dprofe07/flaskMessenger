@@ -13,23 +13,12 @@ from base_unit import BaseUnit
 from chat import Chat
 from forms import forms
 from message import Message
+from runtime_storage import storage
 from user import User
 
-try:
-    with open('/SERVER/databases/flaskMessenger/demo_mode.option') as f:
-        DEMO_MODE = (f.readline().replace('\n', '') == 'on')
-except FileNotFoundError:
-    DEMO_MODE = False
-    with open('/SERVER/databases/flaskMessenger/demo_mode.option', 'w') as f:
-        f.write('off')
 
-app = Flask(__name__)
+app = Flask(__name__, storage.prefix + '/static')
 io = SocketIO(app, cors_allowed_origins='*')
-
-if DEMO_MODE:
-    BaseUnit.database = '/SERVER/databases/flaskMessenger/users_db_demo.db'
-else:
-    BaseUnit.database = '/SERVER/databases/flaskMessenger/users_db.db'
 
 app.config['SECRET_KEY'] = 'fdgdfgdfggf786hfg6hfg6h7f'
 
@@ -128,13 +117,13 @@ def handle_message(data):
         socket_send_message(new_message)
 
 
-@app.route('/')
+@app.route(storage.prefix + '/')
 def page_index():
     user = User.get_from_cookies(request)
     if user is None:
         return render_template(
             'guest.html',
-            demo_mode=DEMO_MODE
+            storage=storage,
         )
     else:
         user.aliases = user.get_aliases()
@@ -146,44 +135,44 @@ def page_index():
             user=user,
             hide_home_link=True,
             chats=chats,
-            demo_mode=DEMO_MODE
+            storage=storage,
         )
 
 
-@app.route('/logout')
+@app.route(storage.prefix + '/logout')
 def page_logout():
-    resp = redirect('/')
+    resp = redirect(url_for('page_index'))
     User.remove_from_cookies(resp)
     return resp
 
 
-@app.route('/remove_account')
+@app.route(storage.prefix + '/remove_account')
 def page_remove_account():
     return render_template(
         'remove_account.html',
         user=User.get_from_cookies(request),
-        demo_mode=DEMO_MODE
+        storage=storage
     )
 
 
-@app.route('/remove_account_confirmed')
+@app.route(storage.prefix + '/remove_account_confirmed')
 def page_remove_account_confirmed():
     user = User.get_from_cookies(request)
-    resp = redirect('/')
+    resp = redirect(url_for('page_index'))
     if user is not None:
         user.remove_from_cookies(resp)
         user.remove_from_db()
     return resp
 
 
-@app.route('/change_password', methods=['GET', 'POST'])
+@app.route(storage.prefix + '/change_password', methods=['GET', 'POST'])
 def page_change_password():
     if request.method == 'GET':
         return render_template(
             "form.html",
             form=forms['change_password'],
             user=User.get_from_cookies(request),
-            demo_mode=DEMO_MODE
+            storage=storage,
         )
     else:
         old_password = request.form['old_password']
@@ -196,7 +185,7 @@ def page_change_password():
                 "form.html",
                 form=forms['change_password'](old_password, password, password2),
                 user=User.get_from_cookies(request),
-                demo_mode=DEMO_MODE
+                storage=storage,
             )
         if password != password2:
             flash('Пароли не совпадают', 'error')
@@ -204,23 +193,23 @@ def page_change_password():
                 "form.html",
                 form=forms['change_password'](old_password, password),
                 user=User.get_from_cookies(request),
-                demo_mode=DEMO_MODE
+                storage=storage,
             )
 
         BaseFunctions.change_password(user, password)
 
         flash('Пароль успешно изменён', 'success')
-        return redirect('/')
+        return redirect(url_for('page_index'))
 
 
-@app.route('/change-login', methods=['GET', 'POST'])
+@app.route(storage.prefix + '/change-login', methods=['GET', 'POST'])
 def page_change_login():
     if request.method == 'GET':
         return render_template(
             "form.html",
             form=forms['change_login'],
             user=User.get_from_cookies(request),
-            demo_mode=DEMO_MODE
+            storage=storage,
         )
     else:
         password = request.form['password']
@@ -233,7 +222,7 @@ def page_change_login():
                 "form.html",
                 form=forms['change_login'](password, new_login),
                 user=user,
-                demo_mode=DEMO_MODE
+                storage=storage,
             )
         if ';' in new_login:
             flash('Точка с запятой не должна присутствовать в логине', 'error')
@@ -241,23 +230,23 @@ def page_change_login():
                 "form.html",
                 form=forms['change_login'](password, new_login),
                 user=user,
-                demo_mode=DEMO_MODE
+                storage=storage,
             )
         user.login = new_login
         user.write_to_db()
 
         flash('Логин успешно изменён', 'success')
-        return redirect('/')
+        return redirect(url_for('page_index'))
 
 
-@app.route('/change-keyword', methods=['GET', 'POST'])
+@app.route(storage.prefix + '/change-keyword', methods=['GET', 'POST'])
 def page_change_keyword():
     if request.method == 'GET':
         return render_template(
             "form.html",
             form=forms['change_keyword'],
             user=User.get_from_cookies(request),
-            demo_mode=DEMO_MODE
+            storage=storage,
         )
     else:
         password = request.form['password']
@@ -270,24 +259,24 @@ def page_change_keyword():
                 "form.html",
                 form=forms['change_keyword'](password, new_keyword),
                 user=user,
-                demo_mode=DEMO_MODE
+                storage=storage,
             )
 
         user.keyword = new_keyword
         user.write_to_db()
 
         flash('Логин успешно изменён', 'success')
-        return redirect('/')
+        return redirect(url_for('page_index'))
 
 
-@app.route('/password_recovery', methods=['GET', 'POST'])
+@app.route(storage.prefix + '/password_recovery', methods=['GET', 'POST'])
 def page_password_recovery():
     if request.method == 'GET':
         return render_template(
             'form.html',
             form=forms['password_recovery'],
             user=User.get_from_cookies(request),
-            demo_mode=DEMO_MODE
+            storage=storage,
         )
     else:
         login = request.form['login']
@@ -300,7 +289,7 @@ def page_password_recovery():
                 'form.html',
                 form=forms['password_recovery'](login, keyword),
                 user=User.get_from_cookies(request),
-                demo_mode=DEMO_MODE
+                storage=storage,
             )
         if user.keyword != keyword:
             flash(f'Неверное ключевое слово', 'error')
@@ -308,7 +297,7 @@ def page_password_recovery():
                 'form.html',
                 form=forms['password_recovery'](login, keyword),
                 user=User.get_from_cookies(request),
-                demo_mode=DEMO_MODE
+                storage=storage,
             )
         password = user.password
         flash('Успешно. Посмотрите ваш пароль в чате SYSTEM', 'success')
@@ -319,12 +308,12 @@ def page_password_recovery():
                 if i.name == 'DIALOG_BETWEEN/SYSTEM;' + user.login
             ][0].id
         )
-        resp = redirect('/')
+        resp = redirect(url_for('page_index'))
         user.save_to_cookies(resp)
         return resp
 
 
-@app.route('/password-recovery-message')
+@app.route(storage.prefix + '/password-recovery-message')
 def page_recover_password_message():
     return 'IN_WORK'
     # TODO
@@ -336,8 +325,8 @@ def page_err404(e):
         'error.html',
         msg='Страница не найдена',
         user=User.get_from_cookies(request),
-        demo_mode=DEMO_MODE
-    )
+        storage=storage,
+    ), 404
 
 
 # noinspection PyUnusedLocal
@@ -348,21 +337,21 @@ def page_err500(e):
         msg='Ошибка 500. Сообщите, пожалуйста, действия, которые привели к этой ошибке,'
             ' в сообщениях пользователю SYSTEM',
         user=User.get_from_cookies(request),
-        demo_mode=DEMO_MODE
-    )
+        storage=storage,
+    ), 500
 
 
-@app.route('/auth', methods=['POST', 'GET'])
+@app.route(storage.prefix + '/auth', methods=['POST', 'GET'])
 def page_auth():
     if User.get_from_cookies(request) is not None:
-        return redirect('/')
+        return redirect(url_for('page_index'))
 
     if request.method == 'GET':
         return render_template(
             'form.html',
             form=forms['login'],
             user=User.get_from_cookies(request),
-            demo_mode=DEMO_MODE
+            storage=storage,
         )
     else:
         login = request.form['login']
@@ -372,7 +361,7 @@ def page_auth():
             if password == user.password:
                 flash('Вы успешно вошли', 'success')
 
-                resp = redirect('/')
+                resp = redirect(url_for('page_index'))
                 User.save_to_cookies(user, resp)
 
                 return resp
@@ -382,7 +371,7 @@ def page_auth():
                     'form.html',
                     form=forms['login'](login, password),
                     user=User.get_from_cookies(request),
-                    demo_mode=DEMO_MODE
+                    storage=storage,
                 )
         else:
             flash(f'Пользователь с именем "{login}" не найден.', 'error')
@@ -390,20 +379,20 @@ def page_auth():
                 'form.html',
                 form=forms['login'](login, password),
                 user=User.get_from_cookies(request),
-                demo_mode=DEMO_MODE
+                storage=storage,
             )
 
 
-@app.route('/signup', methods=['POST', 'GET'])
+@app.route(storage.prefix + '/signup', methods=['POST', 'GET'])
 def page_signup():
     if User.get_from_cookies(request) is not None:
-        return redirect('/')
+        return redirect(url_for(page_index))
     if request.method == 'GET':
         return render_template(
             'form.html',
             form=forms['register'],
             user=User.get_from_cookies(request),
-            demo_mode=DEMO_MODE
+            storage=storage,
         )
     else:
         login = request.form['login']
@@ -417,7 +406,7 @@ def page_signup():
                 'form.html',
                 form=forms['register'](login, password, password2, keyword),
                 user=User.get_from_cookies(request),
-                demo_mode=DEMO_MODE
+                storage=storage,
             )
         elif password != password2:
             flash(f'Пароли не совпадают', 'error')
@@ -425,7 +414,7 @@ def page_signup():
                 'form.html',
                 form=forms['register'](login, password, '', keyword),
                 user=User.get_from_cookies(request),
-                demo_mode=DEMO_MODE
+                storage=storage,
             )
         elif User.find_by_login_(login) is not None:
             flash(f'Пользователь с именем "{login}" уже существует.', 'error')
@@ -433,7 +422,7 @@ def page_signup():
                 'form.html',
                 form=forms['register'](login, password, password2, keyword),
                 user=User.get_from_cookies(request),
-                demo_mode=DEMO_MODE
+                storage=storage,
             )
         else:
             user = User(-1, login, password, keyword)
@@ -441,24 +430,24 @@ def page_signup():
 
             flash('Вы успешно зарегистрированы', 'success')
 
-            resp = redirect('/')
+            resp = redirect(url_for('page_index'))
             user.save_to_cookies(resp)
             return resp
 
 
-@app.route('/chat/<id_>')
+@app.route(storage.prefix + '/chat/<id_>')
 def page_chat(id_):
     curr_user = User.get_from_cookies(request)
     if curr_user is None:
         flash('Войдите в аккаунт, чтобы общаться', 'error')
-        return redirect('/')
+        return redirect(url_for('page_index'))
     curr_chat = Chat.from_id(id_)
     if curr_chat is None:
         flash('Чат не найден в базе данных', 'error')
-        return redirect('/')
+        return redirect(url_for('page_index'))
     if curr_user.id not in curr_chat.members and curr_user.login != 'SYSTEM':
         flash('Вступите в чат, чтобы просмотреть его', 'error')
-        return redirect('/')
+        return redirect(url_for('page_index'))
     messages = Message.get_messages_from_chat(curr_chat.id)
 
     messages.sort(key=lambda i: i.time)
@@ -477,30 +466,30 @@ def page_chat(id_):
         user=curr_user,
         messages=messages,
         chat=curr_chat,
-        demo_mode=DEMO_MODE
+        storage=storage,
     )
 
 
-@app.route('/change-token')
+@app.route(storage.prefix + '/change-token')
 def page_change_token():
     curr_user = User.get_from_cookies(request)
     if curr_user is None:
-        return redirect('/')
+        return redirect(url_for('page_index'))
     curr_user.token = User.generate_new_token()
     curr_user.write_to_db()
-    resp = redirect('/')
+    resp = redirect(url_for('page_index'))
     curr_user.save_to_cookies(resp)
     flash('Вы вышли на всех устройствах', 'success')
     return resp
 
 
-@app.route('/new-chat', methods=['POST'])
+@app.route(storage.prefix + '/new-chat', methods=['POST'])
 def page_new_chat():
     curr_user = User.get_from_cookies(request)
 
     if curr_user is None:
         flash('Войдите в аккаунт, чтобы общаться', 'error')
-        return redirect('/')
+        return redirect(url_for('page_index'))
     chat_name = request.form['chat-name']
     if 'DIALOG_BETWEEN' in chat_name:
         flash(f'Недопустимое название чата: "{chat_name}"', 'error')
@@ -510,21 +499,21 @@ def page_new_chat():
     return redirect(f'/chat/{curr_chat.id}')
 
 
-@app.route('/new-dialog', methods=['POST'])
+@app.route(storage.prefix + '/new-dialog', methods=['POST'])
 def page_new_dialog():
     curr_user = User.get_from_cookies(request)
 
     if curr_user is None:
         flash('Войдите в аккаунт, чтобы общаться', 'error')
-        return redirect('/')
+        return redirect(url_for('page_index'))
     login = request.form['login']
     if login == curr_user.login:
         flash('Нельзя создать диалог с самим собой. Используйте чат.', 'error')
-        return redirect('/')
+        return redirect(url_for('page_index'))
     companion_user = User.find_by_login_(login)
     if companion_user is None:
         flash('Пользователь не найден', 'error')
-        return redirect('/')
+        return redirect(url_for('page_index'))
 
     curr_chat = Chat(-1, f'DIALOG_BETWEEN/{login};{curr_user.login}', [curr_user.id, login])
     curr_chat.write_to_db()
@@ -536,11 +525,10 @@ def page_new_dialog():
         f'Пользователь {curr_user.login} создал диалог с пользователем {login}',
         curr_chat.id
     )
+    return redirect(url_for('page_chat', id_=curr_chat.id))
 
-    return redirect(f'/chat/{curr_chat.id}')
 
-
-@app.route('/join-chat')
+@app.route(storage.prefix + '/join-chat')
 def page_join_chat():
     code = request.args.get('code')
     if code.startswith('http'):
@@ -550,12 +538,12 @@ def page_join_chat():
 
     if curr_user is None:
         flash('Войдите на сайт чтобы использовать коды-приглашения', 'error')
-        return redirect('/')
+        return redirect(url_for('page_index'))
 
     curr_chat = Chat.from_token(code)
     if curr_chat is None:
         flash('Некорректный код-приглашение', 'error')
-        return redirect('/')
+        return redirect(url_for('page_index'))
 
     if curr_user.id in curr_chat.members:
         flash('Вы уже состоите в этом чате')
@@ -567,34 +555,34 @@ def page_join_chat():
             f'Пользователь {curr_user.login} присоединился к чату по коду-приглашению',
             curr_chat.id
         )
-    return redirect(f'/chat/{curr_chat.id}')
+    return redirect(url_for('page_chat', id_=curr_chat.id))
 
 
-@app.route('/download-app')
+@app.route(storage.prefix + '/download-app')
 def page_download_app():
     return send_file('static/messenger_app.apk', as_attachment=True)
 
 
-@app.route('/about-app')
+@app.route(storage.prefix + '/about-app')
 def page_about_app():
     return render_template(
         'about-app.html',
         user=User.get_from_cookies(request),
-        demo_mode=DEMO_MODE
+        storage=storage,
     )
 
 
-@app.route('/make-chat-invite-code/<chat_id>')
+@app.route(storage.prefix + '/make-chat-invite-code/<chat_id>')
 def chat_command_make_invite_code(chat_id):
     user = User.get_from_cookies(request)
     curr_chat = Chat.from_id(chat_id)
 
     if user is None or curr_chat is None:
-        return redirect(f'/chat/{chat_id}')
+        return redirect(url_for('page_chat', id_=chat_id))
 
     if not user.is_admin(curr_chat.id):
         flash('Нужны права администратора', 'error')
-        return redirect(f'/chat/{chat_id}')
+        return redirect(url_for('page_chat', id_=chat_id))
 
     import urllib.parse
     code = curr_chat.token
@@ -606,20 +594,20 @@ def chat_command_make_invite_code(chat_id):
         )
     )
 
-    return redirect(f'/chat/{chat_id}')
+    return redirect(url_for('page_chat', id_=chat_id))
 
 
-@app.route('/reset-chat-invite-code/<chat_id>')
+@app.route(storage.prefix + '/reset-chat-invite-code/<chat_id>')
 def chat_command_reset_invite_code(chat_id):
     user = User.get_from_cookies(request)
     curr_chat = Chat.from_id(chat_id)
 
     if user is None or curr_chat is None:
-        return redirect(f'/chat/{chat_id}')
+        return redirect(url_for('page_chat', id_=chat_id))
 
     if not user.is_admin(curr_chat.id):
         flash('Нужны права администратора', 'error')
-        return redirect(f'/chat/{chat_id}')
+        return redirect(url_for('page_chat', id_=chat_id))
 
     curr_chat.change_token()
     socket_send_message(
@@ -629,10 +617,10 @@ def chat_command_reset_invite_code(chat_id):
         )
     )
 
-    return redirect(f'/chat/{chat_id}')
+    return redirect(url_for('page_chat', id_=chat_id))
 
 
-@app.route('/add-user-to-chat/<chat_id>')
+@app.route(storage.prefix + '/add-user-to-chat/<chat_id>')
 def chat_command_add_user(chat_id):
     user = User.get_from_cookies(request)
     curr_chat = Chat.from_id(chat_id)
@@ -644,11 +632,11 @@ def chat_command_add_user(chat_id):
         flash(f'Пользователь с логином {login} не найден', 'error')
 
     if user is None or curr_chat is None or adding_user is None:
-        return redirect(f'/chat/{chat_id}')
+        return redirect(url_for('page_chat', id_=chat_id))
 
     if not user.is_admin(curr_chat.id):
         flash('Нужны права администратора', 'error')
-        return redirect(f'/chat/{chat_id}')
+        return redirect(url_for('page_chat', id_=chat_id))
 
     if adding_user.id in curr_chat.members:
         flash('Пользователь уже добавлен', 'warning')
@@ -663,10 +651,10 @@ def chat_command_add_user(chat_id):
             )
         )
 
-    return redirect(f'/chat/{chat_id}')
+    return redirect(url_for('page_chat', id_=chat_id))
 
 
-@app.route('/make-user-admin/<chat_id>')
+@app.route(storage.prefix + '/make-user-admin/<chat_id>')
 def chat_command_make_admin(chat_id):
     user = User.get_from_cookies(request)
     curr_chat = Chat.from_id(chat_id)
@@ -678,11 +666,11 @@ def chat_command_make_admin(chat_id):
         flash(f'Пользователь с логином {login} не найден', 'error')
 
     if user is None or curr_chat is None or new_admin is None:
-        return redirect(f'/chat/{chat_id}')
+        return redirect(url_for('page_chat', id_=chat_id))
 
     if not user.is_admin(curr_chat.id):
         flash('Нужны права администратора', 'error')
-        return redirect(f'/chat/{chat_id}')
+        return redirect(url_for('page_chat', id_=chat_id))
 
     if new_admin.id in curr_chat.get_admins():
         flash('Пользователь уже администратор', 'warning')
@@ -697,10 +685,10 @@ def chat_command_make_admin(chat_id):
             )
         )
 
-    return redirect(f'/chat/{chat_id}')
+    return redirect(url_for('page_chat', id_=chat_id))
 
 
-@app.route('/remove-user-from-chat/<chat_id>')
+@app.route(storage.prefix + '/remove-user-from-chat/<chat_id>')
 def chat_command_remove_user(chat_id):
     user = User.get_from_cookies(request)
     curr_chat = Chat.from_id(chat_id)
@@ -712,15 +700,15 @@ def chat_command_remove_user(chat_id):
         flash(f'Пользователь с логином {login} не найден', 'error')
 
     if user is None or curr_chat is None or deleting_user is None:
-        return redirect(f'/chat/{chat_id}')
+        return redirect(url_for('page_chat', id_=chat_id))
 
     if not user.is_admin(curr_chat.id):
         flash('Нужны права администратора', 'error')
-        return redirect(f'/chat/{chat_id}')
+        return redirect(url_for('page_chat', id_=chat_id))
 
     if deleting_user.id not in curr_chat.members:
         flash('Пользователь не состоит в чате', 'warning')
-        return redirect(f'/chat/{chat_id}')
+        return redirect(url_for('page_chat', id_=chat_id))
 
     curr_chat.members.remove(deleting_user.id)
     deleting_user.stop_being_admin(curr_chat.id)
@@ -733,10 +721,10 @@ def chat_command_remove_user(chat_id):
         )
     )
 
-    return redirect(f'/chat/{chat_id}')
+    return redirect(url_for('page_chat', id_=chat_id))
 
 
-@app.route('/rename-chat/<chat_id>')
+@app.route(storage.prefix + '/rename-chat/<chat_id>')
 def chat_command_rename_chat(chat_id):
     name = request.args.get('new-name')
 
@@ -745,7 +733,7 @@ def chat_command_rename_chat(chat_id):
     if name is None:
         flash('Новое имя не указано', 'error')
     if user is None or chat is None or name is None:
-        return redirect(f'/chat/{chat_id}')
+        return redirect(url_for('page_chat', id_=chat_id))
 
     socket_send_message(
         Message.send_system_message(
@@ -757,10 +745,10 @@ def chat_command_rename_chat(chat_id):
     chat.name = name
     chat.write_to_db()
 
-    return redirect(f'/chat/{chat_id}')
+    return redirect(url_for('page_chat', id_=chat_id))
 
 
-@app.route('/remove-admin/<chat_id>')
+@app.route(storage.prefix + '/remove-admin/<chat_id>')
 def chat_command_remove_admin(chat_id):
     user = User.get_from_cookies(request)
     curr_chat = Chat.from_id(chat_id)
@@ -772,11 +760,11 @@ def chat_command_remove_admin(chat_id):
         flash(f'Пользователь с логином {login} не найден', 'error')
 
     if user is None or curr_chat is None or old_admin is None:
-        return redirect(f'/chat/{chat_id}')
+        return redirect(url_for('page_chat', id_=chat_id))
 
     elif not user.is_admin(curr_chat.id):
         flash('Нужны права администратора', 'error')
-        return redirect(f'/chat/{chat_id}')
+        return redirect(url_for('page_chat', id_=chat_id))
 
     elif old_admin.id not in curr_chat.get_admins():
         flash('Пользователь не администратор, или не состоит в этом чате', 'warning')
@@ -791,19 +779,19 @@ def chat_command_remove_admin(chat_id):
 
         old_admin.stop_being_admin(curr_chat.id)
 
-    return redirect(f'/chat/{chat_id}')
+    return redirect(url_for('page_chat', id_=chat_id))
 
 
-@app.route('/clear-chat/<chat_id>')
+@app.route(storage.prefix + '/clear-chat/<chat_id>')
 def chat_command_clear_chat(chat_id):
     user = User.get_from_cookies(request)
     curr_chat = Chat.from_id(chat_id)
 
     if user is None or curr_chat is None:
-        return redirect(f'/chat/{chat_id}')
+        return redirect(url_for('page_chat', id_=chat_id))
     if not user.is_admin(curr_chat.id):
         flash('Нужны права администратора', 'error')
-        return redirect(f'/chat/{chat_id}')
+        return redirect(url_for('page_chat', id_=chat_id))
 
     curr_chat.clear_messages()
     socket_send_message(
@@ -813,19 +801,19 @@ def chat_command_clear_chat(chat_id):
         )
     )
 
-    return redirect(f'/chat/{chat_id}')
+    return redirect(url_for('page_chat', id_=chat_id))
 
 
-@app.route('/remove-chat/<chat_id>')
+@app.route(storage.prefix + '/remove-chat/<chat_id>')
 def chat_command_remove_chat(chat_id):
     user = User.get_from_cookies(request)
     curr_chat = Chat.from_id(chat_id)
 
     if user is None or curr_chat is None:
-        return redirect(f'/chat/{chat_id}')
+        return redirect(url_for('page_chat', id_=chat_id))
     if not user.is_admin(curr_chat.id):
         flash('Нужны права администратора', 'error')
-        return redirect(f'/chat/{chat_id}')
+        return redirect(url_for('page_chat', id_=chat_id))
 
     socket_send_message(
         Message.send_system_message(
@@ -840,13 +828,13 @@ def chat_command_remove_chat(chat_id):
     return redirect(url_for('page_index'))
 
 
-@app.route('/leave-chat/<chat_id>')
+@app.route(storage.prefix + '/leave-chat/<chat_id>')
 def chat_command_leave_chat(chat_id):
     user = User.get_from_cookies(request)
     curr_chat = Chat.from_id(chat_id)
 
     if user is None or curr_chat is None:
-        return redirect(f'/chat/{chat_id}')
+        return redirect(url_for('page_chat', id_=chat_id))
 
     socket_send_message(
         Message.send_system_message(
@@ -864,7 +852,7 @@ def chat_command_leave_chat(chat_id):
     return redirect(url_for('page_index'))
 
 
-@app.route('/get-messages-div-deprecated/<chat_id>')
+@app.route(storage.prefix + '/get-messages-div-deprecated/<chat_id>')
 def get_messages_div_deprecated(chat_id):
     curr_user = User.get_from_cookies(request)
     curr_chat = Chat.from_id(chat_id)
@@ -883,7 +871,7 @@ def get_messages_div_deprecated(chat_id):
     return render_template('messages-div.html', user=curr_user, messages=messages)
 
 
-@app.route('/get-dialogs-div')
+@app.route(storage.prefix + '/get-dialogs-div')
 def get_dialogs_div():
     user = User.get_from_cookies(request)
     if user is None:
@@ -907,16 +895,16 @@ class API_CODES:
     DO_NOT_NEED_UPDATE = 8
 
 
-@app.route('/api')
+@app.route(storage.prefix + '/api')
 def api():
     return render_template(
         'api.html',
         user=User.get_from_cookies(request),
-        demo_mode=DEMO_MODE
+        storage=storage,
     )
 
 
-@app.route('/api/get-token')
+@app.route(storage.prefix + '/api/get-token')
 def api_get_token():
     login = request.args.get('login')
     password = request.args.get('password')
@@ -941,7 +929,7 @@ def api_get_token():
     return json.dumps({'code': API_CODES.SUCCESS, 'token': user.token}, ensure_ascii=False)
 
 
-@app.route('/api/get-login-password')
+@app.route(storage.prefix + '/api/get-login-password')
 def api_get_login_password():
     token = request.args.get('token')
 
@@ -958,7 +946,7 @@ def api_get_login_password():
     return json.dumps({'code': API_CODES.SUCCESS, 'login': user.login, 'password': user.password}, ensure_ascii=False)
 
 
-@app.route('/api/signup')
+@app.route(storage.prefix + '/api/signup')
 def api_signup():
     login = request.args.get('login')
     password = request.args.get('password')
@@ -983,7 +971,7 @@ def api_signup():
     return json.dumps({'code': API_CODES.SUCCESS, 'token': user.token}, ensure_ascii=False)
 
 
-@app.route('/api/get-chats')
+@app.route(storage.prefix + '/api/get-chats')
 def api_get_chats():
     token = request.args.get('token')
     last_time = request.args.get('last-time')
@@ -1013,7 +1001,7 @@ def api_get_chats():
     return json.dumps({'code': API_CODES.SUCCESS, 'chats': chats}, ensure_ascii=False)
 
 
-@app.route('/api/create-chat')
+@app.route(storage.prefix + '/api/create-chat')
 def api_create_chat():
     token = request.args.get('token')
     name = request.args.get('name')
@@ -1035,7 +1023,7 @@ def api_create_chat():
     return json.dumps({'code': API_CODES.SUCCESS, 'chat-id': curr_chat.id}, ensure_ascii=False)
 
 
-@app.route('/api/create-dialog')
+@app.route(storage.prefix + '/api/create-dialog')
 def api_create_dialog():
     token = request.args.get('token')
     companion_login = request.args.get('companion-login')
@@ -1061,7 +1049,7 @@ def api_create_dialog():
     return json.dumps({'code': API_CODES.SUCCESS, 'chat-id': curr_chat.id}, ensure_ascii=False)
 
 
-@app.route('/api/recover-password')
+@app.route(storage.prefix + '/api/recover-password')
 def api_recover_password():
     login = request.args.get('login')
     keyword = request.args.get('keyword')
@@ -1081,7 +1069,7 @@ def api_recover_password():
     return json.dumps({'code': API_CODES.SUCCESS, 'password': user.password, 'token': user.token}, ensure_ascii=False)
 
 
-@app.route('/api/remove-account')
+@app.route(storage.prefix + '/api/remove-account')
 def api_remove_account():
     token = request.args.get('token')
 
@@ -1097,7 +1085,7 @@ def api_remove_account():
     return json.dumps({'code': ret_code}, ensure_ascii=False)
 
 
-@app.route('/api/change-password')
+@app.route(storage.prefix + '/api/change-password')
 def api_change_password():
     token = request.args.get('token')
     new_password = request.args.get('password')
@@ -1115,7 +1103,7 @@ def api_change_password():
     return json.dumps({'code': ret_code}, ensure_ascii=False)
 
 
-@app.route('/api/chat')
+@app.route(storage.prefix + '/api/chat')
 def api_chat():
     token = request.args.get('token')
     id_ = request.args.get('chat-id')
@@ -1161,7 +1149,7 @@ def api_chat():
     return json.dumps({'code': API_CODES.SUCCESS, 'messages': messages}, ensure_ascii=False)
 
 
-@app.route('/api/send-message')
+@app.route(storage.prefix + '/api/send-message')
 def api_send_message():
     token = request.args.get('token')
     chat_id = request.args.get('chat-id')
@@ -1191,7 +1179,7 @@ def api_send_message():
     return json.dumps({'code': ret_code}, ensure_ascii=False)
 
 
-@app.route('/api/change-token')
+@app.route(storage.prefix + '/api/change-token')
 def api_change_token():
     token = request.args.get('token')
 
@@ -1214,5 +1202,5 @@ def api_change_token():
 
 if __name__ == '__main__':
     print('Ready!')
-    io.run(app, '0.0.0.0', port=8003, log_output=True)
+    io.run(app, storage.addr, port=storage.port, log_output=True)
     # app.run('192.168.0.200', port=5000, debug=not SERVER)
