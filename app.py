@@ -23,9 +23,10 @@ io = SocketIO(app, cors_allowed_origins='*')
 app.config['SECRET_KEY'] = 'fdgdfgdfggf786hfg6hfg6h7f'
 
 
-@io.on('join')
+@io.on('join', namespace=storage.prefix)
 def handle_join(data):
-    join_room(data['room'])
+    join_room(data['room'], namespace=storage.prefix)
+    print('JOIN', data)
 
 
 def socket_send_message(message):
@@ -35,11 +36,12 @@ def socket_send_message(message):
         'text': message.text,
         'source': message.from_.id,
     }
-    io.send(new_data, to=message.chat_id)
+    io.send(new_data, room=message.chat_id, namespace=storage.prefix)
 
 
-@io.on('message')
+@io.on('message', namespace=storage.prefix)
 def handle_message(data):
+    print('MESSAGE', data)
     user = User.find_by_id(data['source'])
 
     if user is None:

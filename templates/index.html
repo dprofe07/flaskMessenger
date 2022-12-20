@@ -57,6 +57,13 @@
 
 
     <script lang="javascript" src="{{ url_for('static', filename='index.js') }}"></script>
-
+    <script lang="javascript">
+        async function reload_div() {
+            let div = document.getElementsByClassName('need-update')[0];
+            div.outerHTML = await(await fetch('{{ url_for('get_dialogs_div') }}')).text();
+            search(null);
+        }
+        setInterval(reload_div, 10000);
+    </script>
 
 {% endblock %}

@@ -26,12 +26,6 @@ function show_form_join_chat() {
     frm.style["display"] = "block"
 }
 
-async function reload_div() {
-    let div = document.getElementsByClassName('need-update')[0];
-    div.outerHTML = await(await fetch('{{ storage.custom_url_for('get_dialogs_div') }}')).text();
-    search(null);
-}
-setInterval(reload_div, 10000);
 
 function search(ev) {
         let coll = document.getElementsByClassName("chat");
