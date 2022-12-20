@@ -143,12 +143,12 @@
 
     <script lang="javascript">
         function str_or_other(s, other) {
-            if (strweight(s))
+            if (!strweight(s))
                 return other;
             return s;
         }
 
-        const socket = io.connect('http://' + document.domain + ':' + location.port + '{{ storage.prefix }}', {path: str_or_other('{{ storage.prefix }}', '/') });
+        const socket = io.connect('http{{ 's' if storage.is_server else '' }}://' + document.domain + ':' + location.port + '{{ storage.prefix }}', {path: str_or_other('{{ storage.prefix }}', '/') });
         const holder = document.querySelector('.messages-container');
         const send_button = document.querySelector('.message-send');
         const message_input = document.querySelector('.message-input');
