@@ -23,9 +23,9 @@ io = SocketIO(app, cors_allowed_origins='*')
 app.config['SECRET_KEY'] = 'fdgdfgdfggf786hfg6hfg6h7f'
 
 
-@io.on('join', namespace=storage.prefix)
+@io.on('join')
 def handle_join(data):
-    join_room(data['room'], namespace=storage.prefix)
+    join_room(data['room'])
     print('JOIN', data)
 
 
@@ -36,10 +36,10 @@ def socket_send_message(message):
         'text': message.text,
         'source': message.from_.id,
     }
-    io.send(new_data, room=message.chat_id, namespace=storage.prefix)
+    io.send(new_data, room=message.chat_id)
 
 
-@io.on('message', namespace=storage.prefix)
+@io.on('message')
 def handle_message(data):
     print('MESSAGE', data)
     user = User.find_by_id(data['source'])

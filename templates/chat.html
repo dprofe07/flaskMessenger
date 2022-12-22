@@ -147,8 +147,9 @@
                 return other;
             return s;
         }
+	    let protocol = document.baseURI.split('://')[0];
 
-        const socket = io.connect('http{{ 's' if storage.is_server else '' }}://' + document.domain + ':' + location.port + '{{ storage.prefix }}', {path: str_or_other('{{ storage.prefix }}', '/') });
+	    const socket = io.connect(protocol + '://' + document.domain + ':' + location.port, {path: str_or_other('{{ storage.prefix }}', '') + '/socket.io'});
         const holder = document.querySelector('.messages-container');
         const send_button = document.querySelector('.message-send');
         const message_input = document.querySelector('.message-input');
