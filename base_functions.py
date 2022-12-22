@@ -285,7 +285,7 @@ class BaseFunctions:
             code = curr_chat.token
             message_callback(Message.send_system_message(
                 f'Сгенерирован код-приглашение: '
-                f'<b><a href="/join-chat?code={urllib.parse.quote_plus(code)}">{code}</a></b><br/><br/>'
+                f'<b><a href="{"/messenger" if storage.is_server else ""}/join-chat?code={urllib.parse.quote_plus(code)}">{code}</a></b><br/><br/>'
                 f'Чтобы сделать код недействительным используйте команду !!reset-invite-code',
                 curr_chat.id
             ))
