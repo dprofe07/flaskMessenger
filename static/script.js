@@ -1,10 +1,16 @@
-const main = document.querySelector('main');
-const footer = document.querySelector('footer');
+let mobile_document = document.getElementsByClassName('mobile')[0];
+let desktop_document = document.getElementsByClassName('desktop')[0];
+
+const main_desktop = desktop_document.querySelector('main');
+const main_mobile = mobile_document.querySelector('main');
+const footer_desktop = desktop_document.querySelector('footer');
+const footer_mobile = mobile_document.querySelector('footer');
+
 const global_anim_time = 500;
 
 function ToggleWebsite(state) {
     let anim_time = state? global_anim_time : global_anim_time / 2;
-    [main, footer].forEach(obj => {
+    [main_desktop, main_mobile, footer_desktop, footer_mobile].forEach(obj => {
         obj.style.animation = (state? '' : 'dis') +
             `appear ${anim_time}ms ease-in-out forwards`;
     });

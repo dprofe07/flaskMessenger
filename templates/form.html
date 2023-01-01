@@ -6,8 +6,8 @@
     <link href="{{ url_for('static', filename='form.css') }}" rel="stylesheet" type="text/css">
 {% endblock %}
 
+{% block content_mobile %}
 {% block content %}
-
     <form action="#" method="post">
         {% for option in form.options %}
             <div class="input-block">
@@ -28,4 +28,5 @@
     </form>
 
 
+{% endblock %}
 {% endblock %}

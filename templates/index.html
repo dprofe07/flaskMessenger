@@ -6,23 +6,35 @@
     <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='index.css') }}"/>
 {% endblock %}
 
+{% block scripts %}
+    <script lang="javascript" src="{{ url_for('static', filename='index.js') }}"></script>
+    <script lang="javascript">
+        async function reload_div() {
+            let text = await(await fetch('{{ url_for('get_dialogs_div') }}')).text();
+            for (const div in document.getElementsByClassName('need-update')) {
+                div.outerHTML = text;
+            }
+            search(false);
+            search(true);
+        }
+        setInterval(reload_div, 10000);
+    </script>
+{% endblock %}
+
 {% block content_mobile %}
-        <p>MOBILE</p>
-    {% endblock %}
-
-{% block content %}
-
     <h3 class="center">Чаты</h3>
 
-    <div class="chats-container">
+    <div id="chats-container">
         <input type="text" id="chat-search" placeholder="Поиск чатов"/>
+
         {% include 'dialogs-div.html' %}
+
         <div class="chat">
-            <a href="javascript:show_choice_chat_or_dialog()" class="chat-buttons" id="plus">+</a>
+            <a href="javascript:show_choice_chat_or_dialog(true)" class="chat-buttons" id="plus">+</a>
             <table id="tbl-choice">
                 <tr>
-                    <td style="float: left"><a href="javascript:show_form_chat()" class="chat-buttons" id="add-chat">Чат</a></td>
-                    <td style="float: right"><a href="javascript:show_form_dialog()" class="chat-buttons" id="add-dialog">Диалог</a></td>
+                    <td style="float: left"><a href="javascript:show_form_chat(true)" class="chat-buttons" id="add-chat">Чат</a></td>
+                    <td style="float: right"><a href="javascript:show_form_dialog(true)" class="chat-buttons" id="add-dialog">Диалог</a></td>
                 </tr>
             </table>
 
@@ -45,7 +57,7 @@
         </div>
         <div class="chat">
 
-            <a href="javascript:show_form_join_chat()" class="chat-buttons" id="join_chat">Присоединиться по коду</a>
+            <a href="javascript:show_form_join_chat(true)" class="chat-buttons" id="join_chat">Присоединиться по коду</a>
             <form action="{{ url_for('page_join_chat') }}" id="form-join-chat">
                 <label for="chat-code">Присоединиться к чату по коду:</label>
                 <input type="text" name="code" id="chat-code" placeholder="Код чата">
@@ -54,16 +66,51 @@
             </form>
         </div>
     </div>
+{% endblock %}
 
+{% block content %}
 
-    <script lang="javascript" src="{{ url_for('static', filename='index.js') }}"></script>
-    <script lang="javascript">
-        async function reload_div() {
-            let div = document.getElementsByClassName('need-update')[0];
-            div.outerHTML = await(await fetch('{{ url_for('get_dialogs_div') }}')).text();
-            search(null);
-        }
-        setInterval(reload_div, 10000);
-    </script>
+    <h3 class="center">Чаты</h3>
+
+    <div class="chats-container">
+        <input type="text" id="chat-search" placeholder="Поиск чатов"/>
+        {% include 'dialogs-div.html' %}
+        <div class="chat">
+            <a href="javascript:show_choice_chat_or_dialog(false)" class="chat-buttons" id="plus">+</a>
+            <table id="tbl-choice">
+                <tr>
+                    <td style="float: left"><a href="javascript:show_form_chat(false)" class="chat-buttons" id="add-chat">Чат</a></td>
+                    <td style="float: right"><a href="javascript:show_form_dialog(false)" class="chat-buttons" id="add-dialog">Диалог</a></td>
+                </tr>
+            </table>
+
+            <div id="form-new-chat">
+                <form action="{{ url_for('page_new_chat') }}" method="post">
+                    <input type="text" name="chat-name" id="chat-name" autocomplete="off" required placeholder="Название чата"/>
+
+                    <input type="submit" value="Создать"/>
+                </form>
+            </div>
+
+            <div id="form-new-dialog">
+                <form action="{{ url_for('page_new_dialog') }}" method="post">
+                    <label for="login">Создать диалог с </label>
+                    <input type="text" name="login" id="login" autocomplete="off" placeholder="Логин собеседника" required/>
+
+                    <input type="submit" value="➤"/>
+                </form>
+            </div>
+        </div>
+        <div class="chat">
+
+            <a href="javascript:show_form_join_chat(false)" class="chat-buttons" id="join_chat">Присоединиться по коду</a>
+            <form action="{{ url_for('page_join_chat') }}" id="form-join-chat">
+                <label for="chat-code">Присоединиться к чату по коду:</label>
+                <input type="text" name="code" id="chat-code" placeholder="Код чата">
+
+                <input type="submit" value="➤">
+            </form>
+        </div>
+    </div>
 
 {% endblock %}

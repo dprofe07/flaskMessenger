@@ -133,7 +133,7 @@ main h1 {
     }
 }
 
-main, footer {
+.desktop main, .desktop footer {
     opacity: 0;
 }
 

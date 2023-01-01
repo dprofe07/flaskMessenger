@@ -6,6 +6,7 @@
     <link href="{{ url_for('static', filename='chat.css') }}" rel="stylesheet" type="text/css">
 {% endblock %}
 
+{% block content_mobile %}
 {% block content -%}
     {% macro row(val1, val2) %}
         <tr>
@@ -149,8 +150,11 @@
         }
 	    let protocol = document.baseURI.split('://')[0];
 
-	    const socket = io.connect(protocol + '://' + document.domain + ':' + location.port, {path: str_or_other('{{ storage.prefix }}', '') + '/socket.io'});
+	    const socket = io.connect(
+	        protocol + '://' + document.domain + ':' + location.port,
+            {path: str_or_other('{{ storage.prefix }}', '') + '/socket.io'});
         const holder = document.querySelector('.messages-container');
+
         const send_button = document.querySelector('.message-send');
         const message_input = document.querySelector('.message-input');
         const my_id = {{ user.id }};
@@ -319,4 +323,5 @@
             redirectTo("{{ url_for('chat_command_rename_chat', chat_id=chat.id) }}?new-name=" + new_name)
         }
     </script>
+{% endblock %}
 {% endblock %}

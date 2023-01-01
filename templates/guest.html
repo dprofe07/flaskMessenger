@@ -2,6 +2,8 @@
 
 {% set title="Главная" %}
 
+
+{% block content_mobile %}
 {% block content %}
 
 <h1>Вы не авторизовались</h1>
@@ -9,4 +11,5 @@
     или <a class="local" href="{{ url_for('page_signup') }}">зарегистрируйтесь</a></span>
 <span>Также вы можете <a href="{{ url_for('page_download_app') }}">скачать приложение</a></span>
 
+{% endblock %}
 {% endblock %}

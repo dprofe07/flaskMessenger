@@ -21,7 +21,7 @@ class RuntimeStorage:
                 self.database = '/SERVER/databases/flaskMessenger/users_db.db'
             self.prefix = prefix
             self.port = 8003
-            self.addr = '127.0.0.1'
+            self.addr = '0.0.0.0'
 
         else:
             self.database = 'users.db'

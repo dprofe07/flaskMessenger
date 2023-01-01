@@ -3,7 +3,7 @@ import time
 from chat import Chat
 from message import Message
 from user import User
-
+from runtime_storage import storage
 
 class BaseFunctions:
     @staticmethod

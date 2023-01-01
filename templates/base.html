@@ -143,5 +143,8 @@
                 setTimeout(function() {redirectTo('{{ redirect_address }}')}, {{ redirect_timeout }})
             {% endif %}
         </script>
+
+        {% block scripts %}
+        {% endblock %}
     </body>
 </html>
