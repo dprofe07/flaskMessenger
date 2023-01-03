@@ -34,7 +34,8 @@ def socket_send_message(message):
         'html_sender': message.get_html(message.from_),
         'html_any': message.get_html(None),
         'text': message.text,
-        'source': message.from_.id,
+        'source': message.from_.token,
+        'source_login': message.from_.login,
     }
     io.send(new_data, room=message.chat_id)
 
@@ -42,7 +43,7 @@ def socket_send_message(message):
 @io.on('message')
 def handle_message(data):
     print('MESSAGE', data)
-    user = User.find_by_id(data['source'])
+    user = User.find_by_token(data['source'])
 
     if user is None:
         return
@@ -61,6 +62,9 @@ def handle_message(data):
             user,
             lambda message: socket_send_message(message)
         )
+
+        if 'RELOAD' in res:
+            io.emit('need_refresh')
 
         if 'NEED' in res:
             command = res['command']
@@ -320,6 +324,7 @@ def page_recover_password_message():
     return 'IN_WORK'
     # TODO
 
+
 # noinspection PyUnusedLocal
 @app.errorhandler(404)
 def page_err404(e):
@@ -388,7 +393,7 @@ def page_auth():
 @app.route(storage.prefix + '/signup', methods=['POST', 'GET'])
 def page_signup():
     if User.get_from_cookies(request) is not None:
-        return redirect(url_for(page_index))
+        return redirect(url_for('page_index'))
     if request.method == 'GET':
         return render_template(
             'form.html',
@@ -591,7 +596,7 @@ def chat_command_make_invite_code(chat_id):
     socket_send_message(
         Message.send_system_message(
             f'Сгенерирован код-приглашение: '
-            f'<b><a href="/join-chat?code={urllib.parse.quote_plus(code)}">{code}</a></b><br/><br/>',
+            f'<b><a href="{storage.prefix}/join-chat?code={urllib.parse.quote_plus(code)}">{code}</a></b><br/><br/>',
             curr_chat.id
         )
     )
@@ -802,6 +807,7 @@ def chat_command_clear_chat(chat_id):
             curr_chat.id
         )
     )
+    io.emit('need_refresh', room=chat_id)
 
     return redirect(url_for('page_chat', id_=chat_id))
 
@@ -852,25 +858,6 @@ def chat_command_leave_chat(chat_id):
     flash('Вы покинули чат', 'success')
 
     return redirect(url_for('page_index'))
-
-
-@app.route(storage.prefix + '/get-messages-div-deprecated/<chat_id>')
-def get_messages_div_deprecated(chat_id):
-    curr_user = User.get_from_cookies(request)
-    curr_chat = Chat.from_id(chat_id)
-    if curr_chat is None:
-        return (f'''
-            <div class="messages-container">
-                <div class="message message-system">
-                    Ошибка! Не удалось найти чат.
-                </div>
-            </div>
-        ''')
-    messages = Message.get_messages_from_chat(chat_id)
-
-    messages.sort(key=lambda i: i.time)
-
-    return render_template('messages-div.html', user=curr_user, messages=messages)
 
 
 @app.route(storage.prefix + '/get-dialogs-div')

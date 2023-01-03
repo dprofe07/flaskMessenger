@@ -233,20 +233,6 @@ class BaseFunctions:
                             ).write_to_db()
                         )
 
-            elif command[0] == 'rename-chat':
-                new_name = ';'.join(command[1:])
-                if not curr_user.is_admin(curr_chat.id):
-                    message_callback(Message.send_system_message(
-                        'Нужны права администратора',
-                        curr_chat.id
-                    ))
-                else:
-                    message_callback(Message.send_system_message(
-                        f'Пользователь {curr_user.login} изменил название чата: {curr_chat.name} -> {new_name}',
-                        curr_chat.id
-                    ))
-                    curr_chat.name = new_name
-                    curr_chat.write_to_db()
             else:
                 message_callback(Message.send_system_message(
                     'Команда не найдена',

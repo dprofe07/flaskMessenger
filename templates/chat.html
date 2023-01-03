@@ -157,7 +157,7 @@
 
         const send_button = document.querySelector('.message-send');
         const message_input = document.querySelector('.message-input');
-        const my_id = {{ user.id }};
+        const my_token = '{{ user.token }}';
         const room_id = {{ chat.id }};
 
         function UpdateHolder() {
@@ -190,7 +190,7 @@
             if (!strweight(msg)) return;
             socket.send({
                 text: message_input.value,
-                source: my_id,
+                source: my_token,
                 room: room_id
             });
             message_input.value = '';
@@ -203,21 +203,24 @@
         });
 
         socket.on('message', data => {
-            if (data['source'] !== 'SYSTEM') {
-
-                if (data['source'] === my_id) {
+            if (data['source_login'] !== 'SYSTEM') {
+                if (data['source'] === my_token) {
                     AddMessage(data['html_sender'], true);
                 } else {
                     new Notification("Новое сообщение - Messenger", {
-                        body: data['source'] + ": " + data['text']
+                        body: data['source_login'] + ": " + data['text']
                     });
                     AddMessage(data['html_any'], false);
                 }
             } else {
                 AddAlert(data['html_any']);
             }
-            if (data['text'][0] === '!' && data['text'][1] === '!') document.location.reload();
         });
+
+        socket.on('need_refresh', () => {
+                document.location.reload();
+            }
+        )
 
         send_button.addEventListener('click', send);
         message_input.addEventListener('keydown', ev => {
@@ -243,7 +246,6 @@
 
 
         function reload() {
-            if (strweight(message_input.value)) return;
             document.location.reload();
         }
 
@@ -252,6 +254,18 @@
         UpdateHolder();
 
         NOTIFICATION_KEY = 'asfafalskgahlkfhasfhjabfljasfblabfbal';
+
+        message_input.addEventListener('keydown', ev => {
+            let text = message_input.value;
+
+            localStorage.setItem('draft_chat_{{ chat.id }}', text);
+        });
+
+        let saved_text = localStorage.getItem('draft_chat_{{ chat.id }}');
+        if (saved_text !== null) {
+            message_input.value = saved_text;
+        }
+
 
         function urlBase64ToUint8Array(base64String) {
             const padding = '='.repeat((4 - base64String.length % 4) % 4);

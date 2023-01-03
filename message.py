@@ -79,7 +79,7 @@ class Message(BaseUnit):
     def send_system_message(text, chat_id):
         system_user = User.find_by_login_('SYSTEM')
         if system_user is None:
-            return False
+            return None
         msg = Message(
             -1,
             system_user,
