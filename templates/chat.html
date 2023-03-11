@@ -148,7 +148,7 @@
                 return other;
             return s;
         }
-	    let protocol = document.baseURI.split('://')[0];
+        let protocol = document.baseURI.split('://')[0]
 
 	    const socket = io.connect(
 	        protocol + '://' + document.domain + ':' + location.port,
@@ -245,12 +245,6 @@
         }
 
 
-        function reload() {
-            document.location.reload();
-        }
-
-
-        setInterval(reload, 100_000);
         UpdateHolder();
 
         NOTIFICATION_KEY = 'asfafalskgahlkfhasfhjabfljasfblabfbal';

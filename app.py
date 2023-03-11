@@ -6,7 +6,7 @@ import time
 
 import prettytable
 from flask import Flask, render_template, request, redirect, flash, send_file, url_for
-from flask_socketio import SocketIO, join_room
+from flask_socketio import SocketIO, join_room, rooms
 
 from base_functions import BaseFunctions
 from base_unit import BaseUnit
@@ -37,7 +37,7 @@ def socket_send_message(message):
         'source': message.from_.token,
         'source_login': message.from_.login,
     }
-    io.send(new_data, room=message.chat_id)
+    io.send(new_data, room=int(message.chat_id))
 
 
 @io.on('message')
@@ -64,7 +64,7 @@ def handle_message(data):
         )
 
         if 'RELOAD' in res:
-            io.emit('need_refresh')
+            io.emit('need_refresh', room=data['room'])
 
         if 'NEED' in res:
             command = res['command']
@@ -593,6 +593,8 @@ def chat_command_make_invite_code(chat_id):
 
     import urllib.parse
     code = curr_chat.token
+    io.emit('need_refresh', room=int(chat_id))
+    print()
     socket_send_message(
         Message.send_system_message(
             f'Сгенерирован код-приглашение: '
@@ -807,7 +809,7 @@ def chat_command_clear_chat(chat_id):
             curr_chat.id
         )
     )
-    io.emit('need_refresh', room=chat_id)
+    io.emit('need_refresh', room=int(chat_id))
 
     return redirect(url_for('page_chat', id_=chat_id))
 

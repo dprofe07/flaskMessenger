@@ -139,7 +139,7 @@ class User(BaseUnit):
         return User(*res[0])
 
     def save_to_cookies(self, resp):
-        resp.set_cookie('user_token', self.token, 60 * 60 * 24 * 365 * 1000)
+        resp.set_cookie('user_token', self.token, 60 * 60 * 24 * 365 * 100)
         # on 1000 years
 
     @staticmethod
