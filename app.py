@@ -25,7 +25,7 @@ app.config['SECRET_KEY'] = 'fdgdfgdfggf786hfg6hfg6h7f'
 
 @io.on('join')
 def handle_join(data):
-    join_room(data['room'])
+    join_room(int(data['room']))
     print('JOIN', data)
 
 
