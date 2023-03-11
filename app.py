@@ -18,7 +18,7 @@ from user import User
 
 
 app = Flask(__name__, storage.prefix + '/static')
-io = SocketIO(app, cors_allowed_origins='*')
+io = SocketIO(app, cors_allowed_origins='*', logger=True, engineio_logger=True)
 
 app.config['SECRET_KEY'] = 'fdgdfgdfggf786hfg6hfg6h7f'
 
@@ -503,7 +503,7 @@ def page_new_chat():
 
     curr_chat = BaseFunctions.create_chat(curr_user, chat_name, [])
 
-    return redirect(f'/chat/{curr_chat.id}')
+    return redirect(url_for('page_chat', id_=curr_chat.id))
 
 
 @app.route(storage.prefix + '/new-dialog', methods=['POST'])
