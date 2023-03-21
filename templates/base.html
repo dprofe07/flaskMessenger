@@ -25,7 +25,7 @@
                         <nav class="menu-left">
                             <ul>
                                 <li><a href="{{ url_for('page_index') }}">Сообщения</a></li>
-                                <li><a href="{{ url_for('page_about_app') }}">Приложение</a></li>
+                                <!--<li><a href="{{ url_for('page_about_app') }}">Приложение</a></li>-->
                                 {% if user %}
                                     <li><a href="{{ url_for('page_index') }}"><b>{{ user.login }}<!-- [Настройки]--></b></a>
                                         <ul>

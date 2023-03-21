@@ -5,7 +5,7 @@ import json
 import time
 
 import prettytable
-from flask import Flask, render_template, request, redirect, flash, send_file, url_for
+from flask import Flask, render_template, request, redirect, flash, send_file, url_for, make_response, abort
 from flask_socketio import SocketIO, join_room, rooms
 
 from base_functions import BaseFunctions
@@ -571,11 +571,14 @@ def page_join_chat():
 
 @app.route(storage.prefix + '/download-app')
 def page_download_app():
+    abort(404)
+    return
     return send_file('static/messenger_app.apk', as_attachment=True)
 
 
 @app.route(storage.prefix + '/about-app')
 def page_about_app():
+    abort(404)
     return render_template(
         'about-app.html',
         user=User.get_from_cookies(request),
