@@ -271,8 +271,11 @@ class BaseFunctions:
             code = curr_chat.token
             message_callback(Message.send_system_message(
                 f'Сгенерирован код-приглашение: '
-                f'<b><a href="{"/messenger" if storage.is_server else ""}/join-chat?code={urllib.parse.quote_plus(code)}">{code}</a></b><br/><br/>'
-                f'Чтобы сделать код недействительным используйте команду !!reset-invite-code',
+                f'<b><a href="{storage.prefix}/join-chat?code={urllib.parse.quote_plus(code)}">{code}</a></b><br/><br/>'
+                f'Чтобы сделать код недействительным используйте соответствующий пункт меню<br/><br/>'
+                f'<img src="https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=https://dprofe.ddns.net'
+                f'{storage.prefix}/join-chat?code={urllib.parse.quote_plus(code)}" '
+                f'alt="QR-код приглашение"/>',
                 curr_chat.id
             ))
 
