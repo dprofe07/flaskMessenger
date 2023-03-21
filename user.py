@@ -162,6 +162,8 @@ class User(BaseUnit):
         return f'User({self.id}, {self.login!r}, {self.password!r}, {self.keyword!r}, {self.token!r})'
 
     def __eq__(self, other):
+        if type(other) is int:
+            return self.id == other
         return self.id == other.id
 
     def __ne__(self, other):

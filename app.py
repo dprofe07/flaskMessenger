@@ -468,6 +468,10 @@ def page_chat(id_):
             curr_chat.show_name = f'Диалог с {other}'
         else:
             curr_chat.show_name = f'Диалог между {logins[0]} и {logins[1]}'
+    print([type(i.from_) for i in messages])
+    print('---')
+    print(curr_user)
+    print(curr_chat)
     return render_template(
         'chat.html',
         user=curr_user,
@@ -522,7 +526,7 @@ def page_new_dialog():
         flash('Пользователь не найден', 'error')
         return redirect(url_for('page_index'))
 
-    curr_chat = Chat(-1, f'DIALOG_BETWEEN/{login};{curr_user.login}', [curr_user.id, login])
+    curr_chat = Chat(-1, f'DIALOG_BETWEEN/{login};{curr_user.login}', [curr_user.id, companion_user.id])
     curr_chat.write_to_db()
 
     curr_user.become_admin(curr_chat.id)

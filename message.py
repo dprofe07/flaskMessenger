@@ -22,26 +22,30 @@ class Message(BaseUnit):
         db_conn = Message.connect_to_db()
         cur = db_conn.cursor()
         cur.execute("SELECT * FROM messages")
-        return [Message(*i) for i in cur.fetchall()]
+        res = [Message(*i) for i in cur.fetchall()]
+        for i in res:
+            i.from_ = User.find_by_id(i.from_)
 
     def get_html(self, for_: User):
         res = '<div class="message-header">'
         any_ = for_ is None
-        if self.from_.login != 'SYSTEM':
+        if type(self.from_) is User and self.from_.login != 'SYSTEM':
             sender = self.from_.login
             if not any_ and sender == for_.login:
                 sender = 'Вы'
             res += f'<span class="source">{sender}</span>'
 
-        if self.from_.login != 'SYSTEM':
+            res += f'<a style="float:right" href="javascript:on_message_click({self.id})">Ответить</a>'
+        elif type(self.from_) is not User:
+            res += f'<span class="source">Удалённый пользователь</span>'
             res += f'<a style="float:right" href="javascript:on_message_click({self.id})">Ответить</a>'
         res += '</div>'
+
         answered = Message.find_by_id(self.answer_to)
         if answered is not None:
             res += f'<div class="answered">{answered.get_html(for_)}</div>'
 
-
-        if self.from_.login == 'SYSTEM':
+        if type(self.from_) is User and self.from_.login == 'SYSTEM':
             res += f'''<span class="text">{self.text}</span>'''
         else:
             res += (
@@ -50,7 +54,7 @@ class Message(BaseUnit):
                     '</span>'
             )
 
-        if self.from_.login != 'SYSTEM':
+        if type(self.from_) is User and self.from_.login != 'SYSTEM':
             def pretty(n: int):
                 return f'{"0" if n // 10 == 0 else ""}{n}'
             t = time.localtime(self.time)

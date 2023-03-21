@@ -88,7 +88,7 @@
         <span class="chat-hint">Чтобы удалить диалог введите "!!remove-chat;", чтобы очистить - "!!clear-chat;", а чтобы покинуть -
             "!!leave"</span>
         -->
-        <nav class="menu">
+        <nav class="menu-right">
             <ul>
                 <li><a>Диалог</a>
                     <ul>
@@ -111,7 +111,7 @@
                 {% if i.from_.login == 'SYSTEM' %}
                     <span class="alert">{{ i.get_html(user) | safe }}</span>
                 {% else %}
-                    <div class="message {{ 'my' if i.from_ == user else '' }}">
+                    <div class="message {{ 'my' if i.from_ == user.id else '' }}">
                         {{ i.get_html(user) | safe }}
                     </div>
                 {% endif %}
