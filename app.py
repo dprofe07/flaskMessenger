@@ -598,12 +598,12 @@ def chat_command_make_invite_code(chat_id):
     import urllib.parse
     code = curr_chat.token
     io.emit('need_refresh', room=int(chat_id))
-    print()
+
     socket_send_message(
         Message.send_system_message(
             f'Сгенерирован код-приглашение: '
             f'<b><a href="{storage.prefix}/join-chat?code={urllib.parse.quote_plus(code)}">{code}</a></b><br/>'
-            f'<img src="https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=https://dprofe.ddns.net'
+            f'<img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://dprofe.ddns.net'
             f'{storage.prefix}/join-chat?code={urllib.parse.quote_plus(code)}" '
             f'alt="QR-код приглашение"/><br/>',
             curr_chat.id
