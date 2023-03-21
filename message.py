@@ -54,7 +54,7 @@ class Message(BaseUnit):
                     '</span>'
             )
 
-        if type(self.from_) is User and self.from_.login != 'SYSTEM':
+        if type(self.from_) is not User or self.from_.login != 'SYSTEM':
             def pretty(n: int):
                 return f'{"0" if n // 10 == 0 else ""}{n}'
             t = time.localtime(self.time)
