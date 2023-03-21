@@ -259,25 +259,6 @@ class BaseFunctions:
             if values_to_check[i] is None:
                 return values_to_return[i]
 
-    @staticmethod
-    def make_invite_code(curr_user, curr_chat, message_callback=lambda msg: None):
-        if not curr_user.is_admin(curr_chat.id):
-            message_callback(Message.send_system_message(
-                'Нужны права администратора',
-                curr_chat.id
-            ))
-        else:
-            import urllib.parse
-            code = curr_chat.token
-            message_callback(Message.send_system_message(
-                f'Сгенерирован код-приглашение: '
-                f'<b><a href="{storage.prefix}/join-chat?code={urllib.parse.quote_plus(code)}">{code}</a></b><br/><br/>'
-                f'Чтобы сделать код недействительным используйте соответствующий пункт меню<br/><br/>'
-                f'<img src="https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=https://dprofe.ddns.net'
-                f'{storage.prefix}/join-chat?code={urllib.parse.quote_plus(code)}" '
-                f'alt="QR-код приглашение"/>',
-                curr_chat.id
-            ))
 
     @staticmethod
     def clear_chat(curr_user, curr_chat, message_callback=lambda msg: None):
