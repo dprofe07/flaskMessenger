@@ -202,14 +202,14 @@
         }
 
         function send(mobile=false) {
-            let msg_input = (mobile ? message_input_mobile : message_input)
-            let msg = msg_input.value;
+            let msg = (mobile ? message_input_mobile : message_input).value;
             if (!strweight(msg)) return;
             socket.send({
                 text: msg,
                 source: my_token,
                 room: room_id
             });
+            localStorage.setItem('draft_chat_{{ chat.id }}', "");
             message_input.value = '';
             message_input_mobile.value = '';
         }
