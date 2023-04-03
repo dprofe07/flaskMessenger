@@ -158,12 +158,13 @@
 	    const socket = io.connect(
 	        protocol + '://' + document.domain + ':' + location.port,
             {path: str_or_other('{{ storage.prefix }}', '') + '/socket.io'});
-        const holder = document.querySelector('.messages-container');
+        const holder = get_page().querySelector('.messages-container');
+        const holder_mobile = get_page(true).querySelector('.messages-container');
 
-        const send_button = document.querySelector('.message-send');
-        const send_button_mobile = document.querySelector('.message-send');
-        const message_input = document.querySelector('.message-input');
-        const message_input_mobile = document.querySelector('.message-input');
+        const send_button = get_page().querySelector('.message-send');
+        const send_button_mobile = get_page(true).querySelector('.message-send');
+        const message_input = get_page().querySelector('.message-input');
+        const message_input_mobile = get_page(true).querySelector('.message-input');
         const my_token = '{{ user.token }}';
         const room_id = {{ chat.id }};
 
@@ -172,15 +173,23 @@
                 top: holder.scrollHeight,
                 behavior: 'smooth'
             });
+            holder_mobile.scroll({
+                top: holder_mobile.scrollHeight,
+                behavior: 'smooth'
+            });
         }
 
         function AddAlert(text) {
             holder.innerHTML += `<span class="alert">${text}</span>`;
+            holder_mobile.innerHTML += `<span class="alert">${text}</span>`;
             UpdateHolder();
         }
 
         function AddMessage(data, my) {
             holder.innerHTML += `<div class="${'message' + (my ? ' my' : '')}">` +
+                `${data}` +
+                '</div>';
+            holder_mobile.innerHTML += `<div class="${'message' + (my ? ' my' : '')}">` +
                 `${data}` +
                 '</div>';
             UpdateHolder();
@@ -197,11 +206,11 @@
             let msg = msg_input.value;
             if (!strweight(msg)) return;
             socket.send({
-                text: msg.value,
+                text: msg,
                 source: my_token,
                 room: room_id
             });
-            msg.value = '';
+            msg_input.value = '';
         }
 
         socket.on('connect', () => {
@@ -230,10 +239,13 @@
             }
         )
 
-        send_button.addEventListener('click', send);
+        send_button.addEventListener('click', () => {send()});
         send_button_mobile.addEventListener('click', () => {send(true)});
         message_input.addEventListener('keydown', ev => {
             if (ev.key === 'Enter') send();
+        });
+        message_input_mobile.addEventListener('keydown', ev => {
+            if (ev.key === 'Enter') send(true);
         });
 
 

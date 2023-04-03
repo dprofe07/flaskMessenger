@@ -1203,5 +1203,5 @@ def api_change_token():
 
 if __name__ == '__main__':
     print('Ready!')
-    io.run(app, storage.addr, port=storage.port, log_output=True)
+    io.run(app, storage.addr, port=storage.port, log_output=True, allow_unsafe_werkzeug=True)
     # app.run('192.168.0.200', port=5000, debug=not SERVER)
