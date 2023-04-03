@@ -1,7 +1,3 @@
-function get_page(mobile=false) {
-    return (mobile ? mobile_document : desktop_document);
-}
-
 function show_choice_chat_or_dialog(mobile=false) {
     let a_plus = get_page(mobile).querySelector('#plus');
     a_plus.style.display = "none";

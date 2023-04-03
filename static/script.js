@@ -1,6 +1,10 @@
 let mobile_document = document.getElementsByClassName('mobile')[0];
 let desktop_document = document.getElementsByClassName('desktop')[0];
 
+function get_page(mobile=false) {
+    return (mobile ? mobile_document : desktop_document);
+}
+
 const main_desktop = desktop_document.querySelector('main');
 const main_mobile = mobile_document.querySelector('main');
 const footer_desktop = desktop_document.querySelector('footer');
