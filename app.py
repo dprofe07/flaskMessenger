@@ -841,6 +841,8 @@ def chat_command_remove_chat(chat_id):
             curr_chat.id
         )
     )
+
+    io.emit('need_refresh', room=int(chat_id))
     curr_chat.remove_from_db()
 
     flash('Чат успешно удалён', 'success')
