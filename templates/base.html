@@ -84,7 +84,7 @@
                                     <a href="#" class="btn-menu"><img src="{{ url_for('static', filename='menu.png') }}" alt="Меню"/></a>
                                     <ul>
                                         <li><a href="{{ url_for('page_index') }}">Сообщения</a></li>
-                                        <li><a href="{{ url_for('page_about_app') }}">Приложение</a></li>
+                                        <!--<li><a href="{{ url_for('page_about_app') }}">Приложение</a></li>-->
                                         {% if user %}
                                             <li><a href="#"><b>{{ user.login }}<!-- [Настройки]--></b></a>
                                                 <ul>
