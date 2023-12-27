@@ -5,8 +5,8 @@ import json
 import time
 
 import prettytable
-from flask import Flask, render_template, request, redirect, flash, send_file, url_for, make_response, abort
-from flask_socketio import SocketIO, join_room, rooms
+from flask import Flask, render_template, request, redirect, flash, send_file, url_for, abort
+from flask_socketio import SocketIO, join_room
 
 from base_functions import BaseFunctions
 from base_unit import BaseUnit
@@ -16,9 +16,8 @@ from message import Message
 from runtime_storage import storage
 from user import User
 
-
 app = Flask(__name__, storage.prefix + '/static')
-io = SocketIO(app, cors_allowed_origins='*', logger=True, engineio_logger=True)
+io = SocketIO(app, cors_allowed_origins='*', logger=True, engineio_logger=True, path='/messenger/socket.io', transports=['websocket', 'polling'])
 
 app.config['SECRET_KEY'] = 'fdgdfgdfggf786hfg6hfg6h7f'
 
